@@ -23,6 +23,7 @@ import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { LanguageFlyout } from './LanguageFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
+import { isManualPasteShortcut } from '../lib/manualPaste'
 
 import { useTranslation } from '../i18n'
 
@@ -50,6 +51,7 @@ export function Panel() {
   const edgeTransition = useStore((s) => s.edgeTransition)
   const [startupBeacon, setStartupBeacon] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [keyboardPasteArmed, setKeyboardPasteArmed] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -74,6 +76,44 @@ export function Panel() {
       return () => window.clearTimeout(timer)
     }
   }, [open, setSettingsOpen, setQuery, setEmojiOpen])
+
+  useEffect(() => {
+    if (!keyboardPasteArmed) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const state = useStore.getState()
+      if (!state.open || state.settingsOpen || state.emojiOpen || !isManualPasteShortcut(event)) return
+      event.preventDefault()
+      event.stopPropagation()
+      void window.edge.captureClipboard()
+    }
+
+    const onWindowBlur = () => {
+      setKeyboardPasteArmed(false)
+      void window.edge.focusWindow(false)?.catch?.(() => {})
+    }
+
+    window.addEventListener('keydown', onKeyDown, true)
+    window.addEventListener('blur', onWindowBlur)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true)
+      window.removeEventListener('blur', onWindowBlur)
+    }
+  }, [keyboardPasteArmed])
+
+  useEffect(() => {
+    if (open) return
+    if (!keyboardPasteArmed) return
+    setKeyboardPasteArmed(false)
+    void window.edge.focusWindow(false)?.catch?.(() => {})
+  }, [open, keyboardPasteArmed])
+
+  const armKeyboardPaste = () => {
+    if (keyboardPasteArmed) return
+    setKeyboardPasteArmed(true)
+    try { window.focus() } catch { /* ignore */ }
+    void window.edge.focusWindow(true)?.catch?.(() => {})
+  }
 
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
   const pFrac = settings.panelHeight || 0.6
@@ -345,6 +385,7 @@ export function Panel() {
       <CopyIndicatorCurve />
       <div
         className={containerClass}
+        onPointerDownCapture={armKeyboardPaste}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}

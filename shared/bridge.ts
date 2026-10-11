@@ -32,6 +32,7 @@ export interface EdgeApi {
   copySubitem: (req: DragRequest) => Promise<boolean>
   pasteItem: (id: string) => Promise<boolean>
   pasteSubitem: (req: DragRequest) => Promise<boolean>
+  captureClipboard: () => Promise<boolean>
   pasteEmoji: (text: string) => Promise<boolean>
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>

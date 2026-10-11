@@ -16,6 +16,10 @@ import { prefetchFileIcons } from './drag'
 import { forgetStagedItems, reconcileTempOnStartup } from './stagedTemp'
 import { runtime } from './config'
 import { getMainWindow, registerClipboardUpdateListener, requestPollBoost } from './window'
+import { clipboard } from 'electron'
+import { readClipboard } from '../clipboard/formats'
+import { createId } from '../store/ids'
+import { captureClipboardItem } from '../clipboard/manualCapture'
 
 const store = new ItemStore((removed) => forgetStagedItems(removed))
 const watcher = new ClipboardWatcher(600, 220)
@@ -133,6 +137,21 @@ export function getStore(): ItemStore {
 
 export function getWatcher(): ClipboardWatcher {
   return watcher
+}
+
+/** Capture one explicit clipboard paste without changing incognito watcher state. */
+export async function captureClipboardOnce(): Promise<boolean> {
+  store.pruneExpired(loadSettings().autoDeleteHours)
+  return captureClipboardItem({
+    readClipboard,
+    readImage: () => clipboard.readImage(),
+    createId,
+    historyLimit: loadSettings().historyLimit,
+    add: (data, limit) => store.add(data, limit),
+    stageImageBytes: (imageId, png) => store.stageImageBytes(imageId, png),
+    prefetchFileIcons,
+    pushItems: (meta) => pushState.items(meta)
+  })
 }
 
 /** Push updates to all open windows (main window, onboarding window, etc.). */

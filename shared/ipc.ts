@@ -50,6 +50,9 @@ export interface InvokeMap {
   /** Copy a sub-item and paste it directly into the active application. */
   'item:paste-subitem': { args: [req: DragRequest]; result: boolean }
 
+  /** Explicitly capture the current system clipboard once, without resuming the watcher. */
+  'clipboard:manual-capture': { args: []; result: boolean }
+
   /** Write a Unicode emoji to the clipboard and Ctrl+V into the still-focused app. Does not close the shelf. */
   'emoji:paste': { args: [text: string]; result: boolean }
 

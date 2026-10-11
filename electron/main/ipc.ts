@@ -11,7 +11,7 @@ import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
-import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
+import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher, captureClipboardOnce } from './state'
 import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
@@ -523,6 +523,20 @@ export function registerIpc(): void {
     }
 
     return true
+  })
+
+  handle('clipboard:manual-capture', async () => {
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    try {
+      return await captureClipboardOnce()
+    } catch (err) {
+      console.error('[IPC] clipboard:manual-capture failed:', err)
+      return false
+    } finally {
+      watcher.resyncSignature()
+      watcher.setPaused(loadSettings().incognito)
+    }
   })
 
   handle('emoji:paste', async (text) => {
