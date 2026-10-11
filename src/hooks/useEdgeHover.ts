@@ -27,15 +27,7 @@ import { useStore } from '../store/appStore'
 const TRIGGER_PX = 3    // leftmost px that count as "the edge"
 const DWELL_MS = 40      // cursor must linger this long to open
 const GRACE_MS = 250     // close delay after leaving
-const PANEL_WIDE = 270   // blade is 270px (var(--panel-width))
-/** Hysteresis thresholds for closing the panel.
- * KEEP_OPEN_PX: if cursor x is <= this, the panel stays open (clearly inside blade).
- * START_CLOSE_PX: if cursor x is > this, start the close timer (clearly outside).
- * Gap between the two prevents rapid cancel/schedule oscillation at the blade edge
- * when the cursor hovers just outside the visual boundary.
- */
-const KEEP_OPEN_PX = PANEL_WIDE - 15  // 255 — clearly inside blade
-const START_CLOSE_PX = PANEL_WIDE + 20 // 290 — 20px buffer outside the visual boundary
+const PANEL_WIDE = 270   // default blade width (var(--panel-width))
 const BUFFER_PX = 30                 // 30px overshoot buffer across adjacent monitors
 const PREVIEW_WIDE = 740             // Extended width when preview flyout is active
 
@@ -191,6 +183,7 @@ export function useEdgeHover(): void {
     const unsubStore = useStore.subscribe((state, prevState) => {
       if (
         state.settings.panelHeight !== prevState.settings.panelHeight ||
+        state.settings.panelWidth !== prevState.settings.panelWidth ||
         state.settings.hotZoneHeight !== prevState.settings.hotZoneHeight ||
         state.settings.verticalOffset !== prevState.settings.verticalOffset ||
         state.settings.horizontalOffset !== prevState.settings.horizontalOffset ||
@@ -356,7 +349,9 @@ export function useEdgeHover(): void {
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
-      const currentPanelWide = hasFlyout ? PREVIEW_WIDE : PANEL_WIDE
+      const panelWide = s.panelWidth ?? PANEL_WIDE
+      const currentPanelWide = hasFlyout ? PREVIEW_WIDE : panelWide
+      const keepOpenPx = panelWide - 15
 
       if (s.stickPosition === 'top') {
         const dispW = displaySize.current.width
@@ -385,8 +380,8 @@ export function useEdgeHover(): void {
       if (!insideX) return false
 
       const inPreviewCol = s.stickPosition === 'right'
-        ? x < window.innerWidth - KEEP_OPEN_PX
-        : x > KEEP_OPEN_PX
+        ? x < window.innerWidth - keepOpenPx
+        : x > keepOpenPx
 
       if (inPreviewCol && hasFlyout && state.previewFlyoutRect) {
         const FLYOUT_BUFFER = 24
@@ -436,8 +431,11 @@ export function useEdgeHover(): void {
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
-      const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
-      const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : START_CLOSE_PX
+      const panelWide = state.settings.panelWidth ?? PANEL_WIDE
+      const keepOpenPx = panelWide - 15
+      const startClosePx = panelWide + 20
+      const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : keepOpenPx
+      const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : startClosePx
 
       switch (stickPosition) {
         case 'top': {
@@ -553,7 +551,7 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const inPreviewColumn = distFromRight > KEEP_OPEN_PX
+          const inPreviewColumn = distFromRight > keepOpenPx
           let insideY = false
           if (inPreviewColumn && hasFlyout && state.previewFlyoutRect) {
             const FLYOUT_BUFFER = 24
@@ -615,7 +613,7 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const inPreviewColumn = data.x > KEEP_OPEN_PX
+          const inPreviewColumn = data.x > keepOpenPx
           let insideY = false
           if (inPreviewColumn && hasFlyout && state.previewFlyoutRect) {
             const FLYOUT_BUFFER = 24

@@ -161,6 +161,8 @@ export interface Settings {
   themeMode: ThemeMode
   /** Opacity of panel and surface backgrounds, from 0 (transparent) to 100. */
   panelOpacity: number
+  /** Visual width of the left/right clipboard panel in pixels (220 - 360). */
+  panelWidth: number
   /** Flag to track if the onboarding tutorial is completed. */
   tutorialCompleted: boolean
   stickPosition: StickPosition
@@ -235,6 +237,7 @@ export const DEFAULT_SETTINGS: Settings = {
   uiStyle: 'modern',
   themeMode: 'dark',
   panelOpacity: 100,
+  panelWidth: 270,
   tutorialCompleted: false,
   stickPosition: 'left',
   stickDisplayId: undefined,

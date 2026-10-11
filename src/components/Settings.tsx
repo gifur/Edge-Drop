@@ -61,6 +61,7 @@ export function Settings({
 
   const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
   const lastOpacityVal = useRef<number>(settings.panelOpacity ?? 100)
+  const lastPanelWidthVal = useRef<number>(settings.panelWidth ?? 270)
   const horizontalTab = useStore((s) => s.settingsTab)
   const shelfTrackRef = useRef<HTMLDivElement>(null)
   const horizontalTabScrollPositions = useRef<Record<SettingsTab, number>>({
@@ -156,6 +157,27 @@ export function Settings({
     setSliderActive(false)
     playDialTickSound()
     patch({ panelOpacity: clamped })
+  }
+
+  const handlePanelWidthInput = (rawVal: number) => {
+    const clamped = Math.min(360, Math.max(220, Math.round(rawVal)))
+    if (clamped !== (settings.panelWidth ?? 270)) {
+      if (Math.abs(clamped - lastPanelWidthVal.current) >= 10) {
+        lastPanelWidthVal.current = clamped
+        playDialTickSound()
+      }
+      useStore.setState((s) => ({
+        settings: { ...s.settings, panelWidth: clamped }
+      }))
+    }
+  }
+
+  const handlePanelWidthRelease = (rawVal: number) => {
+    const clamped = Math.min(360, Math.max(220, Math.round(rawVal)))
+    lastPanelWidthVal.current = clamped
+    setSliderActive(false)
+    playDialTickSound()
+    patch({ panelWidth: clamped })
   }
 
   const [localInlineOpen, setLocalInlineOpen] = useState(false)
@@ -2446,6 +2468,37 @@ export function Settings({
                         <span>{t('appearance.opacityTransparent') || '0%'}</span>
                         <span>{t('appearance.opacityHalf') || '50%'}</span>
                         <span>{t('appearance.opacityOpaque') || '100%'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="setting-card panel-width-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">{t('appearance.panelWidthTitle') || 'PANEL WIDTH'}</div>
+                      <div className="setting-title">{t('appearance.panelWidthTitle')}</div>
+                      <div className="setting-desc">{t('appearance.panelWidthDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <WakeSlider
+                        value={settings.panelWidth ?? 270}
+                        min={220}
+                        max={360}
+                        step={1}
+                        bars={24}
+                        height={34}
+                        restHeight={8}
+                        gap={3}
+                        showValue
+                        formatValue={(value) => `${Math.round(value)}px`}
+                        ariaLabel={t('appearance.panelWidthTitle')}
+                        onStart={() => setSliderActive(true)}
+                        onChange={handlePanelWidthInput}
+                        onRelease={handlePanelWidthRelease}
+                      />
+                      <div className="slider-presets" aria-hidden="true">
+                        <span>{t('appearance.panelWidthNarrow') || '220px'}</span>
+                        <span>{t('appearance.panelWidthDefault') || '270px'}</span>
+                        <span>{t('appearance.panelWidthWide') || '360px'}</span>
                       </div>
                     </div>
                   </div>

@@ -128,6 +128,11 @@ export interface TranslationKeys {
     lightMode?: string
     panelOpacityTitle?: string
     panelOpacityDesc?: string
+    panelWidthTitle?: string
+    panelWidthDesc?: string
+    panelWidthNarrow?: string
+    panelWidthDefault?: string
+    panelWidthWide?: string
     opacityTransparent?: string
     opacityHalf?: string
     opacityOpaque?: string
@@ -682,6 +687,11 @@ export const en: TranslationKeys = {
     "lightMode": "Day mode",
     "panelOpacityTitle": "Panel opacity",
     "panelOpacityDesc": "Adjust the transparency of panel backgrounds while keeping content crisp",
+    "panelWidthTitle": "Panel width",
+    "panelWidthDesc": "Adjust the width of the left or right clipboard panel",
+    "panelWidthNarrow": "220px",
+    "panelWidthDefault": "270px",
+    "panelWidthWide": "360px",
     "opacityTransparent": "0%",
     "opacityHalf": "50%",
     "opacityOpaque": "100%",
@@ -4022,6 +4032,11 @@ export const zhCN: TranslationKeys = {
     "lightMode": "白天模式",
     "panelOpacityTitle": "面板透明度",
     "panelOpacityDesc": "调整面板背景的透明程度，同时保持文字和内容清晰",
+    "panelWidthTitle": "面板宽度",
+    "panelWidthDesc": "调整停靠在左侧或右侧的主面板宽度",
+    "panelWidthNarrow": "220px",
+    "panelWidthDefault": "270px",
+    "panelWidthWide": "360px",
     "opacityTransparent": "0%",
     "opacityHalf": "50%",
     "opacityOpaque": "100%",

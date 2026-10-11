@@ -28,6 +28,10 @@ export function normalizeSettings(input: Partial<Settings>): Settings {
   out.panelOpacity = Number.isFinite(panelOpacity)
     ? Math.min(100, Math.max(0, Math.round(panelOpacity)))
     : 100
+  const panelWidth = Number(out.panelWidth)
+  out.panelWidth = Number.isFinite(panelWidth)
+    ? Math.min(360, Math.max(220, Math.round(panelWidth)))
+    : 270
   if (out.stickPosition !== 'left' && out.stickPosition !== 'right' && out.stickPosition !== 'top') {
     out.stickPosition = 'left'
   }
