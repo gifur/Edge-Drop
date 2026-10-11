@@ -11,8 +11,8 @@ import { PATHS } from './paths'
 
 let cache: Settings | null = null
 
-function merge(base: Settings, patch: Partial<Settings>): Settings {
-  const out = { ...base, ...patch } as Settings
+export function normalizeSettings(input: Partial<Settings>): Settings {
+  const out = { ...DEFAULT_SETTINGS, ...input } as Settings
   // Clamp the numeric slider into its valid range.
   out.hotZoneHeight = Math.min(0.6, Math.max(0.2, out.hotZoneHeight))
   out.historyLimit = Math.min(2000, Math.max(50, Math.round(out.historyLimit)))
@@ -21,6 +21,13 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   if (out.uiStyle !== 'modern' && out.uiStyle !== 'compact') {
     out.uiStyle = 'modern'
   }
+  if (out.themeMode !== 'dark' && out.themeMode !== 'light') {
+    out.themeMode = 'dark'
+  }
+  const panelOpacity = Number(out.panelOpacity)
+  out.panelOpacity = Number.isFinite(panelOpacity)
+    ? Math.min(100, Math.max(0, Math.round(panelOpacity)))
+    : 100
   if (out.stickPosition !== 'left' && out.stickPosition !== 'right' && out.stickPosition !== 'top') {
     out.stickPosition = 'left'
   }
@@ -51,6 +58,10 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   return out
 }
 
+function merge(base: Settings, patch: Partial<Settings>): Settings {
+  return normalizeSettings({ ...base, ...patch })
+}
+
 export function getSettings(): Settings {
   return loadSettings()
 }
@@ -65,7 +76,7 @@ export function loadSettings(): Settings {
   } catch {
     file = {}
   }
-  cache = merge({ ...DEFAULT_SETTINGS }, file)
+  cache = normalizeSettings(file)
   return cache
 }
 

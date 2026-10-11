@@ -134,10 +134,10 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             onHoverItem={(val) => {
               if (val === 'emoji') void loadEmojiCatalog()
             }}
-            trackColor="#141414"
-            thumbColor="#ffffff"
-            textColor="rgba(255, 255, 255, 0.72)"
-            activeTextColor="#000000"
+            trackColor="var(--segment-track)"
+            thumbColor="var(--segment-thumb)"
+            textColor="var(--segment-ink)"
+            activeTextColor="var(--segment-ink-active)"
             size="custom"
             height={filterTrackHeight}
             minWidth={filterSlotSize}
@@ -256,7 +256,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               handleOpenChangelog()
             }}
             style={{
-              color: 'rgba(255, 255, 255, 0.75)',
+              color: 'var(--text-secondary)',
               background: 'transparent',
               border: 'none',
               boxShadow: 'none',
@@ -314,7 +314,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             }
           }}
           style={{
-            color: '#ffffff',
+            color: 'var(--text-secondary)',
             background: 'transparent',
             border: 'none',
             boxShadow: 'none',

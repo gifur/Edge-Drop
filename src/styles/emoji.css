@@ -9,6 +9,25 @@
   z-index: 1;
 }
 
+:root[data-theme='light'] .emoji-picker,
+:root[data-theme='light'] .emoji-category-tabs,
+:root[data-theme='light'] .emoji-search {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--edge-light);
+}
+
+:root[data-theme='light'] .emoji-picker button,
+:root[data-theme='light'] .emoji-category-tab {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .emoji-picker button:hover,
+:root[data-theme='light'] .emoji-category-tab:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
 /* Sleek Category Pill Bar (RubberSegment) */
 .emoji-cat-bar {
   display: flex;

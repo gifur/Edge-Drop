@@ -585,19 +585,26 @@
 
 .display-pill {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  padding: 6px 0;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
   line-height: 1.2;
 }
 .display-pill .pill-name {
+  min-width: 0;
   font-size: calc(12px * var(--font-scale, 1));
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .display-pill .pill-res {
+  flex-shrink: 0;
   font-size: calc(10px * var(--font-scale, 1));
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 /* Modern Flat Toggle Switch */
@@ -2454,6 +2461,141 @@
 
 .slide-commit[data-phase='pending'] .slide-commit__spinner {
   animation-play-state: running;
+}
+
+/* Appearance controls shared by the vertical and horizontal settings layouts. */
+.theme-mode-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.theme-mode-option {
+  min-width: 0;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 9px;
+  color: var(--text-secondary);
+  background: var(--bg-3);
+  border: 1px solid var(--edge-light);
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-mode-option:hover {
+  color: var(--text-primary);
+  border-color: var(--edge-strong);
+}
+
+.theme-mode-option.active {
+  color: var(--toggle-on-ink);
+  background: var(--toggle-on);
+  border-color: var(--toggle-on);
+}
+
+.slider-presets {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  padding: 0 2px;
+}
+
+.settings-toggle-thumb {
+  transition: background-color 0.18s ease;
+}
+
+/* Inline legacy settings styles are retained for the dark default; these
+   overrides make the light theme coherent without changing interaction logic. */
+:root[data-theme='light'] .settings-tab-btn,
+:root[data-theme='light'] .setting-card,
+:root[data-theme='light'] .settings-shelf-card {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .settings-tab-btn {
+  color: var(--text-secondary);
+  background: var(--bg-card);
+}
+
+:root[data-theme='light'] .settings-tab-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+}
+
+:root[data-theme='light'] .settings-tab-btn.active,
+:root[data-theme='light'] .settings-tab-indicator {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+:root[data-theme='light'] .setting-title,
+:root[data-theme='light'] .setting-card .setting-title,
+:root[data-theme='light'] .settings-shelf-card .setting-title {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .setting-desc,
+:root[data-theme='light'] .setting-card .setting-desc,
+:root[data-theme='light'] .settings-shelf-card .setting-desc,
+:root[data-theme='light'] .setting-group-label,
+:root[data-theme='light'] .settings-shelf-card .setting-group-label,
+:root[data-theme='light'] .setting-section-divider .setting-section-divider-text,
+:root[data-theme='light'] .shelf-section-divider-text {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .setting-divider,
+:root[data-theme='light'] .setting-section-divider::after,
+:root[data-theme='light'] .shelf-section-divider::after {
+  background: var(--divider);
+}
+
+:root[data-theme='light'] .setting-card .setting-pills .pill,
+:root[data-theme='light'] .shelf-card-bottom .pill {
+  color: var(--text-secondary);
+  background: var(--bg-3);
+  border-color: var(--edge-light);
+}
+
+:root[data-theme='light'] .setting-card .setting-pills .pill:hover,
+:root[data-theme='light'] .shelf-card-bottom .pill:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+  border-color: var(--edge-strong);
+}
+
+:root[data-theme='light'] .setting-card .setting-pills .pill.active,
+:root[data-theme='light'] .shelf-card-bottom .pill.active {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+:root[data-theme='light'] .style-card-grid {
+  background: var(--bg-3) !important;
+  border-color: var(--edge-light) !important;
+}
+
+:root[data-theme='light'] .style-card {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .style-card-label {
+  color: var(--text-primary) !important;
+}
+
+:root[data-theme='light'] .wake-slider__value {
+  color: var(--text-secondary);
 }
 
 @keyframes slide-commit-spin {

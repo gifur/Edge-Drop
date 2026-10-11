@@ -1637,6 +1637,90 @@
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Shared neutral controls and text for the light theme. Color cards retain
+   their own contrast rules because their content background is user data. */
+:root[data-theme='light'] .item,
+:root[data-theme='light'] .item-main,
+:root[data-theme='light'] .item-content,
+:root[data-theme='light'] .item-footer,
+:root[data-theme='light'] .body,
+:root[data-theme='light'] .meta,
+:root[data-theme='light'] .meta-detail,
+:root[data-theme='light'] .meta-hit-count,
+:root[data-theme='light'] .meta-time,
+:root[data-theme='light'] .fluid-row-content,
+:root[data-theme='light'] .single-file-meta,
+:root[data-theme='light'] .bundle-actions-label {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .item .preview,
+:root[data-theme='light'] .item:hover .preview,
+:root[data-theme='light'] .link-card-body {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .item-footer {
+  background: linear-gradient(180deg, transparent 0%, rgba(32, 38, 49, 0.1) 100%);
+}
+
+:root[data-theme='light'] .item.pinned {
+  background: var(--bg-card);
+}
+
+:root[data-theme='light'] .actions {
+  background: var(--bg-card);
+  border: 1px solid var(--edge-light);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme='light'] .item,
+:root[data-theme='light'] .fluid-card-row,
+:root[data-theme='light'] .horizontal-subitem-tile,
+:root[data-theme='light'] .bundle-preview,
+:root[data-theme='light'] .single-file-preview,
+:root[data-theme='light'] .link-card {
+  background: var(--bg-card);
+  border-color: var(--edge-light);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme='light'] .item:hover,
+:root[data-theme='light'] .fluid-card-row:hover,
+:root[data-theme='light'] .horizontal-subitem-tile:hover,
+:root[data-theme='light'] .item:hover .link-card {
+  background: var(--bg-card-hover);
+  border-color: var(--edge-strong);
+}
+
+:root[data-theme='light'] .item .meta-time,
+:root[data-theme='light'] .item .meta-detail,
+:root[data-theme='light'] .item .meta-hit-count,
+:root[data-theme='light'] .link-card-domain,
+:root[data-theme='light'] .link-card-url,
+:root[data-theme='light'] .fluid-row-sub,
+:root[data-theme='light'] .single-file-name,
+:root[data-theme='light'] .single-file-meta,
+:root[data-theme='light'] .bundle-more-label {
+  color: var(--text-tertiary);
+}
+
+:root[data-theme='light'] .kind-badge,
+:root[data-theme='light'] .act,
+:root[data-theme='light'] .actions-pill,
+:root[data-theme='light'] .scroll-top-btn {
+  color: var(--text-secondary);
+  background: var(--bg-3);
+  border-color: var(--edge-light);
+}
+
+:root[data-theme='light'] .act:hover,
+:root[data-theme='light'] .scroll-top-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+  border-color: var(--edge-strong);
+}
+
 /* Top Dock: Attached to top screen edge */
 .split-dropzone.pos-top {
   top: 0;

@@ -353,7 +353,7 @@ export function CopyIndicatorCurve() {
           >
             <motion.path
               d={activePath}
-              fill="#000000"
+              fill="var(--indicator-fill)"
               stroke="none"
               initial={{ d: reduceMotion ? activePath : flatPath }}
               animate={{ d: activePath }}

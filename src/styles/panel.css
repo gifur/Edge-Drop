@@ -25,7 +25,7 @@
   border-top-right-radius: 24px;
   border-bottom-right-radius: 24px;
   /* Completely deep black */
-  background: #000000;
+  background: var(--bg-1);
   
   /* No back shadow and no edges */
   box-shadow: none;
@@ -63,7 +63,7 @@
   pointer-events: none;
   z-index: -1;
   display: flex;
-  background: linear-gradient(to right, #000000 30px, transparent 30px);
+  background: linear-gradient(to right, var(--bg-0) 30px, transparent 30px);
   justify-content: flex-end;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -71,7 +71,7 @@
 .flare-top.flare-right, .flare-bottom.flare-right {
   left: auto;
   right: -30px;
-  background: linear-gradient(to left, #000000 30px, transparent 30px);
+  background: linear-gradient(to left, var(--bg-0) 30px, transparent 30px);
   justify-content: flex-start;
 }
 .flare-top {
@@ -136,7 +136,7 @@
   bottom: 0;
   left: -30px;
   width: 31px;
-  background: #000000;
+  background: var(--bg-0);
   pointer-events: none;
   z-index: -2;
 }
@@ -148,7 +148,7 @@
   left: auto;
   right: -30px;
   width: 31px;
-  background: #000000;
+  background: var(--bg-0);
   pointer-events: none;
   z-index: -2;
 }
@@ -161,7 +161,7 @@
   right: 0;
   width: auto;
   height: 30px;
-  background: #000000;
+  background: var(--bg-0);
   pointer-events: none;
   z-index: -2;
   display: block;
@@ -619,6 +619,43 @@
   padding-right: 0;
   user-select: none;
 }
+
+/* Light surface treatment. Content controls use tokens so theme and opacity
+   changes apply without dimming text or media. */
+:root[data-theme='light'] .blade {
+  box-shadow: var(--shadow-blade);
+}
+
+:root[data-theme='light'] .header .title,
+:root[data-theme='light'] .icon-btn,
+:root[data-theme='light'] .search .search-icon,
+:root[data-theme='light'] .filter-segmented-track,
+:root[data-theme='light'] .item-count,
+:root[data-theme='light'] .footer-capsule-count {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .icon-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+}
+
+:root[data-theme='light'] .search input,
+:root[data-theme='light'] .filter-segmented-track,
+:root[data-theme='light'] .footer-capsule {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .search input:focus,
+:root[data-theme='light'] .filter-segmented-track:hover {
+  background: var(--bg-card-hover);
+}
+
+:root[data-theme='light'] .drop-overlay-icon {
+  background: var(--bg-3) !important;
+  border-color: var(--edge-strong) !important;
+}
 .footer-capsule-divider {
   width: 1px;
   height: 14px;
@@ -898,5 +935,16 @@
   user-select: none;
   font-family: inherit;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+:root[data-theme='light'] .filter-chip__skin {
+  background: var(--bg-3);
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .filter-chip[data-on='true'] .filter-chip__skin,
+:root[data-theme='light'] .filter-chip.active .filter-chip__skin {
+  background: var(--accent);
+  color: #ffffff;
 }
 

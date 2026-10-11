@@ -1,5 +1,5 @@
 /**
- * Design tokens — the deep-black, macOS-inspired palette.
+ * Design tokens — the dark default palette and its light counterpart.
  *
  * The blade reads as a piece of glass extending out of the screen edge:
  * layered near-black gradients, a 1px inner light edge, soft shadow, and an
@@ -7,15 +7,22 @@
  * can swap the accent at runtime.
  */
 :root {
+  --panel-opacity: 100%;
+
   /* Base blacks — stacked for depth, never a flat #000. */
-  --bg-0: #000000; /* deepest core */
-  --bg-1: #000000; /* blade body */
-  --bg-2: #141414; /* raised surface / card */
-  --bg-3: #1c1c1c; /* hover */
-  --bg-glass: rgba(12, 12, 16, 0.72); /* frosted backdrop */
-  --bg-card: #141414;
-  --bg-card-hover: #1c1c1c;
-  --bg-chip: #141414;
+  --bg-0-base: #000000;
+  --bg-1-base: #000000;
+  --bg-2-base: #141414;
+  --bg-3-base: #1c1c1c;
+  --bg-glass-base: #0c0c10;
+  --bg-0: color-mix(in srgb, var(--bg-0-base) var(--panel-opacity), transparent);
+  --bg-1: color-mix(in srgb, var(--bg-1-base) var(--panel-opacity), transparent);
+  --bg-2: color-mix(in srgb, var(--bg-2-base) var(--panel-opacity), transparent);
+  --bg-3: color-mix(in srgb, var(--bg-3-base) var(--panel-opacity), transparent);
+  --bg-glass: color-mix(in srgb, var(--bg-glass-base) var(--panel-opacity), transparent);
+  --bg-card: var(--bg-2);
+  --bg-card-hover: var(--bg-3);
+  --bg-chip: var(--bg-2);
 
   /* Hairlines — used only where a divider is needed, not as box outlines */
   --edge-light: rgba(255, 255, 255, 0.06);
@@ -26,6 +33,20 @@
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.78);
   --text-tertiary: rgba(255, 255, 255, 0.48);
+
+  --slider-fill: #f5f5f5;
+  --slider-track: #27272a;
+  --toggle-on: #ffffff;
+  --toggle-on-ink: #000000;
+  --toggle-off: rgba(255, 255, 255, 0.12);
+  --toggle-off-ink: #ffffff;
+
+  /* Segmented controls and edge feedback. */
+  --segment-track: #141414;
+  --segment-thumb: #ffffff;
+  --segment-ink: rgba(255, 255, 255, 0.72);
+  --segment-ink-active: #000000;
+  --indicator-fill: #000000;
 
   /* Accent (overridden at runtime by theme.ts) */
   --accent: #8b5cf6;
@@ -55,4 +76,38 @@
   --panel-width: 270px;
   --gap: 12px;
   --pad: 14px;
+}
+
+:root[data-theme='light'] {
+  --bg-0-base: #eef1f5;
+  --bg-1-base: #ffffff;
+  --bg-2-base: #ffffff;
+  --bg-3-base: #f0f3f7;
+  --bg-glass-base: #f8fafc;
+
+  --edge-light: rgba(25, 34, 48, 0.08);
+  --edge-strong: rgba(25, 34, 48, 0.16);
+  --divider: rgba(25, 34, 48, 0.1);
+
+  --text-primary: #202631;
+  --text-secondary: rgba(32, 38, 49, 0.76);
+  --text-tertiary: rgba(32, 38, 49, 0.5);
+
+  --slider-fill: #000000;
+  --slider-track: #d7dde7;
+  --toggle-on: #000000;
+  --toggle-on-ink: #ffffff;
+  --toggle-off: #dfe4ec;
+  --toggle-off-ink: #52606d;
+
+  --segment-track: #e7ebf1;
+  --segment-thumb: #ffffff;
+  --segment-ink: #536071;
+  --segment-ink-active: #202631;
+  --indicator-fill: #000000;
+
+  --accent: #000000;
+  --accent-glow: rgba(0, 0, 0, 0.2);
+  --shadow-blade: 0 16px 40px rgba(30, 41, 59, 0.16);
+  --shadow-card: 0 4px 16px rgba(30, 41, 59, 0.08);
 }

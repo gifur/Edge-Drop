@@ -97,6 +97,16 @@
     "panelHeightDesc": "Vertical size of the clipboard shelf"
   },
   "appearance": {
+    "surface": "Surface",
+    "themeTitle": "Theme",
+    "themeDesc": "Choose how Edge-Drop looks across the panel and settings",
+    "darkMode": "Night mode",
+    "lightMode": "Day mode",
+    "panelOpacityTitle": "Panel opacity",
+    "panelOpacityDesc": "Adjust the transparency of panel backgrounds while keeping content crisp",
+    "opacityTransparent": "0%",
+    "opacityHalf": "50%",
+    "opacityOpaque": "100%",
     "copyIndicatorTitle": "Copy Indicator",
     "copyIndicatorDesc": "Show subtle visual beacon on screen edge when copying",
     "indicatorStyleTitle": "Indicator Style",

@@ -95,6 +95,16 @@
     "panelHeightDesc": "剪贴板搁架的垂直尺寸"
   },
   "appearance": {
+    "surface": "外观表面",
+    "themeTitle": "主题模式",
+    "themeDesc": "选择 Edge-Drop 面板和设置界面的显示主题",
+    "darkMode": "夜间模式",
+    "lightMode": "白天模式",
+    "panelOpacityTitle": "面板透明度",
+    "panelOpacityDesc": "调整面板背景的透明程度，同时保持文字和内容清晰",
+    "opacityTransparent": "0%",
+    "opacityHalf": "50%",
+    "opacityOpaque": "100%",
     "copyIndicatorTitle": "复制指示器",
     "copyIndicatorDesc": "复制时在屏幕边缘显示微妙的视觉信标",
     "indicatorStyleTitle": "指示器样式",

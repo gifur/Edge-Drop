@@ -99,6 +99,8 @@ export type ItemSection = 'pinned' | 'shelf'
 
 export type StickPosition = 'left' | 'right' | 'top'
 
+export type ThemeMode = 'dark' | 'light'
+
 export interface DisplayInfo {
   id: number
   bounds: { x: number; y: number; width: number; height: number }
@@ -155,6 +157,10 @@ export interface Settings {
   autoDeleteHours: number
   /** UI visual style density ('modern' | 'compact'). */
   uiStyle: 'modern' | 'compact'
+  /** UI color scheme. Existing black appearance is the default dark mode. */
+  themeMode: ThemeMode
+  /** Opacity of panel and surface backgrounds, from 0 (transparent) to 100. */
+  panelOpacity: number
   /** Flag to track if the onboarding tutorial is completed. */
   tutorialCompleted: boolean
   stickPosition: StickPosition
@@ -227,6 +233,8 @@ export const DEFAULT_SETTINGS: Settings = {
   clearUnpinnedOnRestart: false,
   autoDeleteHours: 0,
   uiStyle: 'modern',
+  themeMode: 'dark',
+  panelOpacity: 100,
   tutorialCompleted: false,
   stickPosition: 'left',
   stickDisplayId: undefined,

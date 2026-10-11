@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo, UpdateMode } from '../../shared/types'
+import type { DisplayInfo, ThemeMode, UpdateMode } from '../../shared/types'
 import { resolveUpdateMode } from '../../shared/types'
 import {
   LogoIndicatorIcon,
@@ -15,6 +15,7 @@ import { SlideCommit } from './SlideCommit'
 import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
+import { Moon, Sun } from 'lucide-react'
 import '../styles/settings.css'
 
 type SettingsTab = 'behaviour' | 'position' | 'appearance'
@@ -59,6 +60,7 @@ export function Settings({
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 
   const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
+  const lastOpacityVal = useRef<number>(settings.panelOpacity ?? 100)
   const horizontalTab = useStore((s) => s.settingsTab)
   const shelfTrackRef = useRef<HTMLDivElement>(null)
   const horizontalTabScrollPositions = useRef<Record<SettingsTab, number>>({
@@ -133,6 +135,27 @@ export function Settings({
     setSliderActive(false)
     playDialTickSound()
     patch({ hotZoneWidth: clamped })
+  }
+
+  const handleOpacityInput = (rawVal: number) => {
+    const clamped = Math.min(100, Math.max(0, Math.round(rawVal)))
+    if (clamped !== (settings.panelOpacity ?? 100)) {
+      if (Math.abs(clamped - lastOpacityVal.current) >= 5) {
+        lastOpacityVal.current = clamped
+        playDialTickSound()
+      }
+      useStore.setState((s) => ({
+        settings: { ...s.settings, panelOpacity: clamped }
+      }))
+    }
+  }
+
+  const handleOpacityRelease = (rawVal: number) => {
+    const clamped = Math.min(100, Math.max(0, Math.round(rawVal)))
+    lastOpacityVal.current = clamped
+    setSliderActive(false)
+    playDialTickSound()
+    patch({ panelOpacity: clamped })
   }
 
   const [localInlineOpen, setLocalInlineOpen] = useState(false)
@@ -1308,7 +1331,7 @@ export function Settings({
               <div className="settings-shelf-card placement-card position-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">{t('groups.placement') || 'PLACEMENT'}</div>
-                  <div className="setting-title" style={{ color: '#ffffff' }}>{t('position.edgePlacementTitle')}</div>
+                  <div className="setting-title" style={{ color: 'var(--text-primary)' }}>{t('position.edgePlacementTitle')}</div>
                   <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                 </div>
                 <div className="shelf-card-bottom">
@@ -1575,6 +1598,55 @@ export function Settings({
                   </div>
                 </div>
               )}
+
+              {/* ── SUB-GROUP 2: Surface ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('appearance.surface') || 'SURFACE'}</span>
+              </div>
+
+              <div className="settings-shelf-card appearance-col">
+                <div className="shelf-card-top">
+                  <div className="setting-group-label">{t('appearance.themeTitle') || 'THEME'}</div>
+                  <div className="setting-title">{t('appearance.themeTitle')}</div>
+                  <div className="setting-desc">{t('appearance.themeDesc')}</div>
+                </div>
+                <ThemeModeSelector
+                  value={settings.themeMode ?? 'dark'}
+                  onChange={(value) => patch({ themeMode: value })}
+                  t={t}
+                />
+              </div>
+
+              <div className="settings-shelf-card appearance-col">
+                <div className="shelf-card-top">
+                  <div className="setting-group-label">{t('appearance.panelOpacityTitle') || 'PANEL OPACITY'}</div>
+                  <div className="setting-title">{t('appearance.panelOpacityTitle')}</div>
+                  <div className="setting-desc">{t('appearance.panelOpacityDesc')}</div>
+                </div>
+                <div className="shelf-card-bottom">
+                  <WakeSlider
+                    value={settings.panelOpacity ?? 100}
+                    min={0}
+                    max={100}
+                    step={1}
+                    bars={24}
+                    height={34}
+                    restHeight={8}
+                    gap={3}
+                    showValue
+                    formatValue={(value) => `${Math.round(value)}%`}
+                    ariaLabel={t('appearance.panelOpacityTitle')}
+                    onStart={() => setSliderActive(true)}
+                    onChange={handleOpacityInput}
+                    onRelease={handleOpacityRelease}
+                  />
+                  <div className="slider-presets" aria-hidden="true">
+                    <span>{t('appearance.opacityTransparent') || '0%'}</span>
+                    <span>{t('appearance.opacityHalf') || '50%'}</span>
+                    <span>{t('appearance.opacityOpaque') || '100%'}</span>
+                  </div>
+                </div>
+              </div>
 
               {/* ── SUB-GROUP 2 DIVIDER: Audio & Feedback ── */}
               <div className="shelf-section-divider">
@@ -2329,6 +2401,55 @@ export function Settings({
                   exit={{ opacity: 0, scale: 0.98, y: -4 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  {/* ── GROUP: Surface ──────────────────────────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('appearance.surface') || 'SURFACE'}</span>
+                  </div>
+
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">{t('appearance.themeTitle') || 'THEME'}</div>
+                      <div className="setting-title">{t('appearance.themeTitle')}</div>
+                      <div className="setting-desc">{t('appearance.themeDesc')}</div>
+                    </div>
+                    <ThemeModeSelector
+                      value={settings.themeMode ?? 'dark'}
+                      onChange={(value) => patch({ themeMode: value })}
+                      t={t}
+                    />
+                  </div>
+
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">{t('appearance.panelOpacityTitle') || 'PANEL OPACITY'}</div>
+                      <div className="setting-title">{t('appearance.panelOpacityTitle')}</div>
+                      <div className="setting-desc">{t('appearance.panelOpacityDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <WakeSlider
+                        value={settings.panelOpacity ?? 100}
+                        min={0}
+                        max={100}
+                        step={1}
+                        bars={24}
+                        height={34}
+                        restHeight={8}
+                        gap={3}
+                        showValue
+                        formatValue={(value) => `${Math.round(value)}%`}
+                        ariaLabel={t('appearance.panelOpacityTitle')}
+                        onStart={() => setSliderActive(true)}
+                        onChange={handleOpacityInput}
+                        onRelease={handleOpacityRelease}
+                      />
+                      <div className="slider-presets" aria-hidden="true">
+                        <span>{t('appearance.opacityTransparent') || '0%'}</span>
+                        <span>{t('appearance.opacityHalf') || '50%'}</span>
+                        <span>{t('appearance.opacityOpaque') || '100%'}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* ── GROUP: Copy Indicator ────────────────────────────── */}
                   <div className="setting-section-divider">
                     <span className="setting-section-divider-text">{t('appearance.copyIndicatorTitle') || 'COPY INDICATOR'}</span>
@@ -2389,7 +2510,7 @@ export function Settings({
                           transition={{ duration: 0.22, ease: 'easeOut' }}
                           style={{ overflow: 'hidden', marginTop: 12, marginBottom: 8 }}
                         >
-                          <div style={{
+                          <div className="style-card-grid" style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(2, 1fr)',
                             gap: 10,
@@ -2400,6 +2521,7 @@ export function Settings({
                           }}>
                             {/* Logo Card */}
                             <div
+                              className="style-card"
                               onClick={() => {
                                 playButtonClickSound()
                                 patch({ copyIndicatorStyle: 'logo' })
@@ -2419,13 +2541,14 @@ export function Settings({
                               }}
                             >
                               <div style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <LogoIndicatorIcon fillColor="#ffffff" size={30} />
+                                <LogoIndicatorIcon fillColor="var(--text-primary)" size={30} />
                               </div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff' }}>{t('appearance.logoStyle')}</div>
+                              <div className="style-card-label" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{t('appearance.logoStyle')}</div>
                             </div>
 
                             {/* Tick Card */}
                             <div
+                              className="style-card"
                               onClick={() => {
                                 playButtonClickSound()
                                 patch({ copyIndicatorStyle: 'check' })
@@ -2445,13 +2568,14 @@ export function Settings({
                               }}
                             >
                               <div style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <TickIndicatorIcon fillColor="#ffffff" size={30} />
+                                <TickIndicatorIcon fillColor="var(--text-primary)" size={30} />
                               </div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff' }}>{t('appearance.tickStyle')}</div>
+                              <div className="style-card-label" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{t('appearance.tickStyle')}</div>
                             </div>
 
                             {/* Copy Card */}
                             <div
+                              className="style-card"
                               onClick={() => {
                                 playButtonClickSound()
                                 patch({ copyIndicatorStyle: 'copy' })
@@ -2471,13 +2595,14 @@ export function Settings({
                               }}
                             >
                               <div style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <CopyIndicatorIcon fillColor="#ffffff" size={30} />
+                                <CopyIndicatorIcon fillColor="var(--text-primary)" size={30} />
                               </div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff' }}>{t('appearance.copyStyle')}</div>
+                              <div className="style-card-label" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{t('appearance.copyStyle')}</div>
                             </div>
 
                             {/* Sparkle Card */}
                             <div
+                              className="style-card"
                               onClick={() => {
                                 playButtonClickSound()
                                 patch({ copyIndicatorStyle: 'sparkle' })
@@ -2497,9 +2622,9 @@ export function Settings({
                               }}
                             >
                               <div style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <SparkleIndicatorIcon fillColor="#ffffff" size={30} />
+                                <SparkleIndicatorIcon fillColor="var(--text-primary)" size={30} />
                               </div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff' }}>{t('appearance.sparkleStyle')}</div>
+                              <div className="style-card-label" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{t('appearance.sparkleStyle')}</div>
                             </div>
                           </div>
                         </motion.div>
@@ -2578,6 +2703,44 @@ export function Settings({
       )
     }
 
+function ThemeModeSelector({
+  value,
+  onChange,
+  t
+}: {
+  value: ThemeMode
+  onChange: (value: ThemeMode) => void
+  t: (path: string) => string
+}) {
+  const options: Array<{ value: ThemeMode; icon: typeof Moon; label: string }> = [
+    { value: 'dark', icon: Moon, label: t('appearance.darkMode') || 'Night mode' },
+    { value: 'light', icon: Sun, label: t('appearance.lightMode') || 'Day mode' }
+  ]
+
+  return (
+    <div className="theme-mode-selector" role="group" aria-label={t('appearance.themeTitle') || 'Theme'}>
+      {options.map(({ value: optionValue, icon: Icon, label }) => {
+        const active = value === optionValue
+        return (
+          <button
+            key={optionValue}
+            type="button"
+            className={`theme-mode-option${active ? ' active' : ''}`}
+            aria-pressed={active}
+            onClick={() => {
+              playButtonClickSound()
+              onChange(optionValue)
+            }}
+          >
+            <Icon size={14} strokeWidth={2.2} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Toggle({
   checked,
   onChange,
@@ -2609,12 +2772,12 @@ function Toggle({
         height: 20,
         borderRadius: 999,
         background: disabled
-          ? 'rgba(255, 255, 255, 0.05)'
+          ? 'var(--toggle-off)'
           : checked
-          ? '#ffffff'
+          ? 'var(--toggle-on)'
           : isHovered
-          ? 'rgba(255, 255, 255, 0.18)'
-          : 'rgba(255, 255, 255, 0.12)',
+          ? 'color-mix(in srgb, var(--toggle-on) 18%, transparent)'
+          : 'var(--toggle-off)',
         border: 'none',
         position: 'relative',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -2626,11 +2789,11 @@ function Toggle({
       }}
     >
       <motion.span
-        className="toggle-thumb"
+        className="toggle-thumb settings-toggle-thumb"
         initial={false}
         animate={{
           x: checked ? 19 : 3,
-          backgroundColor: checked ? '#000000' : '#ffffff'
+          backgroundColor: checked ? 'var(--toggle-on-ink)' : 'var(--toggle-off-ink)'
         }}
         transition={{
           type: 'spring',
@@ -2704,16 +2867,16 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: isOpen ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-          color: '#ffffff',
-          border: isOpen ? '1px solid rgba(255, 255, 255, 0.22)' : '1px solid rgba(255, 255, 255, 0.12)',
+          background: isOpen ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+          color: 'var(--text-primary)',
+          border: isOpen ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)',
           borderRadius: compact ? 8 : 10,
           padding: compact ? '0 10px' : '8px 12px',
           fontSize: compact ? 11.5 : 12.5,
           fontWeight: 500,
           outline: 'none',
           cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+          boxShadow: 'var(--shadow-card)',
           transition: 'all 0.15s ease'
         }}
       >
@@ -2721,7 +2884,7 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ display: 'flex', alignItems: 'center', color: 'rgba(255, 255, 255, 0.6)' }}
+          style={{ display: 'flex', alignItems: 'center', color: 'var(--text-tertiary)' }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6"/>
@@ -2745,11 +2908,11 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
               right: 0,
               maxHeight: direction === 'up' ? (compact ? 88 : 140) : 180,
               overflowY: 'auto',
-              background: '#121214',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--edge-strong)',
               borderRadius: 10,
               padding: '4px',
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+              boxShadow: 'var(--shadow-blade)',
               zIndex: 100,
               scrollbarWidth: 'none'
             }}
@@ -2773,8 +2936,8 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
                     justifyContent: 'space-between',
                     padding: compact ? '5px 8px' : '7px 10px',
                     borderRadius: 7,
-                    background: active ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
-                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                    background: active ? 'var(--bg-card-hover)' : 'transparent',
+                    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                     fontSize: compact ? 11.5 : 12,
                     fontWeight: active ? 600 : 400,
                     border: 'none',
@@ -2783,7 +2946,7 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
                     transition: 'background 0.12s ease'
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)'
+                    if (!active) e.currentTarget.style.background = 'var(--bg-card-hover)'
                   }}
                   onMouseLeave={(e) => {
                     if (!active) e.currentTarget.style.background = 'transparent'

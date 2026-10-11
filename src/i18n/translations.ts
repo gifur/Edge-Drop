@@ -121,6 +121,16 @@ export interface TranslationKeys {
     panelHeightDesc: string
   }
   appearance: {
+    surface?: string
+    themeTitle?: string
+    themeDesc?: string
+    darkMode?: string
+    lightMode?: string
+    panelOpacityTitle?: string
+    panelOpacityDesc?: string
+    opacityTransparent?: string
+    opacityHalf?: string
+    opacityOpaque?: string
     copyIndicatorTitle: string
     copyIndicatorDesc: string
     indicatorStyleTitle: string
@@ -665,6 +675,16 @@ export const en: TranslationKeys = {
     "panelHeightDesc": "Vertical size of the clipboard shelf"
   },
   "appearance": {
+    "surface": "Surface",
+    "themeTitle": "Theme",
+    "themeDesc": "Choose how Edge-Drop looks across the panel and settings",
+    "darkMode": "Night mode",
+    "lightMode": "Day mode",
+    "panelOpacityTitle": "Panel opacity",
+    "panelOpacityDesc": "Adjust the transparency of panel backgrounds while keeping content crisp",
+    "opacityTransparent": "0%",
+    "opacityHalf": "50%",
+    "opacityOpaque": "100%",
     "copyIndicatorTitle": "Copy Indicator",
     "copyIndicatorDesc": "Show subtle visual beacon on screen edge when copying",
     "indicatorStyleTitle": "Indicator Style",
@@ -3995,6 +4015,16 @@ export const zhCN: TranslationKeys = {
     "panelHeightDesc": "剪贴板搁架的垂直尺寸"
   },
   "appearance": {
+    "surface": "外观表面",
+    "themeTitle": "主题模式",
+    "themeDesc": "选择 Edge-Drop 面板和设置界面的显示主题",
+    "darkMode": "夜间模式",
+    "lightMode": "白天模式",
+    "panelOpacityTitle": "面板透明度",
+    "panelOpacityDesc": "调整面板背景的透明程度，同时保持文字和内容清晰",
+    "opacityTransparent": "0%",
+    "opacityHalf": "50%",
+    "opacityOpaque": "100%",
     "closeStyleSelector": "关闭指示器样式选择器",
     "openStyleSelector": "打开指示器样式选择器",
     "copyIndicatorTitle": "复制指示器",
