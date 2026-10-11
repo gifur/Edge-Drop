@@ -232,8 +232,15 @@ npm run typecheck    # runs tsc --noEmit against both node and web configs
 ### Build Windows installers
 ```bash
 npm run build:github # outputs an NSIS .exe for GitHub releases
+npm run build:zip    # outputs a portable Windows .zip for GitHub releases
 npm run build:store  # outputs an MSIX package for Microsoft Store submission
 ```
+
+The ZIP build can be extracted and launched without running an installer. Its
+settings and clipboard history remain in the current Windows user's app-data
+directory, not alongside the extracted application. If you move the extracted
+folder after enabling launch-at-login, update that setting so Windows points to
+the new executable location.
 
 > [!NOTE]
 > On Windows, if packaging fails with `EBUSY: resource busy or locked`, close any running Edge-Drop instances first: `taskkill /F /IM electron.exe /T`.
@@ -511,6 +518,7 @@ npm install
 npm run dev          # Electron + Vite HMR
 npm run typecheck    # tsc --noEmit (node + web configs)
 npm run build:github # build Windows NSIS installer for GitHub
+npm run build:zip    # build portable Windows ZIP for GitHub
 npm run build:store  # build Windows MSIX package for Microsoft Store
 ```
 

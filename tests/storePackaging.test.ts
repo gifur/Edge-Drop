@@ -35,6 +35,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
   it('stamps buildTarget=github on the NSIS script and buildTarget=store on the AppX scripts', () => {
     expect(pkg.scripts['build:github']).toContain('--win nsis')
     expect(pkg.scripts['build:github']).toContain('buildTarget=github')
+    expect(pkg.scripts['build:zip']).toContain('--win zip --x64')
+    expect(pkg.scripts['build:zip']).toContain('buildTarget=github')
     expect(pkg.scripts['build:store']).toContain('--win appx')
     expect(pkg.scripts['build:store']).toContain('buildTarget=store')
     expect(pkg.scripts['build:msix']).toContain('--win appx')

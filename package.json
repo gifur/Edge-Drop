@@ -11,6 +11,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "build:github": "npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
+    "build:zip": "npm run build && electron-builder --win zip --x64 -c.extraMetadata.buildTarget=github",
     "build:store": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:msix": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:win": "npm run build:github",
