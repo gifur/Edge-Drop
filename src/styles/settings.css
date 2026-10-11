@@ -2598,6 +2598,61 @@
   color: var(--text-secondary);
 }
 
+/* Hotkey recorder controls retain readable contrast on the white settings
+   surface while recording keeps its red feedback treatment. */
+:root[data-theme='light'] .hotkey-field {
+  background: var(--bg-3);
+  border-color: var(--edge-light);
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .hotkey-field:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--edge-strong);
+}
+
+:root[data-theme='light'] .hotkey-keycap {
+  background: var(--bg-card);
+  border-color: var(--edge-light);
+  border-bottom-color: var(--edge-strong);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme='light'] .hotkey-keycap.is-active {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(198, 40, 40, 0.35);
+  border-bottom-color: #c62828;
+  color: #c62828;
+}
+
+:root[data-theme='light'] .hotkey-plus-symbol,
+:root[data-theme='light'] .hotkey-field-edit-badge {
+  color: var(--text-tertiary);
+}
+
+:root[data-theme='light'] .hotkey-field:hover .hotkey-field-edit-badge {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .hotkey-inline-reset-btn,
+:root[data-theme='light'] .hotkey-cancel-icon-btn {
+  background: var(--bg-3);
+  border-color: var(--edge-light);
+  color: var(--text-secondary);
+}
+
+:root[data-theme='light'] .hotkey-inline-reset-btn:hover,
+:root[data-theme='light'] .hotkey-cancel-icon-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--edge-strong);
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .hotkey-esc-text {
+  color: var(--text-tertiary);
+}
+
 @keyframes slide-commit-spin {
   to {
     transform: rotate(360deg);
