@@ -35,12 +35,11 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
     out.language = 'system'
   }
   // Update mode migration + validation. Legacy files carry only autoUpdates;
-  // map them (false -> 'notify', anything else -> 'auto') so upgraders who
-  // silenced auto-downloads still hear about new versions without anything
-  // downloading behind their back. Then sync the legacy boolean back from
-  // the mode so downgraded app versions still read a sensible value.
+  // preserve explicit opt-in, while missing/false values stay disabled by
+  // default. Then sync the legacy boolean back from the mode so downgraded
+  // app versions still read a sensible value.
   if (!isUpdateMode(out.updateMode)) {
-    out.updateMode = out.autoUpdates === false ? 'notify' : 'auto'
+    out.updateMode = out.autoUpdates === true ? 'auto' : 'off'
   }
   // Drop the long-removed bounceAnimation key so old files stop carrying it.
   delete (out as unknown as Record<string, unknown>).bounceAnimation

@@ -185,7 +185,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     const src = read('src/components/Settings.tsx')
     expect(src).toContain('{!isStoreBuild && (')
     expect(src).toContain('behaviour.autoUpdatesTitle')
-    expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild &&')
+    expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
+    expect(src).toContain('hasPromotedTopUpdate = SHOW_UPDATE_SETTINGS && !isStoreBuild &&')
     expect(src).toContain('if (isStoreBuild) return null')
   })
 

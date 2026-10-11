@@ -17,16 +17,14 @@ export type UpdateMode = 'auto' | 'notify' | 'off'
 const UPDATE_MODES: readonly UpdateMode[] = ['auto', 'notify', 'off']
 
 /**
- * Resolve the effective update mode. Prefers the stored updateMode; migrates
- * legacy autoUpdates booleans (true/missing -> 'auto', false -> 'notify') so
- * upgraders keep getting told about updates without anything downloading
- * behind their back. Pure 'off' is opt-in on the new selector.
+ * Resolve the effective update mode. Prefers the stored updateMode and keeps
+ * legacy explicit opt-in enabled. Missing values are disabled by default.
  */
 export function resolveUpdateMode(s: Pick<Settings, 'updateMode' | 'autoUpdates'>): UpdateMode {
   if (s.updateMode === 'auto' || s.updateMode === 'notify' || s.updateMode === 'off') {
     return s.updateMode
   }
-  return s.autoUpdates === false ? 'notify' : 'auto'
+  return s.autoUpdates === true ? 'auto' : 'off'
 }
 
 export function isUpdateMode(value: unknown): value is UpdateMode {
@@ -224,7 +222,7 @@ export const DEFAULT_SETTINGS: Settings = {
   historyLimit: 250,
   panelHeight: 0.5,
   incognito: false,
-  launchAtLogin: true,
+  launchAtLogin: false,
   reduceMotion: false,
   clearUnpinnedOnRestart: false,
   autoDeleteHours: 0,
@@ -245,8 +243,8 @@ export const DEFAULT_SETTINGS: Settings = {
   lastSeenChangelogVersion: undefined,
   hoverActivation: true,
   fontSizeScale: 1.0,
-  autoUpdates: true,
-  updateMode: 'auto',
+  autoUpdates: false,
+  updateMode: 'off',
   skippedUpdateVersion: undefined,
   language: 'system',
   toggleHotkey: 'Alt+C'

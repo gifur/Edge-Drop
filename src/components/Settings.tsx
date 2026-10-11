@@ -19,6 +19,12 @@ import '../styles/settings.css'
 
 type SettingsTab = 'behaviour' | 'position' | 'appearance'
 
+// These optional surfaces remain implemented for a later product decision,
+// but are intentionally hidden from the current settings UI.
+const SHOW_LOGIN_AT_STARTUP_SETTING = false
+const SHOW_UPDATE_SETTINGS = false
+const SHOW_COMMUNITY_SUPPORT = false
+
 export function Settings({
   inlineIndicatorStyle,
   isHorizontal: propIsHorizontal
@@ -246,7 +252,7 @@ export function Settings({
   // 1) Downloaded update -> 'Restart to Update'
   // 2) Downloading in progress -> Live progress bar
   // 3) Update found & available -> 'Download & Update' / 'Skip'
-  const hasPromotedTopUpdate = !isStoreBuild && (
+  const hasPromotedTopUpdate = SHOW_UPDATE_SETTINGS && !isStoreBuild && (
     !!updateDownloaded ||
     isDownloading ||
     hasBackgroundUpdate
@@ -256,6 +262,8 @@ export function Settings({
   // ── Persistent footer shared across all tabs ───────────────────────────
   const PersistentFooter = (
     <>
+      {SHOW_COMMUNITY_SUPPORT && (
+        <>
       {/* Community & Support */}
       <div className="setting-section-divider">
         <span className="setting-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
@@ -350,6 +358,8 @@ export function Settings({
           </div>
         </div>
       </div>
+        </>
+      )}
 
       {/* Subtle Bottom Quit Button */}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12, marginBottom: 8 }}>
@@ -378,6 +388,7 @@ export function Settings({
 
   // ── Promoted Top Update Card Renderer (Vertical Layout) ────────────────────
   const renderPromotedTopUpdateCard = () => {
+    if (!SHOW_UPDATE_SETTINGS) return null
     if (isStoreBuild) return null
     if (!hasPromotedTopUpdate) return null
 
@@ -670,6 +681,7 @@ export function Settings({
 
   // ── Manual update card renderer (idle/check states at the bottom) ──
   const renderManualUpdateCard = (withRef = false) => {
+    if (!SHOW_UPDATE_SETTINGS) return null
     // Hidden while the promoted top card shows an actionable state — the
     // top card already carries Download/Skip/Restart/progress, so rendering
     // both would duplicate the prompt. The idle branch below IS the Check
@@ -780,7 +792,9 @@ export function Settings({
       horizontalTabScrollPositions.current[horizontalTab] = e.currentTarget.scrollLeft
     }
 
-    const renderHorizontalCommunityCard = () => (
+    const renderHorizontalCommunityCard = () => {
+      if (!SHOW_COMMUNITY_SUPPORT) return null
+      return (
       <div className="settings-shelf-card support-card">
         <div className="shelf-card-top">
           <div className="setting-group-label">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</div>
@@ -829,7 +843,8 @@ export function Settings({
           )}
         </div>
       </div>
-    )
+      )
+    }
 
     const renderHorizontalAboutCard = () => (
       <div className="settings-shelf-card about-card">
@@ -939,6 +954,7 @@ export function Settings({
               </div>
 
               {/* Card 2: Launch at Login */}
+              {SHOW_LOGIN_AT_STARTUP_SETTING && (
               <div className="settings-shelf-card system-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">{t('groups.startup') || 'STARTUP'}</div>
@@ -961,6 +977,7 @@ export function Settings({
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Card 3: Incognito Mode */}
               <div className="settings-shelf-card incognito-card behaviour-col">
@@ -1169,13 +1186,14 @@ export function Settings({
               </div>
 
               {/* ── SUB-GROUP 5 DIVIDER: Updates ── */}
-              {!isStoreBuild && (
+              {SHOW_UPDATE_SETTINGS && !isStoreBuild && (
                 <div className="shelf-section-divider">
                   <span className="shelf-section-divider-text">{t('tabs.updates') || 'UPDATES'}</span>
                 </div>
               )}
 
               {/* Card 11: Application Updates (3-mode selector) */}
+              {SHOW_UPDATE_SETTINGS && (
               <div className="settings-shelf-card updates-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">{t('groups.updates') || 'UPDATES'}</div>
@@ -1212,10 +1230,11 @@ export function Settings({
                   </div>
                 )}
               </div>
+              )}
 
               {/* Card 12: Update Status & Actions (idle/check states; hidden
                   while the promoted front card shows an actionable state) */}
-              {!isStoreBuild && !hasPromotedTopUpdate && (
+              {SHOW_UPDATE_SETTINGS && !isStoreBuild && !hasPromotedTopUpdate && (
                 <div className="settings-shelf-card check-updates-card behaviour-col" ref={updateBannerRef}>
                   <div className="shelf-card-top">
                     <div className="setting-group-label">
@@ -1265,9 +1284,9 @@ export function Settings({
               )}
 
               {/* ── SUB-GROUP 6 DIVIDER: Community & Support ── */}
-              <div className="shelf-section-divider">
+              {SHOW_COMMUNITY_SUPPORT && <div className="shelf-section-divider">
                 <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
-              </div>
+              </div>}
 
               {/* Card 13: Community & Feedback */}
               {renderHorizontalCommunityCard()}
@@ -1489,9 +1508,9 @@ export function Settings({
               </div>
 
               {/* ── SUB-GROUP 3 DIVIDER: Community & Support ── */}
-              <div className="shelf-section-divider">
+              {SHOW_COMMUNITY_SUPPORT && <div className="shelf-section-divider">
                 <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
-              </div>
+              </div>}
 
               {/* Card 9: Community & Feedback */}
               {renderHorizontalCommunityCard()}
@@ -1585,9 +1604,9 @@ export function Settings({
               </div>
 
               {/* ── SUB-GROUP 3 DIVIDER: Community & Support ── */}
-              <div className="shelf-section-divider">
+              {SHOW_COMMUNITY_SUPPORT && <div className="shelf-section-divider">
                 <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
-              </div>
+              </div>}
 
               {/* Card 5: Community & Feedback */}
               {renderHorizontalCommunityCard()}
@@ -1666,6 +1685,7 @@ export function Settings({
                   </div>
 
                   {/* Card 2: Launch at Login */}
+                  {SHOW_LOGIN_AT_STARTUP_SETTING && (
                   <div className="setting-card">
                     <div className="shelf-card-top">
                       <div className="setting-group-label">{t('groups.startup') || 'STARTUP'}</div>
@@ -1688,6 +1708,7 @@ export function Settings({
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* Card 3: Incognito Mode */}
                   <div className="setting-card">
@@ -1892,7 +1913,7 @@ export function Settings({
                   </div>
 
                   {/* ── UPDATES SECTION (Consolidated above Community & Support) ── */}
-                  {!isStoreBuild && (
+                  {SHOW_UPDATE_SETTINGS && !isStoreBuild && (
                     <>
                       <div className="setting-section-divider">
                         <span className="setting-section-divider-text">{t('tabs.updates') || 'UPDATES'}</span>

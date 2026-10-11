@@ -15,6 +15,7 @@ export interface CachedUpdateInfo {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _autoUpdater: any = null
 let _cachedUpdateInfo: CachedUpdateInfo | null = null
+const AUTO_UPDATE_CHECKS_ENABLED = false
 
 export function getCachedUpdateState(): CachedUpdateInfo | null {
   return _cachedUpdateInfo
@@ -65,6 +66,10 @@ let bgCheckTimer: ReturnType<typeof setTimeout> | null = null
  */
 export function triggerBackgroundCheck(delayMs = 3000): void {
   if (isStoreBuild()) return
+  // Update checks are temporarily disabled at the product surface. Keep this
+  // entry point for a future re-enable without allowing settings changes to
+  // reach the network today.
+  if (!AUTO_UPDATE_CHECKS_ENABLED) return
   if (bgCheckTimer !== null) {
     clearTimeout(bgCheckTimer)
     bgCheckTimer = null
@@ -263,16 +268,14 @@ export function initAutoUpdater(): void {
     const { autoUpdater } = require('electron-updater')
     _autoUpdater = autoUpdater
 
-    const settings = getSettings()
-    const mode = resolveUpdateMode(settings)
-    const autoDownload = mode === 'auto'
-    // 'notify' still checks at launch (tiny version query) but never downloads
-    // on its own; 'off' stays fully network-silent.
-    const shouldCheck = mode !== 'off'
+    const autoDownload = false
+    // Keep updater wiring and manual APIs available, but do not download or
+    // check for updates proactively until the feature is re-enabled.
+    const shouldCheck = false
 
     autoUpdater.logger = console
-    autoUpdater.autoDownload = autoDownload
-    autoUpdater.autoInstallOnAppQuit = autoDownload
+    autoUpdater.autoDownload = false
+    autoUpdater.autoInstallOnAppQuit = false
 
     if (!app.isPackaged) {
       console.log('[AutoUpdater] Unpackaged dev build detected — enabling forceDevUpdateConfig')

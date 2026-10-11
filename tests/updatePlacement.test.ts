@@ -8,14 +8,13 @@ function read(rel: string): string {
   return readFileSync(join(root, rel), 'utf8')
 }
 
-describe('update prompt placement contracts (promoted lifecycle, bottom hides while active)', () => {
-  it('promoted gate includes downloading and downloaded states seamlessly', () => {
+describe('update prompt placement contracts', () => {
+  it('keeps update renderers available while the product surface is disabled', () => {
     const src = read('src/components/Settings.tsx')
-    // Top card shows all active update lifecycle stages.
-    expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild && (')
-    // Bottom manual card and horizontal status card hide while promoted.
+    expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
+    expect(src).toContain('if (!SHOW_UPDATE_SETTINGS) return null')
     expect(src).toContain('if (isStoreBuild || hasPromotedTopUpdate) return null')
-    expect(src).toContain('{!isStoreBuild && !hasPromotedTopUpdate && (')
+    expect(src).toContain('{SHOW_UPDATE_SETTINGS && !isStoreBuild && !hasPromotedTopUpdate && (')
   })
 
   it('store tracks manual-flow ownership across check, download, and dismiss', () => {

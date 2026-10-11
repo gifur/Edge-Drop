@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { isUpdateMode, resolveUpdateMode } from '../shared/types'
 
 describe('updateMode resolution and legacy migration', () => {
-  it('defaults to auto when nothing is stored', () => {
-    expect(resolveUpdateMode({})).toBe('auto')
+  it('defaults to off when nothing is stored', () => {
+    expect(resolveUpdateMode({})).toBe('off')
   })
 
   it('prefers a stored valid mode over the legacy boolean', () => {
@@ -12,14 +12,14 @@ describe('updateMode resolution and legacy migration', () => {
     expect(resolveUpdateMode({ updateMode: 'auto', autoUpdates: false })).toBe('auto')
   })
 
-  it('migrates legacy booleans: on stays auto, off becomes notify', () => {
+  it('migrates legacy booleans: on stays auto, off stays disabled', () => {
     expect(resolveUpdateMode({ autoUpdates: true })).toBe('auto')
-    expect(resolveUpdateMode({ autoUpdates: false })).toBe('notify')
+    expect(resolveUpdateMode({ autoUpdates: false })).toBe('off')
   })
 
   it('falls back to the legacy boolean on corrupt mode values', () => {
-    expect(resolveUpdateMode({ updateMode: 'sometimes' as never, autoUpdates: false })).toBe('notify')
-    expect(resolveUpdateMode({ updateMode: '' as never })).toBe('auto')
+    expect(resolveUpdateMode({ updateMode: 'sometimes' as never, autoUpdates: false })).toBe('off')
+    expect(resolveUpdateMode({ updateMode: '' as never })).toBe('off')
   })
 
   it('validates mode values', () => {
