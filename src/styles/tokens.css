@@ -24,6 +24,15 @@
   --bg-card-hover: var(--bg-3);
   --bg-chip: var(--bg-2);
 
+  /* Preview controls and selection states. */
+  --preview-control-bg: #000000;
+  --preview-control-hover-bg: #0a0a0a;
+  --preview-control-ink: #ffffff;
+  --selection-bg: rgba(255, 255, 255, 0.08);
+  --selection-border: #ffffff;
+  --selection-ink: #000000;
+  --selection-shadow: rgba(255, 255, 255, 0.2);
+
   /* Hairlines — used only where a divider is needed, not as box outlines */
   --edge-light: rgba(255, 255, 255, 0.06);
   --edge-strong: rgba(255, 255, 255, 0.12);
@@ -108,6 +117,13 @@
 
   --accent: #000000;
   --accent-glow: rgba(0, 0, 0, 0.2);
+  --preview-control-bg: #ffffff;
+  --preview-control-hover-bg: #f0f3f7;
+  --preview-control-ink: #202631;
+  --selection-bg: rgba(25, 34, 48, 0.07);
+  --selection-border: #000000;
+  --selection-ink: #ffffff;
+  --selection-shadow: rgba(30, 41, 59, 0.16);
   --shadow-blade: 0 16px 40px rgba(30, 41, 59, 0.16);
   --shadow-card: 0 4px 16px rgba(30, 41, 59, 0.08);
 }

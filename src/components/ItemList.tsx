@@ -333,7 +333,7 @@ export function ItemList() {
                 title={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
               >
                 <div className="pinned-header-left">
-                  <PinFillIcon width={13} height={13} style={{ opacity: 0.9, color: '#ffffff' }} />
+                  <PinFillIcon width={13} height={13} style={{ opacity: 0.9, color: 'var(--text-primary)' }} />
                   <div className="pinned-label-group">
                     <span style={isHorizontal ? getVerticalPinnedLabelStyle(t('item.pinned')) : undefined}>
                       {t('item.pinned')}

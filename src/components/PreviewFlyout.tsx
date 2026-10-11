@@ -309,7 +309,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
+              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : 'var(--bg-card)',
               borderRadius: 20,
               border: dragOver ? '2px dashed #4caf50' : 'none',
               overflow: 'hidden',
@@ -367,9 +367,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                   bottom: 12,
                   left: 12,
                   right: 12,
-                  background: 'rgba(16, 16, 20, 0.92)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.75)',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--edge-strong)',
+                  boxShadow: 'var(--shadow-card)',
                   borderRadius: 12,
                   padding: '7px 10px',
                   display: 'flex',
@@ -380,9 +380,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.16)',
-                    color: '#ffffff',
+                    background: 'var(--bg-3)',
+                    border: '1px solid var(--edge-strong)',
+                    color: 'var(--text-primary)',
                     fontSize: 11,
                     fontWeight: 600,
                     padding: '3px 10px',
@@ -398,7 +398,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: 'rgba(255, 255, 255, 0.65)',
+                      color: 'var(--text-secondary)',
                       fontSize: 12,
                       fontWeight: 500,
                       cursor: 'pointer',
@@ -406,8 +406,8 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                       fontFamily: SYS_FONT,
                       transition: 'color 0.15s ease'
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
                   >
                     {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
                   </button>
@@ -422,9 +422,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                       alignItems: 'center',
                       gap: 5,
                       height: 28,
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: 'rgba(255, 255, 255, 0.85)',
+                      background: 'var(--bg-3)',
+                      border: '1px solid var(--edge-light)',
+                      color: 'var(--text-secondary)',
                       borderRadius: 8,
                       padding: '0 10px',
                       fontSize: 12,
@@ -434,12 +434,12 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'
-                      e.currentTarget.style.color = '#ffffff'
+                      e.currentTarget.style.background = 'var(--bg-card-hover)'
+                      e.currentTarget.style.color = 'var(--text-primary)'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)'
+                      e.currentTarget.style.background = 'var(--bg-3)'
+                      e.currentTarget.style.color = 'var(--text-secondary)'
                     }}
                   >
                     <CopyIcon width={13} height={13} />
@@ -454,16 +454,16 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                       alignItems: 'center',
                       gap: 6,
                       height: 28,
-                      background: '#ffffff',
+                      background: 'var(--preview-control-bg)',
                       border: 'none',
-                      color: '#000000',
+                      color: 'var(--preview-control-ink)',
                       borderRadius: 8,
                       padding: '0 12px',
                       fontSize: 12,
                       fontWeight: 600,
                       cursor: 'pointer',
                       fontFamily: SYS_FONT,
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                      boxShadow: 'var(--shadow-card)',
                       transition: 'all 0.15s ease'
                     }}
                   >
@@ -479,9 +479,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                     style={{
                       width: 28,
                       height: 28,
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      background: 'var(--bg-3)',
+                      border: '1px solid var(--edge-light)',
+                      color: 'var(--text-secondary)',
                       borderRadius: 8,
                       display: 'flex',
                       alignItems: 'center',
@@ -490,12 +490,12 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'
-                      e.currentTarget.style.color = '#ffffff'
+                      e.currentTarget.style.background = 'var(--bg-card-hover)'
+                      e.currentTarget.style.color = 'var(--text-primary)'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                      e.currentTarget.style.background = 'var(--bg-3)'
+                      e.currentTarget.style.color = 'var(--text-secondary)'
                     }}
                   >
                     <CloseIcon width={14} height={14} />
@@ -547,12 +547,12 @@ function QuickActionButton({
     setTimeout(() => setCopied(false), 1200)
   }
 
-  const defaultBg = solidDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.06)'
-  const defaultBorder = solidDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)'
-  const defaultColor = solidDark ? '#ffffff' : 'rgba(255, 255, 255, 0.75)'
+  const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
+  const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
+  const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
 
-  const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
-  const hoverColor = '#ffffff'
+  const hoverBg = solidDark ? 'var(--preview-control-hover-bg)' : 'var(--bg-card-hover)'
+  const hoverColor = 'var(--text-primary)'
   const iconSize = size === 24 ? 12 : 14
   const borderRadius = size === 24 ? 6 : 8
 
@@ -565,7 +565,7 @@ function QuickActionButton({
         height: size,
         background: copied ? (solidDark ? '#4caf50' : 'rgba(76, 175, 80, 0.2)') : defaultBg,
         border: copied ? (solidDark ? '1px solid #4caf50' : '1px solid rgba(76, 175, 80, 0.4)') : defaultBorder,
-        color: copied ? (solidDark ? '#ffffff' : activeColor) : defaultColor,
+        color: copied ? (solidDark ? 'var(--preview-control-ink)' : activeColor) : defaultColor,
         borderRadius,
         cursor: 'pointer',
         display: 'flex',
@@ -573,7 +573,7 @@ function QuickActionButton({
         justifyContent: 'center',
         transition: 'all 0.15s ease',
         flexShrink: 0,
-        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
+        boxShadow: solidDark ? 'var(--shadow-card)' : undefined
       }}
       onMouseEnter={(e) => {
         if (!copied) {
@@ -605,11 +605,11 @@ function ExplorerButton({
   solidDark?: boolean
 }) {
   const { t } = useTranslation()
-  const defaultBg = solidDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.06)'
-  const defaultBorder = solidDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)'
-  const defaultColor = solidDark ? '#ffffff' : 'rgba(255, 255, 255, 0.75)'
-  const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
-  const hoverColor = '#ffffff'
+  const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
+  const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
+  const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
+  const hoverBg = solidDark ? 'var(--preview-control-hover-bg)' : 'var(--bg-card-hover)'
+  const hoverColor = 'var(--text-primary)'
   const iconSize = size === 24 ? 12 : 14
   const borderRadius = size === 24 ? 6 : 8
 
@@ -633,7 +633,7 @@ function ExplorerButton({
         justifyContent: 'center',
         transition: 'all 0.15s ease',
         flexShrink: 0,
-        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
+        boxShadow: solidDark ? 'var(--shadow-card)' : undefined
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = hoverBg
@@ -682,13 +682,13 @@ function SelectionBadge({
           width: 22,
           height: 22,
           borderRadius: 5,
-          background: isSelected ? '#ffffff' : 'rgba(0, 0, 0, 0.75)',
-          border: isSelected ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.5)',
-          color: isSelected ? '#000000' : 'transparent',
+          background: isSelected ? 'var(--selection-border)' : 'var(--bg-0)',
+          border: isSelected ? '2px solid var(--selection-border)' : '2px solid var(--edge-strong)',
+          color: isSelected ? 'var(--selection-ink)' : 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.6)' : '0 2px 6px rgba(0, 0, 0, 0.4)',
+          boxShadow: isSelected ? '0 2px 8px var(--selection-shadow)' : '0 2px 6px var(--selection-shadow)',
           transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease'
         }}
       >
@@ -747,8 +747,8 @@ function PreviewContent({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
+              background: 'var(--bg-3)',
+              border: '1px solid var(--edge-strong)',
               borderRadius: 999,
               padding: '3px 10px',
               maxWidth: 'calc(100% - 75px)',
@@ -756,10 +756,10 @@ function PreviewContent({
               whiteSpace: 'nowrap',
               boxSizing: 'border-box'
             }}>
-              <GlobeIcon width={13} height={13} style={{ color: 'rgba(255, 255, 255, 0.85)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', fontFamily: SYS_FONT, flexShrink: 0, whiteSpace: 'nowrap' }}>{info.serviceName}</span>
-              <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.35)', flexShrink: 0 }}>·</span>
-              <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)', fontFamily: SYS_FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1 }}>{info.domain}</span>
+              <GlobeIcon width={13} height={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', fontFamily: SYS_FONT, flexShrink: 0, whiteSpace: 'nowrap' }}>{info.serviceName}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>·</span>
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontFamily: SYS_FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1 }}>{info.domain}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -781,7 +781,7 @@ function PreviewContent({
               <div style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 lineHeight: 1.35,
                 fontFamily: SYS_FONT,
                 wordBreak: 'break-word'
@@ -795,8 +795,8 @@ function PreviewContent({
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    background: 'rgba(255, 255, 255, 0.08)',
+                    color: 'var(--text-secondary)',
+                    background: 'var(--bg-3)',
                     padding: '2px 7px',
                     borderRadius: 4,
                     display: 'inline-block'
@@ -815,11 +815,11 @@ function PreviewContent({
             }}
             style={{
               padding: '10px 12px',
-              background: 'rgba(0, 0, 0, 0.25)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'var(--bg-3)',
+              border: '1px solid var(--edge-light)',
               borderRadius: 10,
               fontSize: 12,
-              color: 'rgba(255, 255, 255, 0.80)',
+              color: 'var(--text-secondary)',
               fontFamily: 'var(--font-ui)',
               wordBreak: 'break-all',
               lineHeight: 1.45,
@@ -827,12 +827,12 @@ function PreviewContent({
               transition: 'background 0.15s ease, border-color 0.15s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+              e.currentTarget.style.background = 'var(--bg-card-hover)'
+              e.currentTarget.style.borderColor = 'var(--edge-strong)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.25)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
+              e.currentTarget.style.background = 'var(--bg-3)'
+              e.currentTarget.style.borderColor = 'var(--edge-light)'
             }}
           >
             {info.cleanUrl || activeText}
@@ -860,7 +860,7 @@ function PreviewContent({
           />
         </div>
         <div style={{
-          color: 'rgba(255,255,255,0.88)',
+          color: 'var(--text-primary)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           fontSize: 13.5,
@@ -904,7 +904,7 @@ function PreviewContent({
         {item.data.imageId && (
           <img src={`edgelocal://${item.data.imageId}`} alt="preview" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
         )}
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
           {item.data.width} × {item.data.height} · {formatBytes(item.data.bytes)}
         </div>
       </div>
@@ -947,9 +947,9 @@ function PreviewContent({
                 cursor: 'grab',
                 padding: 4,
                 borderRadius: 10,
-                border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
-                background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                boxShadow: isSelected ? '0 0 16px rgba(255, 255, 255, 0.2)' : 'none',
+                border: isSelected ? '2px solid var(--selection-border)' : '2px solid transparent',
+                background: isSelected ? 'var(--selection-bg)' : 'transparent',
+                boxShadow: isSelected ? '0 0 16px var(--selection-shadow)' : 'none',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -969,7 +969,7 @@ function PreviewContent({
                 />
               </div>
               <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                 {idx + 1} / {item.data.images.length} · {img.width} × {img.height} · {formatBytes(img.bytes)}
               </div>
             </div>
@@ -1029,7 +1029,7 @@ function PreviewContent({
             style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
             draggable={false}
           />
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontFamily: SYS_FONT, letterSpacing: '0.02em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>{fileName}</span>
             {entry?.size ? <span>{formatBytes(entry.size)}</span> : null}
           </div>
@@ -1065,9 +1065,9 @@ function PreviewContent({
             textAlign: 'center',
             gap: 16,
             padding: '36px 20px 28px',
-            background: 'rgba(255, 255, 255, 0.035)',
+            background: 'var(--bg-3)',
             borderRadius: 14,
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            border: '1px solid var(--edge-light)',
             position: 'relative',
             cursor: 'grab'
           }}
@@ -1104,7 +1104,7 @@ function PreviewContent({
               style={{
                 fontSize: 15,
                 fontWeight: 600,
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 wordBreak: 'break-word',
                 lineHeight: 1.4,
                 fontFamily: SYS_FONT
@@ -1112,7 +1112,7 @@ function PreviewContent({
             >
               {fileName}
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.45)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
               {!entry?.isDirectory && entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
             </div>
           </div>
@@ -1165,9 +1165,9 @@ function PreviewContent({
                   flexDirection: 'column',
                   gap: 8,
                   padding: 4,
-                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  background: isSelected ? 'var(--selection-bg)' : 'transparent',
                   borderRadius: 10,
-                  border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
+                  border: isSelected ? '2px solid var(--selection-border)' : '2px solid transparent',
                   cursor: 'grab',
                   position: 'relative',
                   minWidth: 0,
@@ -1209,7 +1209,7 @@ function PreviewContent({
                   draggable={false}
                   style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
                 />
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                   {fileName}{entry?.size ? ` · ${formatBytes(entry.size)}` : ''}
                 </div>
               </div>
@@ -1247,9 +1247,9 @@ function PreviewContent({
                 textAlign: 'center',
                 gap: 8,
                 padding: '14px 10px 12px',
-                background: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)',
+                background: isSelected ? 'var(--selection-bg)' : 'var(--bg-3)',
                 borderRadius: 12,
-                border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                border: isSelected ? '1px solid var(--selection-border)' : '1px solid var(--edge-light)',
                 cursor: 'grab',
                 position: 'relative',
                 minWidth: 0,
@@ -1269,8 +1269,8 @@ function PreviewContent({
                       width: 18,
                       height: 18,
                       borderRadius: 4,
-                      border: isSelected ? '1.5px solid #fff' : '1.5px solid rgba(255, 255, 255, 0.3)',
-                      background: isSelected ? '#fff' : 'transparent',
+                      border: isSelected ? '1.5px solid var(--selection-border)' : '1.5px solid var(--edge-strong)',
+                      background: isSelected ? 'var(--selection-border)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1279,7 +1279,7 @@ function PreviewContent({
                     }}
                   >
                     {isSelected && (
-                      <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
+                      <CheckIcon width={12} height={12} style={{ color: 'var(--selection-ink)', strokeWidth: 3 }} />
                     )}
                   </div>
                 ) : <div />}
@@ -1319,7 +1319,7 @@ function PreviewContent({
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: 'rgba(255, 255, 255, 0.92)',
+                    color: 'var(--text-primary)',
                     wordBreak: 'break-word',
                     overflowWrap: 'anywhere',
                     lineHeight: 1.35,
@@ -1332,7 +1332,7 @@ function PreviewContent({
                 >
                   {fileName}
                 </span>
-                <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.42)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                   {!entry?.isDirectory && entry?.size ? formatBytes(entry.size) : info.label}
                 </span>
               </div>
