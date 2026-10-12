@@ -99,8 +99,10 @@
   --divider: rgba(25, 34, 48, 0.1);
 
   --text-primary: #202631;
-  --text-secondary: rgba(32, 38, 49, 0.76);
-  --text-tertiary: rgba(32, 38, 49, 0.5);
+  /* Keep small labels opaque: alpha text blends into bright surfaces and
+     loses the edge contrast needed for crisp glyphs. */
+  --text-secondary: #46505f;
+  --text-tertiary: #5a6675;
 
   --slider-fill: #000000;
   --slider-track: #d7dde7;
