@@ -168,6 +168,7 @@ export interface TranslationKeys {
     pinned: string
     pin: string
     unpin: string
+    reorder?: string
     delete: string
     clear: string
     dropToSave: string
@@ -726,6 +727,7 @@ export const en: TranslationKeys = {
     "pinned": "PINNED",
     "pin": "Pin",
     "unpin": "Unpin",
+    "reorder": "Drag to reorder",
     "delete": "Delete",
     "clear": "Clear",
     "clearLast1h": "Clear last hour",
@@ -4071,6 +4073,7 @@ export const zhCN: TranslationKeys = {
     "pinned": "已固定",
     "pin": "固定",
     "unpin": "取消固定",
+    "reorder": "拖动排序",
     "delete": "删除",
     "clear": "清除",
     "dropToSave": "拖放以保存",

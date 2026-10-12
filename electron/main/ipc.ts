@@ -241,6 +241,11 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
+  handle('item:reorder', (request) => {
+    if (getStore().reorder(request)) pushState.items()
+    return getStore().toDto()
+  })
+
   handle('item:delete', (id) => {
     const item = getStore().get(id)
     const watcher = getWatcher()

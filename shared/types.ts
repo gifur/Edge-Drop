@@ -125,6 +125,12 @@ export interface DragRequest {
   splitPlacement?: 'before' | 'after'
 }
 
+export interface ReorderRequest {
+  sourceId: string
+  targetId: string
+  placement: 'before' | 'after'
+}
+
 /**
  * Outcome of a merge attempt. `reason` tells the renderer *why* it failed so it
  * can show a precise message (e.g. "collection full" vs "can't mix types").

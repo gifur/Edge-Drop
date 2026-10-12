@@ -9,7 +9,7 @@
  *   - `Renderer -> Main` calls (invoke/handle) are listed in `InvokeMap`.
  *   - `Main -> Renderer` events (send/on) are listed in `EventMap`.
  */
-import type { ClipboardItemDto, DragRequest, MergeResult, Settings } from './types'
+import type { ClipboardItemDto, DragRequest, MergeResult, ReorderRequest, Settings } from './types'
 
 /* ------------------------------------------------------------------ */
 /* Renderer -> Main  (ipcMain.handle / ipcRenderer.invoke)            */
@@ -21,6 +21,9 @@ export interface InvokeMap {
 
   /** Set an item's pinned state. */
   'item:set-pinned': { args: [id: string, pinned: boolean]; result: ClipboardItemDto[] }
+
+  /** Reorder an item relative to another item in the same pinned state. */
+  'item:reorder': { args: [request: ReorderRequest]; result: ClipboardItemDto[] }
 
   /** Delete a single item (and its image file if present). */
   'item:delete': { args: [id: string]; result: ClipboardItemDto[] }

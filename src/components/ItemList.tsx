@@ -9,13 +9,19 @@
  * dragged over the panel so the edge-hover hook knows not to close mid-drag.
  */
 import { AnimatePresence, motion } from 'framer-motion'
-import { useRef, useEffect, useLayoutEffect, useState } from 'react'
+import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react'
 import { useStore } from '../store/appStore'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 import { ClipboardItemCard } from './ClipboardItem'
 import { EmptyState } from './EmptyState'
 import { ChevronDownIcon, PinFillIcon } from './icons'
 import { playExpandSound, playButtonClickSound } from '../lib/soundEffects'
+import {
+  findReorderPointerTarget,
+  resolveRememberedReorder,
+  type ReorderCardRect,
+  type ReorderDropTarget
+} from '../lib/reorderDrag'
 
 import { useTranslation } from '../i18n'
 
@@ -44,6 +50,10 @@ export function ItemList() {
   const prevFilterRef = useRef(typeFilter)
 
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const reorderSourceRef = useRef<string | null>(null)
+  const reorderTargetRef = useRef<ReorderDropTarget | null>(null)
+  const [reorderSourceId, setReorderSourceId] = useState<string | null>(null)
+  const [reorderTarget, setReorderTarget] = useState<ReorderDropTarget | null>(null)
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem('edge_drop_pinned_collapsed_map')
@@ -258,12 +268,12 @@ export function ItemList() {
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const updateEdgeScroll = (clientX: number, clientY: number) => {
     if (!listRef.current) return
     const rect = listRef.current.getBoundingClientRect()
 
     if (isHorizontal) {
-      const x = e.clientX - rect.left
+      const x = clientX - rect.left
       const edgeSize = 80
       if (x < edgeSize) {
         const intensity = Math.max(0, 1 - (x / edgeSize))
@@ -279,7 +289,7 @@ export function ItemList() {
       return
     }
 
-    const y = e.clientY - rect.top
+    const y = clientY - rect.top
     const edgeSize = 80 // slightly larger comfortable trigger zone
 
     if (y < edgeSize) {
@@ -296,9 +306,89 @@ export function ItemList() {
     }
   }
 
+  const handleDragOver = (e: React.DragEvent) => {
+    updateEdgeScroll(e.clientX, e.clientY)
+  }
+
   const handleDragLeaveOrDrop = () => {
     stopScrolling()
   }
+
+  const clearReorderDrag = useCallback(() => {
+    reorderSourceRef.current = null
+    reorderTargetRef.current = null
+    setReorderSourceId(null)
+    setReorderTarget(null)
+    stopScrolling()
+  }, [])
+
+  const handleReorderPointerStart = useCallback((id: string) => {
+    reorderSourceRef.current = id
+    reorderTargetRef.current = null
+    setReorderSourceId(id)
+    setReorderTarget(null)
+  }, [])
+
+  const handleReorderPointerMove = useCallback((clientX: number, clientY: number) => {
+    const sourceId = reorderSourceRef.current
+    const list = listRef.current
+    if (!sourceId || !list) return
+
+    const listRect = list.getBoundingClientRect()
+    if (
+      clientX < listRect.left || clientX > listRect.right ||
+      clientY < listRect.top || clientY > listRect.bottom
+    ) {
+      reorderTargetRef.current = null
+      setReorderTarget(null)
+      stopScrolling()
+      return
+    }
+
+    updateEdgeScroll(clientX, clientY)
+    const hoveredCard = document.elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>('[data-reorder-id]')
+    if (hoveredCard?.dataset.reorderId === sourceId) {
+      reorderTargetRef.current = null
+      setReorderTarget(null)
+      return
+    }
+
+    const cards: ReorderCardRect[] = Array.from(
+      list.querySelectorAll<HTMLElement>('[data-reorder-id]')
+    ).flatMap((element) => {
+      const id = element.dataset.reorderId
+      if (!id) return []
+      const rect = element.getBoundingClientRect()
+      return [{ id, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }]
+    })
+    const nextTarget = findReorderPointerTarget(
+      sourceId,
+      clientX,
+      clientY,
+      isHorizontal,
+      cards,
+      useStore.getState().items
+    )
+    reorderTargetRef.current = nextTarget
+    setReorderTarget((current) => {
+      if (!current && !nextTarget) return current
+      if (current && nextTarget && current.id === nextTarget.id && current.placement === nextTarget.placement) {
+        return current
+      }
+      return nextTarget
+    })
+  }, [isHorizontal])
+
+  const handleReorderPointerEnd = useCallback(() => {
+    const request = resolveRememberedReorder(
+      reorderSourceRef.current,
+      reorderTargetRef.current,
+      useStore.getState().items
+    )
+    if (request) void useStore.getState().reorder(request)
+    clearReorderDrag()
+  }, [clearReorderDrag])
 
   const filterKey = `${typeFilter}:${query}`
 
@@ -359,7 +449,16 @@ export function ItemList() {
                 </div>
               </div>
               {!pinnedCollapsed && pinned.map((it) => (
-                <ClipboardItemCard key={it.id} item={it} />
+                <ClipboardItemCard
+                  key={it.id}
+                  item={it}
+                  reorderDragging={reorderSourceId === it.id}
+                  dropPlacement={reorderTarget?.id === it.id ? reorderTarget.placement : undefined}
+                  onReorderPointerStart={handleReorderPointerStart}
+                  onReorderPointerMove={handleReorderPointerMove}
+                  onReorderPointerEnd={handleReorderPointerEnd}
+                  onReorderPointerCancel={clearReorderDrag}
+                />
               ))}
             </section>
           )}
@@ -372,7 +471,16 @@ export function ItemList() {
                 </div>
               )}
               {recent.map((it) => (
-                <ClipboardItemCard key={it.id} item={it} />
+                <ClipboardItemCard
+                  key={it.id}
+                  item={it}
+                  reorderDragging={reorderSourceId === it.id}
+                  dropPlacement={reorderTarget?.id === it.id ? reorderTarget.placement : undefined}
+                  onReorderPointerStart={handleReorderPointerStart}
+                  onReorderPointerMove={handleReorderPointerMove}
+                  onReorderPointerEnd={handleReorderPointerEnd}
+                  onReorderPointerCancel={clearReorderDrag}
+                />
               ))}
             </section>
           )}

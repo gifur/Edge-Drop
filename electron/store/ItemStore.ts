@@ -17,6 +17,7 @@ import {
   type ClipboardItem,
   type ClipboardItemDto,
   type DragRequest,
+  type ReorderRequest,
   type ItemData,
   type MergeResult,
   type FileEntry,
@@ -304,6 +305,23 @@ export class ItemStore {
     if (!it) return
     it.pinned = pinned
     this.persist()
+  }
+
+  reorder({ sourceId, targetId, placement }: ReorderRequest): boolean {
+    if (sourceId === targetId) return false
+    const sourceIndex = this.items.findIndex((item) => item.id === sourceId)
+    const targetIndex = this.items.findIndex((item) => item.id === targetId)
+    if (sourceIndex < 0 || targetIndex < 0) return false
+    if (this.items[sourceIndex].pinned !== this.items[targetIndex].pinned) return false
+
+    const before = this.items.map((item) => item.id)
+    const [source] = this.items.splice(sourceIndex, 1)
+    const nextTargetIndex = this.items.findIndex((item) => item.id === targetId)
+    this.items.splice(nextTargetIndex + (placement === 'after' ? 1 : 0), 0, source)
+
+    if (this.items.every((item, index) => item.id === before[index])) return false
+    this.persist()
+    return true
   }
 
   delete(id: string): void {

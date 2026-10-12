@@ -18,7 +18,7 @@ import type {
   SendChannel
 } from '../../shared/ipc'
 import type { EdgeApi } from '../../shared/bridge'
-import type { DragRequest } from '../../shared/types'
+import type { DragRequest, ReorderRequest } from '../../shared/types'
 
 /** Typed invoke wrapper derived from the shared contracts. */
 function invoke<C extends InvokeChannel>(
@@ -179,6 +179,7 @@ const api = {
   /* Renderer -> Main */
   loadState: () => invoke('state:load'),
   setPinned: (id: string, pinned: boolean) => invoke('item:set-pinned', id, pinned),
+  reorderItems: (request: ReorderRequest) => invoke('item:reorder', request),
   deleteItem: (id: string) => invoke('item:delete', id),
   deleteBatchItems: (ids: string[]) => invoke('item:delete-batch', ids),
   clearItems: () => invoke('item:clear'),

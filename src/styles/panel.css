@@ -293,7 +293,7 @@
   flex-direction: row;
   overflow-y: hidden;
   overflow-x: auto;
-  padding: 6px 14px 8px;
+  padding: 36px 14px 8px;
 }
 .list.horizontal .list-stack {
   flex-direction: row;

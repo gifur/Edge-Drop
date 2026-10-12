@@ -14,7 +14,7 @@
   user-select: none;
   -webkit-user-select: none;
   transition: background 0.14s ease;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Specular light-reflection 1px border.
@@ -48,19 +48,8 @@
   opacity: 1.2;
 }
 
-/* Performance culling — invisible to users.
-   Cards outside the scroll viewport skip style/layout/paint of their whole
-   subtree; scrolling near them renders them normally. The `auto` keyword
-   remembers each card's real measured height after first paint, so scrollbar
-   geometry stays exact while `96px` is only the first-guess fallback for
-   never-rendered cards. Scoped to the scroll list so flyouts/overlays are
-   untouched. */
-.list-stack .item {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 96px;
-}
-
 .item:hover {
+  z-index: 30;
   background: var(--bg-card-hover);
 }
 
@@ -443,9 +432,9 @@
 /* Floating Actions Pill */
 .actions {
   position: absolute;
-  top: 8px;
+  top: 0;
   right: 8px;
-  transform: scale(0.96);
+  transform: translateY(-100%) scale(0.96);
   display: flex;
   gap: 3px;
   padding: 3px 5px;
@@ -455,6 +444,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.14s ease, transform 0.14s ease;
+  transform-origin: right bottom;
   will-change: opacity, transform;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
   z-index: 20;
@@ -465,7 +455,38 @@
 .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1);
+  transform: translateY(-100%) scale(1);
+}
+
+.reorder-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.reorder-handle:active {
+  cursor: grabbing;
+}
+
+.item.reorder-before::after,
+.item.reorder-after::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 72%, transparent);
+  z-index: 31;
+  pointer-events: none;
+}
+
+.item.reorder-before::after {
+  top: -4px;
+}
+
+.item.reorder-after::after {
+  bottom: -4px;
 }
 
 .act {
@@ -1065,7 +1086,7 @@
 
 /* Horizontal Mode Compact Floating Actions Micro-Pill */
 .list.horizontal .actions {
-  top: 6px;
+  top: 0;
   right: 6px;
   padding: 2px 4px;
   gap: 2px;
@@ -1073,7 +1094,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.4);
   border-radius: 999px;
-  transform: scale(0.92) translateY(-2px);
+  transform: translateY(-100%) scale(0.92);
   transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1082,7 +1103,25 @@
 .list.horizontal .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1) translateY(0);
+  transform: translateY(-100%) scale(1);
+}
+
+.list.horizontal .item.reorder-before::after,
+.list.horizontal .item.reorder-after::after {
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  height: auto;
+}
+
+.list.horizontal .item.reorder-before::after {
+  left: -4px;
+  right: auto;
+}
+
+.list.horizontal .item.reorder-after::after {
+  left: auto;
+  right: -4px;
 }
 
 .list.horizontal .act {

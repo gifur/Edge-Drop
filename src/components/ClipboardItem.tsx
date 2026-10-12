@@ -16,7 +16,7 @@
  */
 import { memo, useState, useCallback, useEffect, useRef, forwardRef, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import type { ClipboardItemDto } from '../../shared/types'
+import type { ClipboardItemDto, ReorderRequest } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
 import type { DragRequest } from '../../shared/types'
 import { useStore } from '../store/appStore'
@@ -25,7 +25,7 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, GripIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
@@ -40,6 +40,12 @@ export const RelativeTime = memo(function RelativeTime({ capturedAt }: { capture
 
 interface Props {
   item: ClipboardItemDto
+  reorderDragging: boolean
+  dropPlacement?: ReorderRequest['placement']
+  onReorderPointerStart: (id: string) => void
+  onReorderPointerMove: (clientX: number, clientY: number) => void
+  onReorderPointerEnd: () => void
+  onReorderPointerCancel: () => void
 }
 
 /**
@@ -56,7 +62,15 @@ export function fileStreamUrl(filePath: string): string {
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
 
-const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
+const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
+  item,
+  reorderDragging,
+  dropPlacement,
+  onReorderPointerStart,
+  onReorderPointerMove,
+  onReorderPointerEnd,
+  onReorderPointerCancel
+}, ref) => {
   const { t } = useTranslation()
   const copy = useStore.getState().copy
   const paste = useStore.getState().paste
@@ -239,10 +253,12 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   return (
     <motion.div
       ref={ref}
+      layout="position"
       initial={false}
-      animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
+      animate={{ opacity: reorderDragging ? 0.55 : 1 }}
+      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${reorderDragging ? ' reorder-dragging' : ''}${dropPlacement ? ` reorder-${dropPlacement}` : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
+      data-reorder-id={item.id}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
         ...(colorInfo ? {
@@ -277,6 +293,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onDragStart={(e) => {
+          if ((e.target as Element).closest('.reorder-handle')) {
+            e.preventDefault()
+            e.stopPropagation()
+            return
+          }
           if (pointerStartRef.current) pointerStartRef.current.moved = true
           handleDragStart(e, { id: item.id })
         }}
@@ -404,6 +425,47 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
             </button>
           )}
           <div className="act-divider" />
+          <button
+            type="button"
+            className="act reorder-handle"
+            draggable={false}
+            title={t('item.reorder')}
+            aria-label={t('item.reorder')}
+            onPointerDown={(event) => {
+              if (event.button !== 0) return
+              event.stopPropagation()
+              event.preventDefault()
+              event.currentTarget.setPointerCapture(event.pointerId)
+              onReorderPointerStart(item.id)
+            }}
+            onPointerMove={(event) => {
+              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+              event.stopPropagation()
+              event.preventDefault()
+              onReorderPointerMove(event.clientX, event.clientY)
+            }}
+            onPointerUp={(event) => {
+              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+              event.stopPropagation()
+              event.preventDefault()
+              onReorderPointerEnd()
+              event.currentTarget.releasePointerCapture(event.pointerId)
+            }}
+            onPointerCancel={(event) => {
+              event.stopPropagation()
+              onReorderPointerCancel()
+            }}
+            onClick={(event) => {
+              event.stopPropagation()
+              event.preventDefault()
+            }}
+            onDragStart={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
+          >
+            <GripIcon />
+          </button>
           <button
             className="act danger"
             title={t('item.delete')}
@@ -1235,7 +1297,13 @@ export const ClipboardItemCard = memo(
       prev.pinned === next.pinned &&
       prev.hitCount === next.hitCount &&
       prev.capturedAt === next.capturedAt &&
-      itemRenderKey(prev) === itemRenderKey(next)
+      itemRenderKey(prev) === itemRenderKey(next) &&
+      prevProps.reorderDragging === nextProps.reorderDragging &&
+      prevProps.dropPlacement === nextProps.dropPlacement &&
+      prevProps.onReorderPointerStart === nextProps.onReorderPointerStart &&
+      prevProps.onReorderPointerMove === nextProps.onReorderPointerMove &&
+      prevProps.onReorderPointerEnd === nextProps.onReorderPointerEnd &&
+      prevProps.onReorderPointerCancel === nextProps.onReorderPointerCancel
     )
   }
 )

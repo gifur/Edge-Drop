@@ -11,7 +11,7 @@ import { edge } from '../lib/edge'
 import { takeSearchEngaged } from '../lib/searchFocus'
 import { t } from '../i18n'
 import { loadRecents } from '../lib/emoji/prefs'
-import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
+import type { ClipboardItemDto, Settings, DragRequest, ReorderRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
@@ -156,6 +156,7 @@ interface AppState {
 
   /* mutations (delegate to main) */
   togglePin: (id: string, pinned: boolean) => Promise<void>
+  reorder: (request: ReorderRequest) => Promise<void>
   remove: (id: string) => Promise<void>
   clear: (ids?: string[]) => Promise<void>
   copy: (id: string) => Promise<void>
@@ -531,6 +532,10 @@ export const useStore = create<AppState>((set, get) => ({
     if (items.length !== current.length || items.some((it, i) => it.id !== current[i]?.id || it.pinned !== current[i]?.pinned)) {
       set({ items })
     }
+  },
+
+  async reorder(request) {
+    set({ items: await edge.reorderItems(request) })
   },
 
   async remove(id) {
