@@ -9,6 +9,20 @@ const tokensCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'tokens.cs
 const settingsCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'settings.css'), 'utf8')
 
 describe('light theme item contrast', () => {
+  it('uses the warm light surface for both the panel and cards', () => {
+    const lightBlock = tokensCss.match(/:root\[data-theme='light'\]\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
+
+    expect(lightBlock).toContain('--bg-1-base: #fef7ff')
+    expect(lightBlock).toContain('--bg-2-base: #fef7ff')
+  })
+
+  it('uses a dedicated warm hover surface for light clipboard cards', () => {
+    const lightBlock = tokensCss.match(/:root\[data-theme='light'\]\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
+
+    expect(lightBlock).toContain('--item-hover-bg: color-mix(in srgb, #f6f1f6 var(--panel-opacity), transparent)')
+    expect(itemCss).toContain('background: var(--item-hover-bg)')
+  })
+
   it('overrides preview text and footer surface for light cards', () => {
     expect(itemCss).toContain(":root[data-theme='light'] .item .preview")
     expect(itemCss).toContain(":root[data-theme='light'] .item-footer")

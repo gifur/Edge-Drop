@@ -276,7 +276,9 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px var(--pad) 16px;
+  /* The card action pill sits fully above its card. Keep the first pill
+     inside this scrollport instead of letting overflow clip it. */
+  padding: 44px var(--pad) 16px;
   position: relative;
   z-index: 1;
   scrollbar-width: none; /* Firefox */

@@ -50,7 +50,7 @@
 
 .item:hover {
   z-index: 30;
-  background: var(--bg-card-hover);
+  background: var(--item-hover-bg);
 }
 
 .item:hover .preview {
@@ -62,7 +62,7 @@
 }
 
 .item.pinned:hover {
-  background: var(--bg-card-hover);
+  background: var(--item-hover-bg);
 }
 
 /* Compact UI Density Mode */
@@ -1728,7 +1728,7 @@
 :root[data-theme='light'] .fluid-card-row:hover,
 :root[data-theme='light'] .horizontal-subitem-tile:hover,
 :root[data-theme='light'] .item:hover .link-card {
-  background: var(--bg-card-hover);
+  background: var(--item-hover-bg);
   border-color: var(--edge-strong);
 }
 

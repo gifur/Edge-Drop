@@ -22,6 +22,7 @@
   --bg-glass: color-mix(in srgb, var(--bg-glass-base) var(--panel-opacity), transparent);
   --bg-card: var(--bg-2);
   --bg-card-hover: var(--bg-3);
+  --item-hover-bg: var(--bg-card-hover);
   --bg-chip: var(--bg-2);
 
   /* Preview controls and selection states. */
@@ -89,10 +90,11 @@
 
 :root[data-theme='light'] {
   --bg-0-base: #eef1f5;
-  --bg-1-base: #ffffff;
-  --bg-2-base: #ffffff;
+  --bg-1-base: #fef7ff;
+  --bg-2-base: #fef7ff;
   --bg-3-base: #f0f3f7;
   --bg-glass-base: #f8fafc;
+  --item-hover-bg: color-mix(in srgb, #f6f1f6 var(--panel-opacity), transparent);
 
   --edge-light: rgba(25, 34, 48, 0.08);
   --edge-strong: rgba(25, 34, 48, 0.16);
