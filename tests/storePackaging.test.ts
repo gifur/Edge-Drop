@@ -89,12 +89,15 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
       '!resources/appx/**',
       '!resources/startup/**/*.cs',
       '!**/node_modules/emoji-datasource-twitter/**',
-      '!**/node_modules/lucide-react/**',
       '!**/node_modules/gsap/**',
       '!**/node_modules/framer-motion/**',
       '!**/node_modules/@fontsource/**',
       '!**/node_modules/react-dom/**'
     ]))
+    // Icons are vendored Phosphor paths (src/components/phosphorPaths.ts): no icon package at all.
+    for (const dep of ['lucide-react', '@phosphor-icons/react', '@iconify/react', '@iconify-json/cuida']) {
+      expect({ ...pkg.dependencies, ...pkg.devDependencies }[dep]).toBeUndefined()
+    }
     expect(pkg.build.appx.customExtensionsPath).toBe('resources/appx/startup-extensions.xml')
     expect(existsSync(join(root, 'resources/appx/startup-extensions.xml'))).toBe(true)
   })
@@ -185,7 +188,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
 
   it('Settings hides the in-app updater on Store builds', () => {
     const src = read('src/components/Settings.tsx')
-    expect(src).toContain('{!isStoreBuild && (')
+    // the Updates group only exists on GitHub builds
+    expect(src).toMatch(/\.\.\.\(!isStoreBuild \? \[\{\n\s+id: 'updates'/)
     expect(src).toContain('behaviour.autoUpdatesTitle')
     expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
     expect(src).toContain('hasPromotedTopUpdate = SHOW_UPDATE_SETTINGS && !isStoreBuild &&')

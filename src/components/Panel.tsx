@@ -1,14 +1,14 @@
 /**
- * Panel — the blade that grows out of the left edge.
+ * Panel — the blade that grows out of the screen edge.
  *
- * Motion: when `open` flips true the blade slides in from x = -100% (fully off
- * the left edge) to x = 0 with a spring, and its opacity/blur animate together
- * for the "extending from the screen" feel. A faint ambient glow leads the
- * edge. When closed, the whole blade sits off-screen so the window stays
- * transparent and click-through.
+ * Motion: when closed, a clip-path leaves only the thin edge bar visible.
+ * When `open` flips true the clip springs out to the full blade, growing
+ * outward and along the edge together, while a black veil over the content
+ * fades away just behind it (see `.blade::after` in panel.css). Closing runs
+ * the reverse: the content dims first and the shape draws back into the bar.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
 import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
@@ -21,17 +21,52 @@ import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { LanguageFlyout } from './LanguageFlyout'
+import { CardMenu } from './CardMenu'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
+<<<<<<< HEAD
 import { isManualPasteShortcut } from '../lib/manualPaste'
+=======
+import { registerEdgeDragCue } from '../lib/edgeDrag'
+import { DashedOutline } from './DashedOutline'
+import { isKept } from '../../shared/itemMeta'
+>>>>>>> main
 
 import { useTranslation } from '../i18n'
+
+// Shelf open/close motion: real damped springs written out as CSS linear()
+// easings, so the browser runs them with no per-frame JS.
+// - Open: response 0.38s, damping 0.86, launched with a little initial
+//   velocity so the very first frame already moves. It is cut where the
+//   spring first reaches its target; the overshoot after that point would sit
+//   outside the blade and be clipped away, so it would only cost frames.
+// - Close: critically damped (no bounce), response 0.24s, cut once less than
+//   a pixel of travel is left. Dismissal is quicker than presentation.
+const SHELF_OPEN_MOTION =
+  'clip-path 285ms linear(0, 0.055 3.5%, 0.149 8.5%, 0.414 21.8%, 0.524 27.8%, 0.614 33.3%, 0.693 38.8%, 0.759 44.3%, 0.817 50%, 0.866 56%, 0.907 62.5%, 0.941 69.8%, 0.969 78.3%, 0.989 88.5%, 1)'
+/** Launch intro of the edge bar: appears a little wider and longer as a dark
+ * pill, then settles into the slim black bar (see the beacon in Panel). */
+const EDGE_INTRO_MS = 1300
+/** The edge bar's ends taper over 24px of its length (the blade's corner
+ * size) across its full thickness, so it reads as a soft pill, not a box.
+ * The closed clip-path in Panel uses the same shape, so the intro lands on it
+ * exactly. */
+const EDGE_BAR_RADIUS = {
+  left: '0 100% 100% 0 / 0 24px 24px 0',
+  right: '100% 0 0 100% / 24px 0 0 24px',
+  top: '0 0 24px 24px / 0 0 100% 100%'
+}
+const SHELF_CLOSE_MOTION =
+  'clip-path 289ms linear(0, 0.021 1.8%, 0.058 3.8%, 0.116 6.3%, 0.23 10.5%, 0.402 16.8%, 0.503 20.8%, 0.586 24.5%, 0.659 28.2%, 0.725 32.3%, 0.782 36.5%, 0.832 41%, 0.874 46%, 0.911 51.7%, 0.941 58.5%, 0.965 66.8%, 0.982 77.5%, 0.994 93.8%, 1)'
 
 export function Panel() {
   const open = useStore((s) => s.open)
   const { pinned, recent } = useFilteredItems()
   const filteredItems = useMemo(() => [...pinned, ...recent], [pinned, recent])
   const filteredCount = filteredItems.length
+  // What Clear removes: the visible recent cards without a note (pinned and
+  // noted cards are kept).
+  const clearable = useMemo(() => recent.filter((it) => !isKept(it)), [recent])
   const clear = useStore((s) => s.clear)
   const typeFilter = useStore((s) => s.typeFilter)
   const query = useStore((s) => s.query)
@@ -42,10 +77,15 @@ export function Panel() {
   const setQuery = useStore((s) => s.setQuery)
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
-  // Mount the picker on first open, then keep it. Tearing it (and ItemList)
-  // down on every smile click is what made the switch hitch.
+  // Mount the picker on first open and keep it while the shelf stays open.
+  // Tearing it (and ItemList) down on every smile click is what made the
+  // switch hitch. Once the shelf has closed and the picker is no longer shown
+  // it is freed: its grid, images and glyph state would otherwise stay in
+  // memory for the rest of the session. Every open lands on the first page
+  // anyway, so the next mount looks the same.
   const emojiMountedRef = useRef(false)
   if (emojiOpen) emojiMountedRef.current = true
+  else if (!open) emojiMountedRef.current = false
   const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
   const edgeTransition = useStore((s) => s.edgeTransition)
@@ -55,12 +95,49 @@ export function Panel() {
 
   useEffect(() => {
     setMounted(true)
-    // Graceful startup fade-in intro for the trigger bar on launch
+    // Launch intro: the edge bar settles into place (EDGE_INTRO_MS), then the
+    // intro hands over to the real bar underneath.
     const timer = window.setTimeout(() => {
       setStartupBeacon(false)
-    }, 2200)
+    }, EDGE_INTRO_MS + 250)
     return () => window.clearTimeout(timer)
   }, [])
+
+  // The edge bar is the closed panel clipped to a thin strip, so an intro that
+  // is briefly wider than that strip is drawn outside the panel, over the
+  // panel's own box (measured here), with the same strip insets.
+  const containerRef = useRef<HTMLDivElement>(null)
+  const showEdgeHint = !!edgeHintActive && (settings.showEdgeLocationHint ?? false)
+  const showEdgeBeacon = !open && (startupBeacon || showEdgeHint)
+  // A drag from another app is on its way: the bar swells, ready for it
+  // (placed like the beacon, see EdgeDragCue). After the shelf closes it waits
+  // for the close to finish, so it never appears over the shape drawing back.
+  const externalDrag = useStore((s) => s.externalDrag)
+  const [closeSettled, setCloseSettled] = useState(true)
+  useEffect(() => {
+    if (open) {
+      setCloseSettled(false)
+      return
+    }
+    const timer = window.setTimeout(() => setCloseSettled(true), 320)
+    return () => window.clearTimeout(timer)
+  }, [open])
+  const showDragCue = externalDrag && !open && closeSettled && !startupBeacon
+  const [beaconFrame, setBeaconFrame] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  useLayoutEffect(() => {
+    if (!(showEdgeBeacon || showDragCue) || !containerRef.current) return
+    const r = containerRef.current.getBoundingClientRect()
+    setBeaconFrame({ left: r.left, top: r.top, width: r.width, height: r.height })
+  }, [
+    showEdgeBeacon,
+    showDragCue,
+    settings.stickPosition,
+    settings.panelHeight,
+    settings.verticalOffset,
+    settings.horizontalOffset,
+    settings.hotZoneHeight,
+    settings.triggerAlignment
+  ])
 
   useEffect(() => {
     if (!open) {
@@ -282,18 +359,19 @@ export function Panel() {
   if (isTransitioning) containerClass += ' is-transitioning'
 
   const reduceMotion = !!settings.reduceMotion
-  // Single Apple-like reveal curve (no overshoot branch — bounce was dead
-  // code with no UI surface; the expo ease settles without ringing).
+  if (reduceMotion) containerClass += ' reduce-motion'
+  // The transition is read from the new style, so picking it by the target
+  // state gives the open spring on open and the close spring on close.
   const clipTransition = reduceMotion
     ? 'clip-path 0.01s linear'
-    : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
+    : isVisuallyOpen ? SHELF_OPEN_MOTION : SHELF_CLOSE_MOTION
 
   let currentTransition = clipTransition
   let currentOpacity = 1
 
   if (isTransitioning && !reduceMotion) {
     if (edgeTransition.stage === 'retracting') {
-      currentTransition = 'clip-path 0.26s cubic-bezier(0.22, 1, 0.36, 1)'
+      currentTransition = SHELF_CLOSE_MOTION
       currentOpacity = 1
     } else if (edgeTransition.stage === 'bar_fade_out') {
       currentTransition = 'opacity 0.10s ease-out'
@@ -302,7 +380,7 @@ export function Panel() {
       currentTransition = 'opacity 0.12s ease-out'
       currentOpacity = 1
     } else if (edgeTransition.stage === 'expanding') {
-      currentTransition = 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
+      currentTransition = SHELF_OPEN_MOTION
       currentOpacity = 1
     }
   }
@@ -363,27 +441,121 @@ export function Panel() {
 
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.
+  // The open clip is the blade's own box plus the 30px reverse-curve flares,
+  // nothing more (flyouts are portaled to <body>, and the blade clips its
+  // own overflow). With no spare margin the shape grows outward and along
+  // the edge together, instead of the outward edge snapping across in the
+  // first frames. Every dock keeps the same 24px corners while it grows.
   let clipPath: string
   const hotWidth = settings.hotZoneWidth || 3
   if (isRight) {
     clipPath = isVisuallyOpen
-      ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
-      : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
+      ? 'inset(-30px 0px -30px 0px round 24px 0px 0px 24px)'
+      : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round ${hotWidth}px 0px 0px ${hotWidth}px / 24px 0px 0px 24px)`
   } else if (isTop) {
     clipPath = isVisuallyOpen
-      ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
-      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
+      ? 'inset(0px -30px 0px -30px round 0px 0px 24px 24px)'
+      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px / 0px 0px ${hotWidth}px ${hotWidth}px)`
   } else {
     clipPath = isVisuallyOpen
-      ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
-      : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px 24px 24px 0px)`
+      ? 'inset(-30px 0px -30px 0px round 0px 24px 24px 0px)'
+      : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px ${hotWidth}px ${hotWidth}px 0px / 0px 24px 24px 0px)`
   }
   containerStyle.clipPath = clipPath
+
+  // Edge bar intro (launch) and location hint. Not a light: the bar itself,
+  // solid black with no border like the drag cue, a little wider and longer
+  // than the bar, settling into the slim black bar it lands on exactly (same
+  // insets, same black), so the hand-over is invisible. The hint is the same
+  // shape as a short swell.
+  const beaconThick = isHorizontal ? 'height' : 'width'
+  const beaconLong = isHorizontal ? 'width' : 'height'
+  const beaconWide = hotWidth + 6
+  // Launch: the bar swells out of itself (solid all along, so the bar under
+  // it never shows through), holds a beat, then glides back to slim.
+  const beaconMotion = startupBeacon
+    ? {
+        animate: {
+          [beaconThick]: reduceMotion ? hotWidth : [hotWidth, beaconWide, beaconWide, hotWidth],
+          [beaconLong]: reduceMotion ? '100%' : ['100%', '114%', '114%', '100%'],
+          opacity: 1
+        },
+        transition: {
+          duration: EDGE_INTRO_MS / 1000,
+          times: [0, 0.22, 0.38, 1],
+          ease: [[0.22, 1, 0.36, 1], 'linear', [0.22, 1, 0.36, 1]]
+        }
+      }
+    : {
+        animate: {
+          [beaconThick]: reduceMotion ? hotWidth : [hotWidth, hotWidth + 4, hotWidth],
+          [beaconLong]: reduceMotion ? '100%' : ['100%', '106%', '100%'],
+          opacity: 1
+        },
+        transition: { duration: 0.45, ease: 'easeInOut' }
+      }
 
   return (
     <div className="root">
       <CopyIndicatorCurve />
+      <AnimatePresence>
+        {showEdgeBeacon && beaconFrame && (
+          <motion.div
+            key="edge-beacon"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            style={{ position: 'absolute', ...beaconFrame, pointerEvents: 'none', zIndex: 11 }}
+          >
+            <div
+              style={
+                isHorizontal
+                  ? { position: 'absolute', left: insetLeft, right: insetRight, top: 0, height: hotWidth }
+                  : { position: 'absolute', top: insetTop, bottom: insetBottom, [isRight ? 'right' : 'left']: 0, width: hotWidth }
+              }
+            >
+              <motion.div
+                key={startupBeacon ? 'intro' : 'hint'}
+                data-edge-beacon=""
+                {...beaconMotion}
+                style={
+                  isHorizontal
+                    ? { position: 'absolute', top: 0, left: '50%', x: '-50%', backgroundColor: '#000000', borderRadius: EDGE_BAR_RADIUS.top }
+                    : {
+                        position: 'absolute',
+                        backgroundColor: '#000000',
+                        top: '50%',
+                        [isRight ? 'right' : 'left']: 0,
+                        y: '-50%',
+                        borderRadius: isRight ? EDGE_BAR_RADIUS.right : EDGE_BAR_RADIUS.left
+                      }
+                }
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showDragCue && beaconFrame && (
+          <motion.div
+            key="edge-drag-cue"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: reduceMotion ? 0.01 : 0.14 } }}
+            style={{ position: 'absolute', ...beaconFrame, pointerEvents: 'none', zIndex: 11 }}
+          >
+            <div
+              style={
+                isHorizontal
+                  ? { position: 'absolute', left: insetLeft, right: insetRight, top: 0, height: hotWidth }
+                  : { position: 'absolute', top: insetTop, bottom: insetBottom, [isRight ? 'right' : 'left']: 0, width: hotWidth }
+              }
+            >
+              <EdgeDragCue side={isHorizontal ? 'top' : isRight ? 'right' : 'left'} barPx={hotWidth} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div
+        ref={containerRef}
         className={containerClass}
         onPointerDownCapture={armKeyboardPaste}
         onDragEnter={onDragEnter}
@@ -393,50 +565,6 @@ export function Panel() {
         style={containerStyle}
       >
 
-        {/* Edge Trigger Bar & Location Hint Beacon (Startup fade-in intro + pulse on wrong-position touch) */}
-        <AnimatePresence>
-          {!open && (startupBeacon || (edgeHintActive && (settings.showEdgeLocationHint ?? false))) && (
-            <motion.div
-              key="edge-location-beacon"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: startupBeacon ? 0.8 : 0.5 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: reduceMotion ? 0.01 : startupBeacon ? 0.5 : 0.18,
-                ease: [0.16, 1, 0.3, 1]
-              }}
-              style={
-                isHorizontal
-                  ? {
-                      position: 'absolute',
-                      left: insetLeft,
-                      right: insetRight,
-                      top: 0,
-                      height: 2,
-                      boxSizing: 'border-box',
-                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
-                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
-                      borderRadius: '999px',
-                      pointerEvents: 'none',
-                      zIndex: 99
-                    }
-                  : {
-                      position: 'absolute',
-                      top: insetTop,
-                      bottom: insetBottom,
-                      [isRight ? 'right' : 'left']: 0,
-                      width: 2,
-                      boxSizing: 'border-box',
-                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
-                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
-                      borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
-                      pointerEvents: 'none',
-                      zIndex: 99
-                    }
-              }
-            />
-          )}
-        </AnimatePresence>
         {isTop && (
           <>
             <div className="flare-horizontal flare-top-left" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
@@ -488,14 +616,14 @@ export function Panel() {
             itemCount={filteredCount}
             clearProps={{
               items: filteredItems,
-              disabled: recent.length === 0,
+              disabled: clearable.length === 0,
               panelOpen: open,
               onClear: (ids) => clear(ids),
               onClearAll: () => {
                 if (typeFilter === 'all' && !query.trim()) {
                   clear()
                 } else {
-                  clear(recent.map((it) => it.id))
+                  clear(clearable.map((it) => it.id))
                 }
               }
             }}
@@ -547,31 +675,27 @@ export function Panel() {
                   {emojiMounted ? <EmojiPicker active={emojiOpen} isHorizontal={isHorizontal} /> : null}
                 </div>
               </div>
-              {!isHorizontal && (
+              {!isHorizontal && !emojiOpen && (
                 <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
-                  {!emojiOpen && (
-                    <>
-                      <div className="footer-capsule">
-                        <span className="footer-capsule-count" title={`${filteredCount}`}>
-                          {filteredCount}
-                        </span>
-                      </div>
-                      <div className="spacer" />
-                      <ClearMenu
-                        items={filteredItems}
-                        disabled={recent.length === 0}
-                        panelOpen={open}
-                        onClear={(ids) => clear(ids)}
-                        onClearAll={() => {
-                          if (typeFilter === 'all' && !query.trim()) {
-                            clear()
-                          } else {
-                            clear(recent.map((it) => it.id))
-                          }
-                        }}
-                      />
-                    </>
-                  )}
+                  <div className="footer-capsule">
+                    <span className="footer-capsule-count" title={`${filteredCount}`}>
+                      {filteredCount}
+                    </span>
+                  </div>
+                  <div className="spacer" />
+                  <ClearMenu
+                    items={filteredItems}
+                    disabled={clearable.length === 0}
+                    panelOpen={open}
+                    onClear={(ids) => clear(ids)}
+                    onClearAll={() => {
+                      if (typeFilter === 'all' && !query.trim()) {
+                        clear()
+                      } else {
+                        clear(clearable.map((it) => it.id))
+                      }
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -592,12 +716,17 @@ export function Panel() {
               )}
             </AnimatePresence>
           </div>
-          <DropOverlay />
-          <SplitDropZone stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')} />
+          <DropOverlay isHorizontal={isHorizontal} />
+          <SplitDropZone
+            stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')}
+            lineStart={isHorizontal ? insetLeft : insetTop}
+            lineEnd={isHorizontal ? insetRight : insetBottom}
+          />
         </div>
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
         <LanguageFlyout isRight={isRight} />
+        <CardMenu />
       </div>
     </div>
   )
@@ -622,18 +751,103 @@ function getTutorialText(step: number): string {
 }
 */
 
-function DropOverlay() {
+/**
+ * The edge bar getting ready for a drag from another app: a slightly wider,
+ * lit pill over the bar (same look as the launch beacon) that grows as the
+ * drag gets closer (--pull, written by lib/edgeDrag.ts without a render).
+ */
+function EdgeDragCue({ side, barPx }: { side: 'left' | 'right' | 'top'; barPx: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    registerEdgeDragCue(ref.current)
+    return () => registerEdgeDragCue(null)
+  }, [])
+  return (
+    <div
+      ref={ref}
+      data-edge-drag-cue=""
+      className={`edge-drag-cue side-${side}`}
+      style={{ '--bar': `${barPx}px`, '--barn': barPx } as React.CSSProperties}
+    />
+  )
+}
+
+/** Tray with an arrow dropping into it; the arrow is its own group so it can move. */
+function TrayArrowIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <g className="drop-arrow">
+        <path d="M12 3.25v9" />
+        <path d="m8.25 8.75 3.75 3.75 3.75-3.75" />
+      </g>
+      <path d="M3.5 14h4.1l1.6 2.6h5.6l1.6-2.6h4.1" />
+      <path d="M3.5 14v3.75a2.25 2.25 0 0 0 2.25 2.25h12.5a2.25 2.25 0 0 0 2.25-2.25V14l-2.1-5.1" />
+      <path d="M5.6 8.9 3.5 14" />
+    </svg>
+  )
+}
+
+/**
+ * Drop zone for anything dragged in from another app: a dashed well over the
+ * dimmed shelf. It is up from the first frame of an open caused by the drag
+ * (the content veil reveals it with the shelf), lights up once the drag is
+ * over the shelf, and on a drop it takes the item in (the well tightens, the
+ * arrow sinks into the tray) before handing over to the new card.
+ */
+function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
   const { t } = useTranslation()
-  const dragActive = useStore((s) => s.dragActive)
-  const internalDragReq = useStore((s) => s.internalDragReq)
+  const open = useStore((s) => s.open)
+  const incoming = useStore((s) => !s.internalDragReq && (s.externalDrag || s.dragActive))
+  const over = useStore((s) => s.dragActive && !s.internalDragReq)
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
+  const [accepted, setAccepted] = useState(false)
+  // Once up, the zone stays when the drag goes away without a drop (it left
+  // the shelf, was let go elsewhere or cancelled): either the shelf then
+  // closes, and the zone stays until the shape has drawn back (320ms) so no
+  // cards show through the collapse; or the shelf stays open (the pointer is
+  // still on it), and after the close grace has passed (GRACE_MS 250 in
+  // useEdgeHover, plus margin) the zone fades and the cards return. A drop
+  // hands over to the accept instead.
+  const [held, setHeld] = useState(false)
+  useEffect(() => {
+    if (accepted) {
+      if (held) setHeld(false)
+      return
+    }
+    if (open && incoming) {
+      if (!held) setHeld(true)
+      return
+    }
+    if (!held) return
+    const timer = window.setTimeout(() => setHeld(false), open ? 450 : 320)
+    return () => window.clearTimeout(timer)
+  }, [open, incoming, held, accepted])
+  const visible = held || (open && incoming)
+
+  useEffect(() => {
+    if (!visible) return
+    // Capture phase: the preload's own drop handler stops nothing for drops
+    // from other apps, so this sees each of them.
+    const onDrop = () => setAccepted(true)
+    document.addEventListener('drop', onDrop, true)
+    return () => document.removeEventListener('drop', onDrop, true)
+  }, [visible])
+  useEffect(() => {
+    if (!accepted) return
+    const timer = window.setTimeout(() => setAccepted(false), reduceMotion ? 0 : 240)
+    return () => window.clearTimeout(timer)
+  }, [accepted, reduceMotion])
 
   return (
     <AnimatePresence>
-      {dragActive && !internalDragReq && (
+      {(visible || accepted) && (
         <motion.div
+          key="drop-overlay"
+          className={`drop-overlay${isHorizontal ? ' is-horizontal' : ''}${over ? ' is-over' : ''}${accepted ? ' is-accepted' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+<<<<<<< HEAD
           transition={{ duration: 0.2 }}
           className="drop-overlay"
           style={{
@@ -678,6 +892,19 @@ function DropOverlay() {
             <div className="drop-overlay-desc" style={{ fontSize: '12px', fontWeight: 400, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
               {t('item.dropToSaveDesc')}
             </div>
+=======
+          transition={{ duration: reduceMotion ? 0.01 : accepted ? 0.2 : 0.14, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="drop-well">
+            <DashedOutline radius={16} />
+            <span className="drop-icon">
+              <TrayArrowIcon />
+            </span>
+            <span className="drop-text">
+              <span className="drop-title">{t('item.dropToSave')}</span>
+              <span className="drop-sub">{t('item.dropToSaveDesc')}</span>
+            </span>
+>>>>>>> main
           </div>
         </motion.div>
       )}
@@ -685,8 +912,16 @@ function DropOverlay() {
   )
 }
 
-function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' }) {
+/**
+ * Detach target while a card is dragged out of an open stack: a soft blue
+ * glow coming out of the screen edge where the slim edge bar sits when the
+ * shelf is closed (same length, same alignment), fading out toward its ends;
+ * with the card over the strip it grows and brightens. The whole strip along
+ * that edge takes the drop. lineStart/lineEnd are the edge bar's insets.
+ */
+function SplitDropZone({ stickPosition = 'left', lineStart, lineEnd }: { stickPosition?: 'left' | 'right' | 'top'; lineStart: string; lineEnd: string }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
   const isSubitemDragging = !!(
     internalDragReq &&
     (internalDragReq.imageId || (internalDragReq.paths && internalDragReq.paths.length > 0))
@@ -699,7 +934,9 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
     setIsOver(true)
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    const related = e.relatedTarget as Node | null
+    if (related && e.currentTarget.contains(related)) return
     setIsOver(false)
   }
 
@@ -714,49 +951,6 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
     }
   }
 
-  const isTop = stickPosition === 'top'
-  const isRight = stickPosition === 'right'
-
-  // Orientation alignment:
-  // When dock is on LEFT, drop zone is on the LEFT (-15px x-offset)
-  // When dock is on RIGHT, drop zone is on the RIGHT (+15px x-offset)
-  // When dock is on TOP, drop zone is at the TOP (-15px y-offset)
-  const initialMotion = isTop
-    ? { opacity: 0, y: -15 }
-    : isRight
-      ? { opacity: 0, x: 15 }
-      : { opacity: 0, x: -15 }
-
-  const exitMotion = initialMotion
-
-  const styleByPos: React.CSSProperties = isTop
-    ? {
-        top: 0,
-        left: 0,
-        right: 0,
-        height: isOver ? 72 : 56,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-      }
-    : isRight
-      ? {
-          top: 0,
-          bottom: 0,
-          right: 0,
-          width: isOver ? 100 : 80,
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }
-      : {
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: isOver ? 100 : 80,
-          justifyContent: 'flex-start',
-          alignItems: 'center'
-        }
-
   return (
     <AnimatePresence>
       {isSubitemDragging && (
@@ -769,13 +963,21 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          initial={initialMotion}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={exitMotion}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          style={styleByPos}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.14 }}
         >
-          <div className="glow-line" />
+          <div
+            className="split-bar"
+            style={
+              stickPosition === 'top'
+                ? { left: `max(0px, ${lineStart})`, right: `max(0px, ${lineEnd})` }
+                : { top: `max(0px, ${lineStart})`, bottom: `max(0px, ${lineEnd})` }
+            }
+          >
+            <div className={`split-glow side-${stickPosition}`} />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

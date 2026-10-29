@@ -14,7 +14,7 @@
  * clamped preview; file items list names or bundle badge. Motion is handled by
  * the parent list (layout/AnimatePresence), so this component stays presentational.
  */
-import { memo, useState, useCallback, useEffect, useRef, forwardRef, type ReactNode } from 'react'
+import { memo, useState, useCallback, useEffect, useLayoutEffect, useRef, forwardRef, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { ClipboardItemDto, ReorderRequest } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
@@ -25,11 +25,21 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
+<<<<<<< HEAD
 import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, GripIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+=======
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { DashedOutline } from './DashedOutline'
+>>>>>>> main
 import { LinkPreviewCard } from './LinkPreviewCard'
+import { parseUrlPreview } from '../lib/urlPreview'
+import { CodeBlock } from './CodeBlock'
+import { StackHeader, StackItems, fileStackEntries, imageCollectionEntries, stackOpenWidth } from './StackItems'
+import { detectCode } from '../lib/codeDetect'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
 import { parseColor } from '../lib/colorUtils'
+import { externalHref } from '../lib/urlPreview'
 import { useTranslation, t } from '../i18n'
 import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
 
@@ -80,21 +90,38 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
   const startDrag = useDragOut()
   const [copied, setCopied] = useState(false)
 
-  const settings = useStore((s) => s.settings)
-  const isHorizontal = settings.stickPosition === 'top'
+  // Narrow subscriptions: a card re-renders only when what it shows changes
+  // (not on every settings write, or when another card previews / expands).
+  const isHorizontal = useStore((s) => s.settings.stickPosition === 'top')
   const colorInfo = item.data.kind === 'text' ? parseColor(item.data.text) : null
 
   // Accordion expansion: ONE stack open at a time, coordinated store-wide
   // (expanding another stack collapses this one; Escape / outside click /
   // filter or settings switches collapse via the same store field).
-  const expandedStackId = useStore((s) => s.expandedStackId)
-  const expanded = expandedStackId === item.id
+  const expanded = useStore((s) => s.expandedStackId === item.id)
   const setExpandedFlag = useCallback((v: boolean) => {
     useStore.getState().setExpandedStackId(v ? item.id : null)
   }, [item.id])
 
-  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const isPreviewing = useStore((s) => s.previewItemId === item.id)
+  const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
+  // In-app drag: the card a drop would merge into, and the whole card being dragged.
+  const isDropTarget = useStore((s) => s.dropTargetId === item.id)
+  const isDragSource = useStore((s) => s.internalDragReq?.id === item.id && !s.internalDragReq.imageId && !s.internalDragReq.paths?.length)
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
+  const isSingleImage = item.data.kind === 'image' || (
+    item.data.kind === 'files' &&
+    item.data.paths.length === 1 &&
+    !(item.data as any).entries?.[0]?.isDirectory &&
+    ((item.data as any).entries?.[0]?.isImage || getFileKind(item.data.paths[0]).kind === 'image')
+  )
+  const isImageStack = item.data.kind === 'image-collection' || (
+    item.data.kind === 'files' &&
+    item.data.paths.length > 1 &&
+    item.data.paths.every((p, i) => !(item.data as any).entries?.[i]?.isDirectory && ((item.data as any).entries?.[i]?.isImage || getFileKind(p).kind === 'image'))
+  )
+  const isImageFolderCard = isSingleImage || isImageStack
+  const isFileCard = item.data.kind === 'files' && !isImageFolderCard
 
   const bundleCount = item.data.kind === 'image-collection'
     ? item.data.images.length
@@ -102,23 +129,22 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
       ? item.data.paths.length
       : 0
 
-  const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
   const expandedWidth = expanded && isHorizontal
-    ? Math.min(screenW - 80, Math.max(300, 36 + bundleCount * 112))
+    ? (isImageFolderCard || isFileCard
+        ? stackOpenWidth(bundleCount, isImageStack)
+        : Math.max(300, 48 + bundleCount * 124))
     : undefined
+
+  const cardRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!isBundle && expanded) setExpandedFlag(false)
   }, [isBundle, expanded, setExpandedFlag])
 
   // ── Intuitive collapse affordances ──────────────────────────────────────
-  // While THIS stack is the open one, a pointerdown anywhere OUTSIDE this
-  // card (other cards, empty shelf space) collapses it — standard disclosure
-  // behavior. Everything INSIDE this card is exempt, including its empty
-  // padding/margins: a partial-boundary exemption caused the infamous
-  // collapse→re-expand bounce, because the follow-up click event dispatched
-  // against freshly-collapsed state and the body contract re-opened it.
-  // The preview flyout is exempt too, so interacting there never surprises.
+  // While THIS stack is the open one, a pointerdown anywhere OUTSIDE all cards
+  // (e.g. empty shelf space) collapses it. Clicks on any card (.item) or inside
+  // this card/flyout are exempt so the clicked card can expand/paste immediately on 1 click!
   useEffect(() => {
     if (!expanded) return
 
@@ -127,6 +153,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
       if (!target || typeof target.closest !== 'function') return
       if (target.closest('[data-expanded-stack]')) return
       if (target.closest('[data-preview-flyout], .preview-flyout')) return
+      if (target.closest('.card-menu')) return
+      if (target.closest('.item')) return
       setExpandedFlag(false)
     }
 
@@ -135,6 +163,34 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
       document.removeEventListener('pointerdown', onPointerDown, true)
     }
   }, [expanded, setExpandedFlag])
+
+  // Smooth scroll stabilization when a stack expands: ensure the start/header of the card stays visible without scrolling to the end
+  useLayoutEffect(() => {
+    if (!expanded) return
+    const el = cardRef.current
+    if (!el) return
+    const container = el.closest('.list')
+    if (!container) return
+
+    const rafId = requestAnimationFrame(() => {
+      const containerRect = container.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+
+      if (isHorizontal) {
+        const leftDiff = elRect.left - containerRect.left
+        if (leftDiff < 0) {
+          container.scrollBy({ left: leftDiff - 16, behavior: 'smooth' })
+        }
+      } else {
+        const topDiff = elRect.top - containerRect.top
+        if (topDiff < 0) {
+          container.scrollBy({ top: topDiff - 16, behavior: 'smooth' })
+        }
+      }
+    })
+
+    return () => cancelAnimationFrame(rafId)
+  }, [expanded, isHorizontal])
 
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -150,8 +206,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
     if (useStore.getState().previewItemId === item.id) {
       return
     }
-    tryPaste(() => paste(item.id))
-  }, [paste, item.id])
+    // Shift+click: paste text without its formatting (same as the menu's
+    // "Paste as plain text"; plain text has nothing to strip).
+    const plain = !!e?.shiftKey && item.data.kind === 'text'
+    tryPaste(() => paste(item.id, plain ? { plain: true } : undefined))
+  }, [paste, item.id, item.data.kind])
 
   const onExpand = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -200,11 +259,19 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // Track if THIS card was the actively previewed (blurred) card when pointer clicked
     wasPreviewingRef.current = (useStore.getState().previewItemId === item.id) || isPreviewing
-    if (e.button === 0) {
-      pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
-    }
+    if (e.button !== 0) return // right-click opens the menu; nothing to stage
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
     handlePrestage()
   }, [isPreviewing, item.id, handlePrestage])
+
+  // Right-click: the card menu (not during the tutorial or a drag).
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const s = useStore.getState()
+    if (s.tutorialStep > 0 || s.internalDragReq) return
+    s.openCardMenu(item.id, e.clientX, e.clientY)
+  }, [item.id])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!pointerStartRef.current) return
@@ -246,17 +313,31 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
     if (isBundle && !expanded) {
       onExpand(e)
     } else if (!isBundle) {
+      if (useStore.getState().expandedStackId) {
+        useStore.getState().setExpandedStackId(null)
+      }
       onPaste(e)
     }
   }, [isPreviewing, isBundle, expanded, onExpand, onPaste, item.id])
 
   return (
     <motion.div
+<<<<<<< HEAD
       ref={ref}
       layout="position"
       initial={false}
       animate={{ opacity: reorderDragging ? 0.55 : 1 }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${reorderDragging ? ' reorder-dragging' : ''}${dropPlacement ? ` reorder-${dropPlacement}` : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
+=======
+      ref={(node: HTMLDivElement | null) => {
+        cardRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) (ref as any).current = node
+      }}
+      initial={false}
+      animate={{ opacity: 1 }}
+      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
+>>>>>>> main
       data-expanded-stack={expanded ? 'true' : undefined}
       data-reorder-id={item.id}
       style={{
@@ -285,6 +366,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
           }}
         />
       )}
+      {isDropTarget && (
+        <div className="drop-target-ring" aria-hidden="true">
+          <DashedOutline radius={14} />
+        </div>
+      )}
       <div
         className={`item-main${isPreviewing ? ' force-actions previewing' : ''}`}
         data-id={item.id}
@@ -292,6 +378,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
         onMouseEnter={handlePrestage}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
+        onContextMenu={handleContextMenu}
         onDragStart={(e) => {
           if ((e.target as Element).closest('.reorder-handle')) {
             e.preventDefault()
@@ -328,41 +415,68 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
         }}
         onClick={handleCardClick}
       >
-        <div className="body">
-          <div className="item-content">
-            {isBundle ? (
-                <BundleFluidPreview 
-                  item={item} 
-                  expanded={expanded} 
-                  isHorizontal={isHorizontal}
-                  onDragStart={handleDragStart} 
-                  onCopy={onCopy} 
-                  onRemove={() => remove(item.id)} 
-                  onCollapse={onCollapse}
-                />
-            ) : (
-              <Preview item={item} />
+        {isImageFolderCard ? (
+          <ImageFolderCard
+            item={item}
+            copied={copied}
+            expanded={expanded}
+            isHorizontal={isHorizontal}
+            onDragStart={handleDragStart}
+            onCopy={onCopy}
+            onRemove={() => remove(item.id)}
+            onCollapse={onCollapse}
+          />
+        ) : isFileCard ? (
+          <FileFolderCard
+            item={item}
+            copied={copied}
+            expanded={expanded}
+            isHorizontal={isHorizontal}
+            onDragStart={handleDragStart}
+            onCopy={onCopy}
+            onRemove={() => remove(item.id)}
+            onCollapse={onCollapse}
+          />
+        ) : (
+          <div className="body">
+            {item.note && (!isBundle || !expanded) && (
+              <div className="item-note" title={item.note}>{item.note}</div>
+            )}
+            <div className="item-content">
+              {isBundle ? (
+                  <BundleFluidPreview 
+                    item={item} 
+                    expanded={expanded} 
+                    isHorizontal={isHorizontal}
+                    onDragStart={handleDragStart} 
+                    onCopy={onCopy} 
+                    onRemove={() => remove(item.id)} 
+                    onCollapse={onCollapse}
+                  />
+              ) : (
+                <Preview item={item} />
+              )}
+            </div>
+            {(!isBundle || !expanded) && (
+              <div className="item-footer">
+                <div className="meta">
+                  <KindBadge item={item} />
+                  <ItemDetails item={item} />
+                  {item.hitCount > 1 && (
+                    <>
+                      <span>·</span>
+                      <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                        ×{item.hitCount}
+                      </span>
+                    </>
+                  )}
+                  {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+                </div>
+                <RelativeTime capturedAt={item.capturedAt} />
+              </div>
             )}
           </div>
-          {(!isBundle || !expanded) && (
-            <div className="item-footer">
-              <div className="meta">
-                <KindBadge item={item} />
-                <ItemDetails item={item} />
-                {item.hitCount > 1 && (
-                  <>
-                    <span>·</span>
-                    <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
-                      ×{item.hitCount}
-                    </span>
-                  </>
-                )}
-                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
-              </div>
-              <RelativeTime capturedAt={item.capturedAt} />
-            </div>
-          )}
-        </div>
+        )}
 
         <div 
           className="actions" 
@@ -418,7 +532,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
                 e.preventDefault()
                 e.currentTarget.blur()
                 playButtonClickSound()
-                window.open((item.data as any).text, '_blank')
+                window.open(externalHref((item.data as any).text), '_blank')
               }}
             >
               <ExternalLinkIcon />
@@ -596,6 +710,7 @@ function BundleToolbar({
     <div
       className="bundle-actions"
       title={t('item.collapsePinned')}
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation()
         onCollapse(e)
@@ -605,6 +720,7 @@ function BundleToolbar({
         type="button"
         className="bundle-collapse-hit"
         title={t('item.collapsePinned')}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation()
           e.currentTarget.blur()
@@ -618,11 +734,12 @@ function BundleToolbar({
           {count} / {MAX_STACK}
         </div>
       )}
-      <div className="actions-pill">
+      <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()}>
         {showPin && onTogglePin && (
           <button
             className={`act${pinned ? ' active' : ''}`}
             title={pinned ? t('item.unpin') : t('item.pin')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               e.currentTarget.blur()
@@ -638,6 +755,7 @@ function BundleToolbar({
         <button
           className="act"
           title={t('item.copy')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
         >
           <CopyIcon />
@@ -645,6 +763,7 @@ function BundleToolbar({
         <button
           className="act danger"
           title={t('item.delete')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
         >
           <TrashIcon />
@@ -668,6 +787,7 @@ function HorizontalBundleExpanded({
   onDragStart: (e: React.DragEvent, req: DragRequest) => void
 }) {
   const { t } = useTranslation()
+  const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const isImageCollection = item.data.kind === 'image-collection'
   const isFiles = item.data.kind === 'files'
   const images = item.data.kind === 'image-collection' ? item.data.images : []
@@ -680,6 +800,7 @@ function HorizontalBundleExpanded({
       <div
         className="horizontal-bundle-header"
         title={t('item.collapsePinned')}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation()
           onCollapse(e)
@@ -689,6 +810,7 @@ function HorizontalBundleExpanded({
           type="button"
           className="bundle-collapse-hit"
           title={t('item.collapsePinned')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation()
             e.currentTarget.blur()
@@ -697,20 +819,51 @@ function HorizontalBundleExpanded({
         >
           <ChevronLeftIcon />
         </button>
-        <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
+        <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <button
+            className={`act${item.pinned ? ' active' : ''}`}
+            title={item.pinned ? t('item.unpin') : t('item.pin')}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.currentTarget.blur()
+              playToggleSound(!item.pinned)
+              useStore.getState().togglePin(item.id, !item.pinned)
+            }}
+          >
+            {item.pinned ? <PinFillIcon width={12} height={12} /> : <PinIcon width={12} height={12} />}
+          </button>
+          <button
+            className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
+            title={isPreviewing ? t('header.close') : t('item.expand')}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              e.currentTarget.blur()
+              playCardExpandSound(!isPreviewing)
+              const rect = e.currentTarget.closest('.item-main, .item')?.getBoundingClientRect()
+              const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
+              useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+            }}
+          >
+            {isPreviewing ? <ContractIcon width={12} height={12} /> : <ExpandIcon width={12} height={12} />}
+          </button>
           <button
             className="act"
             title={t('item.copy')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
           >
-            <CopyIcon />
+            <CopyIcon width={12} height={12} />
           </button>
           <button
             className="act danger"
             title={t('item.delete')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
           >
-            <TrashIcon />
+            <TrashIcon width={12} height={12} />
           </button>
         </div>
       </div>
@@ -867,13 +1020,13 @@ function BundleFluidPreview({
 
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
-    const photoSize = isHorizontal ? 76 : 124
+    const photoSize = isHorizontal ? 88 : 132
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
           <>
-            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 90 } : undefined}>
               {item.data.images.slice(0, 4).map((img, pathIndex) => ({ img, pathIndex })).reverse().map(({ img }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
                 const spread = arr.length > 1 ? (isHorizontal ? 12 : 16) : 0
@@ -963,13 +1116,13 @@ function BundleFluidPreview({
     const entries = item.data.entries
     const paths = item.data.paths
     const count = paths.length
-    const photoSize = isHorizontal ? 76 : 124
+    const photoSize = isHorizontal ? 80 : 100
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
-          <>
-            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
+          <div className="file-card-viewport bundle-viewport">
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 90 } : undefined}>
               {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
                 const entry = entries?.[pathIndex]
@@ -1017,7 +1170,7 @@ function BundleFluidPreview({
             ) : (
               <div className="bundle-more-label">{t('item.singleFile')}</div>
             )}
-          </>
+          </div>
         }
         list={
           <>
@@ -1084,6 +1237,437 @@ function BundleFluidPreview({
 }
 
 /* ------------------------------------------------------------------ */
+/* Image Folder Card (Framed single image or fanned photo stack)      */
+/* ------------------------------------------------------------------ */
+
+interface ImageCardEntry {
+  id: string
+  src?: string
+  fallbackSrc?: string
+  name?: string
+  width?: number
+  height?: number
+  bytes?: number
+}
+
+function getImageEntries(item: ClipboardItemDto): ImageCardEntry[] {
+  if (item.data.kind === 'image') {
+    return [{
+      id: item.id,
+      src: item.data.preview,
+      name: item.data.fileName || item.data.source || 'clipboard',
+      width: item.data.width,
+      height: item.data.height,
+      bytes: item.data.bytes
+    }]
+  }
+  if (item.data.kind === 'image-collection') {
+    return item.data.images.map((img, i) => ({
+      id: img.imageId || `${item.id}-${i}`,
+      src: img.preview,
+      name: `image-${i + 1}`,
+      width: img.width,
+      height: img.height,
+      bytes: img.bytes
+    }))
+  }
+  if (item.data.kind === 'files') {
+    return item.data.paths.map((filePath, i) => {
+      const entry = (item.data as any).entries?.[i]
+      const fallback = fileStreamUrl(filePath)
+      return {
+        id: `${item.id}-${filePath}-${i}`,
+        src: entry?.preview || fallback,
+        fallbackSrc: fallback,
+        name: formatImageDisplayName(filePath, item.capturedAt) || entry?.name || basename(filePath),
+        width: entry?.width,
+        height: entry?.height,
+        bytes: entry?.size
+      }
+    })
+  }
+  return []
+}
+
+function ImageFolderCard({
+  item,
+  copied = false,
+  expanded = false,
+  isHorizontal = false,
+  onDragStart,
+  onCopy,
+  onRemove,
+  onCollapse
+}: {
+  item: ClipboardItemDto
+  copied?: boolean
+  expanded?: boolean
+  isHorizontal?: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+  onCopy?: (e: React.MouseEvent) => void
+  onRemove?: () => void
+  onCollapse?: (e?: React.MouseEvent) => void
+}) {
+  const { t } = useTranslation()
+  const images = getImageEntries(item)
+  const count = images.length
+
+  if (count === 0) return null
+
+  const isStack = count > 1
+  const displayCount = Math.min(count, 4)
+  const displayImages = isStack ? images.slice(0, 4) : images
+
+  // Meta details for elevated tab header and footer name
+  let badgeText = ''
+  let metaDetail = ''
+
+  if (!isStack) {
+    badgeText = t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()
+    const sourceName = images[0].name
+    if (sourceName && sourceName !== 'clipboard' && sourceName !== 'image') {
+      metaDetail = sourceName
+    }
+  } else {
+    badgeText = `${count} ${t('filters.images').toLowerCase()}`
+    const firstNonGeneric = images.find((img) => img.name && img.name !== 'clipboard' && !img.name.startsWith('image-'))?.name
+    if (firstNonGeneric) {
+      metaDetail = firstNonGeneric
+    }
+  }
+
+  return (
+    <div className={`image-folder-card-inner${expanded && isStack ? ' is-expanded-folder' : ''}`}>
+      <div className={`image-folder-viewport is-textured${expanded && isStack ? ' is-expanded-viewport' : ''}`}>
+        {!isStack ? (
+          displayImages[0].src ? (
+            <img
+              className="image-folder-thumb"
+              src={displayImages[0].src}
+              onError={(e) => {
+                if (displayImages[0].fallbackSrc && e.currentTarget.src !== displayImages[0].fallbackSrc) {
+                  e.currentTarget.src = displayImages[0].fallbackSrc
+                }
+              }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <div className="preview">[{t('item.imageItem')}]</div>
+          )
+        ) : (
+          <StackExpandSwap
+            expanded={expanded}
+            deckKey="img-stack-deck"
+            panelKey="img-stack-panel"
+            deck={
+          <div className="image-folder-stack-deck" data-count={displayCount}>
+            {displayImages.map((img, idx) => (
+              <div
+                key={img.id}
+                className={`image-folder-stack-item pos-${idx}`}
+              >
+                <img
+                  src={img.src}
+                  onError={(e) => {
+                    if (img.fallbackSrc && e.currentTarget.src !== img.fallbackSrc) {
+                      e.currentTarget.src = img.fallbackSrc
+                    }
+                  }}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+            }
+            panel={
+          <div className="image-folder-expanded-content">
+            <StackHeader
+              item={item}
+              title={`${count} ${t('filters.images').toLowerCase()}`}
+              isHorizontal={isHorizontal}
+              onCollapse={onCollapse}
+              onCopy={onCopy}
+              onRemove={onRemove}
+            />
+            <StackItems entries={item.data.kind === 'image-collection' ? imageCollectionEntries(item, t) : fileStackEntries(item, t)} isHorizontal={isHorizontal} onDragStart={onDragStart} />
+          </div>
+            }
+          />
+        )}
+      </div>
+
+      {/* Solid Black Folder Flap (NO stroke/borders, smooth curved silhouette) */}
+      {(!expanded || !isStack) && (
+        <div className="image-folder-flap-wrap">
+          <svg 
+            className="image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
+
+          <div className="image-folder-flap-content">
+            {/* Elevated Tab Area: shows type badge (image, 3 images, etc.) */}
+            <div className="image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: '#06B6D4' }}>
+                {badgeText}
+              </span>
+            </div>
+
+            {/* Flap Footer: Left side shows image source/file name, Right side shows relative time */}
+            <div className="image-folder-flap-footer">
+              <div className="image-folder-meta">
+                {item.note ? (
+                  <span className="image-folder-source-name meta-label" title={metaDetail ? `${item.note} · ${metaDetail}` : item.note}>
+                    {item.note}
+                  </span>
+                ) : metaDetail && (
+                  <span className="image-folder-source-name file-name-meta" title={metaDetail}>
+                    {metaDetail}
+                  </span>
+                )}
+                {item.hitCount > 1 && (
+                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                    {(item.note || metaDetail) ? ' · ×' : '×'}{item.hitCount}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">{(item.note || metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
+              </div>
+              <RelativeTime capturedAt={item.capturedAt} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Stack expand/collapse swap                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Animated swap between a stack's collapsed deck and its expanded rows.
+ *
+ * Deliberately GPU-only (opacity + translate): animating height on these
+ * cards janks because every frame re-layouts up to 10 rows of large
+ * gradient SVGs and disk-loaded images. The height snaps instantly under
+ * a short fade/slide so the eye tracks the content motion, not the jump.
+ * Honors the reduced-motion setting.
+ */
+function StackExpandSwap({
+  expanded,
+  deckKey,
+  panelKey,
+  deck,
+  panel
+}: {
+  expanded: boolean
+  deckKey: string
+  panelKey: string
+  deck: React.ReactNode
+  panel: React.ReactNode
+}) {
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
+  if (reduceMotion) return <>{expanded ? panel : deck}</>
+  // Enter-only animation: the outgoing side unmounts instantly and the
+  // incoming side fades/slides in. No exit overlap — keeping an exiting
+  // panel in flow balloons the card (panel height + deck height) then snaps,
+  // which is exactly what made closing feel broken.
+  return (
+    <motion.div
+      key={expanded ? panelKey : deckKey}
+      className={expanded ? 'stack-expand-panel' : 'stack-collapse-deck'}
+      initial={{ opacity: 0, y: expanded ? -10 : 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: expanded ? 0.22 : 0.15, ease: 'easeOut' }}
+    >
+      {expanded ? panel : deck}
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* File Folder Card (Framed File / Folder / Stack in Blue Folder Card) */
+/* ------------------------------------------------------------------ */
+
+function FileFolderCard({
+  item,
+  copied = false,
+  expanded = false,
+  isHorizontal = false,
+  onDragStart,
+  onCopy,
+  onRemove,
+  onCollapse
+}: {
+  item: ClipboardItemDto
+  copied?: boolean
+  expanded?: boolean
+  isHorizontal?: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+  onCopy?: (e: React.MouseEvent) => void
+  onRemove?: () => void
+  onCollapse?: (e?: React.MouseEvent) => void
+}) {
+  const { t } = useTranslation()
+  if (item.data.kind !== 'files') return null
+
+  const paths = item.data.paths
+  const entries = item.data.entries
+  const count = paths.length
+  const isStack = count > 1
+  const first = paths[0]
+  const entry = entries?.[0]
+  const rawName = formatImageDisplayName(entry?.name ?? first, item.capturedAt) || basename(first)
+  const info = getFileKind(first, entry?.isDirectory)
+
+  const label = isStack ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
+  const badgeColor = isStack ? undefined : info.color
+
+  return (
+    <div className={`image-folder-card-inner${expanded && isStack ? ' is-expanded-folder' : ''}`}>
+      <div className={`image-folder-viewport is-textured${expanded && isStack ? ' is-expanded-viewport' : ''}`}>
+        {!isStack ? (
+          (!entry?.isDirectory && (entry?.isImage || info.kind === 'image')) ? (
+            <img
+              className="image-folder-thumb"
+              src={entry?.preview || `edgelocal://file/${encodeURIComponent(first.replace(/\\/g, '/'))}`}
+              onError={(e) => {
+                const fallback = `edgelocal://file/${encodeURIComponent(first.replace(/\\/g, '/'))}`
+                if (e.currentTarget.src !== fallback) {
+                  e.currentTarget.src = fallback
+                }
+              }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <div className="single-file-hero" style={{ color: info.color }}>
+              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={isHorizontal ? 94 : 136} height={isHorizontal ? 94 : 136} layered />
+            </div>
+          )
+        ) : (
+          <StackExpandSwap
+            expanded={expanded}
+            deckKey="file-stack-deck"
+            panelKey="file-stack-panel"
+            deck={
+          <div className="image-folder-stack-deck is-file-deck" data-count={Math.min(count, 4)}>
+            {paths.slice(0, 4).map((filePath, idx) => {
+              const fileEntry = entries?.[idx]
+              const fileInfo = getFileKind(filePath, fileEntry?.isDirectory)
+              const isImg = !fileEntry?.isDirectory && (fileEntry?.isImage || fileInfo.kind === 'image')
+              // Front folder art is ~65% of the icon tall; sized so the cascade
+              // fits the viewport above the label flap in each dock.
+              const iconSize = isHorizontal ? 94 : 148
+              const imgSrc = fileEntry?.preview || `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+              return (
+                <div
+                  key={`${item.id}-${filePath}-${idx}`}
+                  className={`${isImg ? 'image-folder-stack-item' : 'file-stack-folder'} pos-${idx}`}
+                  style={{ color: fileInfo.color }}
+                >
+                  {isImg ? (
+                    <img
+                      src={imgSrc}
+                      onError={(e) => {
+                        const fallback = `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback
+                        }
+                      }}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                    />
+                  ) : (
+                    <FileKindIcon path={filePath} isDirectory={fileEntry?.isDirectory} width={iconSize} height={iconSize} layered={idx === 0} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+            }
+            panel={
+          <div className="image-folder-expanded-content">
+            <StackHeader
+              item={item}
+              title={`${count} ${t('filters.files').toLowerCase()}`}
+              isHorizontal={isHorizontal}
+              onCollapse={onCollapse}
+              onCopy={onCopy}
+              onRemove={onRemove}
+            />
+            <StackItems entries={fileStackEntries(item, t)} isHorizontal={isHorizontal} onDragStart={onDragStart} />
+          </div>
+            }
+          />
+        )}
+      </div>
+
+      {/* Solid Black Folder Flap */}
+      {(!expanded || !isStack) && (
+        <div className="image-folder-flap-wrap">
+          <svg 
+            className="image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
+
+          <div className="image-folder-flap-content">
+            {/* Elevated Tab Area: shows type badge (pdf, folder, doc, 3 files, etc.) */}
+            <div className="image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: badgeColor }}>
+                {label}
+              </span>
+            </div>
+
+            {/* Flap Footer: Left side shows file name, Right side shows relative time */}
+            <div className="image-folder-flap-footer">
+              <div className="image-folder-meta">
+                {item.note ? (
+                  <span className="image-folder-source-name meta-label" title={`${item.note} · ${rawName}`}>
+                    {item.note}
+                  </span>
+                ) : (
+                  <span className="image-folder-source-name file-name-meta" title={rawName}>
+                    {rawName}
+                  </span>
+                )}
+                {item.hitCount > 1 && (
+                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                    · ×{item.hitCount}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+              </div>
+              <RelativeTime capturedAt={item.capturedAt} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Preview                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -1091,13 +1675,30 @@ function Preview({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text': {
       if (item.data.isUrl) {
-        return <LinkPreviewCard url={item.data.text} />
+        return <LinkPreviewCard url={item.data.text} pageTitle={item.data.linkTitle} />
       }
       const colorInfo = parseColor(item.data.text)
       if (colorInfo) {
         return (
           <div className="color-swatch-content">
             <div className="color-swatch-code">{colorInfo.displayText}</div>
+          </div>
+        )
+      }
+      const codeInfo = detectCode(item.data.text)
+      if (codeInfo.isCode) {
+        return (
+          <div className="code-card-preview">
+            <CodeBlock
+              code={item.data.text}
+              language={codeInfo.language}
+              showFrame={false}
+              showHeader={false}
+              showLineNumbers={true}
+              showCopyButton={false}
+              compact={true}
+              maxLines={5}
+            />
           </div>
         )
       }
@@ -1162,16 +1763,13 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </>
         )
       }
-      // Non-image single file — show hero icon on top, and name on the bottom!
+      // Non-image single file — show hero icon on top in viewport
       const info = getFileKind(first, entry?.isDirectory)
       return (
         <div className="single-file-preview">
-          <div className="single-file-hero" style={{ color: info.color }}>
-            <FileKindIcon path={first} isDirectory={entry?.isDirectory} />
-          </div>
-          <div className="single-file-meta">
-            <div className="preview single single-file-name" title={displayName}>
-              {displayName}
+          <div className="file-card-viewport">
+            <div className="single-file-hero" style={{ color: info.color }}>
+              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={154} height={154} />
             </div>
           </div>
         </div>
@@ -1231,21 +1829,11 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text': {
       if (item.data.isUrl) {
-        let domain = ''
-        try {
-          const urlStr = item.data.text.startsWith('http://') || item.data.text.startsWith('https://')
-            ? item.data.text
-            : `https://${item.data.text}`
-          domain = new URL(urlStr).hostname.replace(/^www\./, '')
-        } catch {}
+        // same readable host as the card (cached parse, international names decoded)
+        const domain = parseUrlPreview(item.data.text).domain
         if (domain) {
           return <span className="meta-detail">· {domain}</span>
         }
-        return null
-      }
-
-      const colorInfo = parseColor(item.data.text)
-      if (item.data.isColor || colorInfo) {
         return null
       }
 
@@ -1270,6 +1858,19 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
 
     case 'files': {
       const entries = item.data.entries
+      const paths = item.data.paths
+      const count = paths.length
+      if (count === 1) {
+        const first = paths[0]
+        const rawName = entries?.[0]?.name ?? basename(first)
+        const size = entries?.[0]?.size
+        return (
+          <>
+            <span className="meta-detail file-name-meta" title={rawName}>· {rawName}</span>
+            {size && size > 0 && <span className="meta-detail">· {formatBytes(size)}</span>}
+          </>
+        )
+      }
       const totalBytes = entries?.reduce((acc, e) => acc + (e.size || 0), 0) || 0
       return totalBytes > 0 ? <span className="meta-detail">· {formatBytes(totalBytes)}</span> : null
     }

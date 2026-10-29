@@ -8,14 +8,22 @@
  */
 import { create } from 'zustand'
 import { edge } from '../lib/edge'
-import { takeSearchEngaged } from '../lib/searchFocus'
+import { releaseAllKeyboard } from '../lib/keyboardFocus'
 import { t } from '../i18n'
 import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest, ReorderRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
+import { isKept, normalizeNote, type ItemMetaPatch } from '../../shared/itemMeta'
+import { itemMetaKey } from '../lib/itemSignature'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
+
+/** Saves the open note editor (registered by CardMenu while it is mounted). */
+let cardEditorCommit: (() => void) | null = null
+export function registerCardEditorCommit(commit: (() => void) | null): void {
+  cardEditorCommit = commit
+}
 
 /**
  * Version dismissed this run. Session-only (never persisted): quitting and
@@ -45,6 +53,24 @@ export interface ToastMsg {
   params?: Record<string, string | number>
 }
 
+export interface CardMenuState {
+  itemId: string
+  /** Where the right-click happened, in window (client) pixels. */
+  x: number
+  y: number
+  mode: 'menu' | 'edit'
+}
+
+/** Grace after the card menu closes before hover-close may shut the shelf. */
+export const CARD_MENU_STAY_MS = 1500
+
+export interface CardMenuRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
+
 export interface UpdateProgress {
   percent: number
   bytesPerSecond?: number
@@ -72,6 +98,16 @@ interface AppState {
   setEmojiCategory: (cat: import('../lib/emoji/catalog').EmojiCategoryId) => void
   /** True while an OS file drag is hovering the panel (prevents premature close). */
   dragActive: boolean
+  /**
+   * True while main sees a drag from another app in progress anywhere on
+   * screen (before it reaches the window): the edge bar gets ready for it and
+   * the shelf opens straight into its drop zone.
+   */
+  externalDrag: boolean
+  setExternalDrag: (active: boolean) => void
+  /** In-app drag: the card a drop would stack the dragged card into. */
+  dropTargetId: string | null
+  setDropTargetId: (id: string | null) => void
   /**
    * The one stack/bundle whose expanded sub-item list is open (accordion).
    * Single source of truth so expanding one stack collapses the previous,
@@ -143,12 +179,39 @@ interface AppState {
   languageFlyoutOpen: boolean
   languageFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
   setLanguageFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
-  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
-  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
+  /**
+   * The open preview flyout's box for hover keep-alive. Top dock: dock
+   * coordinates with left/right. Side docks: top/bottom, plus `reach` (how far
+   * its far edge is from the screen edge; image previews can be wider).
+   */
+  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number; reach?: number } | null
+  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number; reach?: number } | null) => void
   isInternalCopying: boolean
   copyFlareActive: boolean
   flareKey: number
   triggerCopyFlare: () => void
+
+  /** The card right-click menu (one at a time), or null when closed. */
+  cardMenu: CardMenuState | null
+  /** The open menu's on-screen box (window pixels), so hover-close keeps the shelf open over it. */
+  cardMenuRect: CardMenuRect | null
+  /**
+   * Until this time (ms epoch) hover-close waits before closing the shelf:
+   * the menu can reach outside the blade, so after it closes the pointer may
+   * be outside and needs a moment to come back. 0 when not active.
+   */
+  cardMenuStayUntil: number
+  clearCardMenuStay: () => void
+  openCardMenu: (itemId: string, x: number, y: number) => void
+  /** Turn the open menu into the note editor. */
+  editCardMeta: () => void
+  closeCardMenu: () => void
+  setCardMenuRect: (rect: CardMenuRect | null) => void
+  /** Save or remove a note (main normalizes). */
+  setItemMeta: (id: string, patch: ItemMetaPatch) => Promise<void>
+  /** Put derived text (clean link, color format, path) on the clipboard without a new card. */
+  copyText: (text: string, opts?: { quiet?: boolean }) => Promise<boolean>
+  saveImages: (id: string) => Promise<void>
 
   /* toasts */
   pushToast: (toast: ToastMsg) => void
@@ -159,9 +222,10 @@ interface AppState {
   reorder: (request: ReorderRequest) => Promise<void>
   remove: (id: string) => Promise<void>
   clear: (ids?: string[]) => Promise<void>
-  copy: (id: string) => Promise<void>
+  /** Copy an item back to the clipboard; false when its content is gone. */
+  copy: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<void>
-  paste: (id: string) => Promise<void>
+  paste: (id: string, opts?: { plain?: boolean }) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   pasteEmoji: (text: string) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
@@ -179,7 +243,7 @@ export const useStore = create<AppState>((set, get) => ({
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
     if (get().typeFilter === typeFilter && !get().emojiOpen) return
-    set({ typeFilter, emojiOpen: false, expandedStackId: null })
+    set({ typeFilter, emojiOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
@@ -210,7 +274,9 @@ export const useStore = create<AppState>((set, get) => ({
         styleFlyoutAnchorRect: null,
         languageFlyoutOpen: false,
         languageFlyoutAnchorRect: null,
-        expandedStackId: null
+        expandedStackId: null,
+        cardMenu: null,
+        cardMenuRect: null
       })
       edge.setPreviewMode(false)
     } else {
@@ -218,6 +284,14 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   dragActive: false,
+  externalDrag: false,
+  setExternalDrag: (externalDrag) => {
+    if (get().externalDrag !== externalDrag) set({ externalDrag })
+  },
+  dropTargetId: null,
+  setDropTargetId: (dropTargetId) => {
+    if (get().dropTargetId !== dropTargetId) set({ dropTargetId })
+  },
   expandedStackId: null,
   setExpandedStackId: (expandedStackId) => set({ expandedStackId }),
   internalDragReq: null,
@@ -235,7 +309,11 @@ export const useStore = create<AppState>((set, get) => ({
     sliderReleasedTime: active ? 0 : Date.now()
   }),
   notifyPositionChanged: () => set({ sliderReleasedTime: Date.now() }),
-  resetPositionChangedTime: () => set({ sliderReleasedTime: 0 }),
+  // Called on every cursor message while the shelf is open (~60/s); writing an
+  // unchanged value would still notify every store subscriber.
+  resetPositionChangedTime: () => {
+    if (get().sliderReleasedTime !== 0) set({ sliderReleasedTime: 0 })
+  },
   edgeHintActive: false,
   setEdgeHintActive: (active) => set({ edgeHintActive: active }),
   styleFlyoutOpen: false,
@@ -421,7 +499,7 @@ export const useStore = create<AppState>((set, get) => ({
     const prevItems = get().items
     if (
       prevItems.length === items.length &&
-      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt)
+      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt && itemMetaKey(it) === itemMetaKey(items[i]))
     ) {
       return
     }
@@ -434,6 +512,13 @@ export const useStore = create<AppState>((set, get) => ({
 
   setQuery: (query) => set({ query }),
   setOpen: (open) => {
+    // The shelf closing with the note editor open (the pointer left it, the
+    // hotkey, the tray) keeps what was typed, like a click outside does.
+    if (!open && get().cardMenu?.mode === 'edit') {
+      try {
+        cardEditorCommit?.()
+      } catch { /* ignore */ }
+    }
     set({ open })
     if (!open) {
       // Release any focused control inside the blade. Without this, a button
@@ -443,19 +528,17 @@ export const useStore = create<AppState>((set, get) => ({
       // compiling under the DOM-less node tsconfig.)
       const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
       try { active?.blur?.() } catch { /* ignore */ }
-      // If search held temporary OS focusability + paused hotkey through a
-      // close path that skipped the input's blur (tray toggle, cursor
-      // leave), restore both exactly once. No-op when search was never used.
+      // If a text field (search, note editor) held temporary OS
+      // focusability + paused hotkey through a close path that skipped its
+      // blur (tray toggle, cursor leave), restore both now, exactly once.
+      // No-op when no field ever took the keyboard.
       try {
-        if (takeSearchEngaged()) {
-          void edge.focusWindow(false)?.catch?.(() => {})
-          void edge.pauseHotkey(false)?.catch?.(() => {})
-        }
+        releaseAllKeyboard()
       } catch { /* ignore */ }
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.
-      set({ previewItemId: null, previewItemRect: null, expandedStackId: null })
+      set({ previewItemId: null, previewItemRect: null, expandedStackId: null, cardMenu: null, cardMenuRect: null, cardMenuStayUntil: 0 })
       edge.setPreviewMode(false)
     }
   },
@@ -471,13 +554,15 @@ export const useStore = create<AppState>((set, get) => ({
       languageFlyoutOpen: false,
       languageFlyoutAnchorRect: null,
       expandedStackId: null,
+      cardMenu: null,
+      cardMenuRect: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),
   setInternalDragReq: (internalDragReq) => {
     if (internalDragReq === null) {
-      set({ internalDragReq: null, dragActive: false })
+      set({ internalDragReq: null, dragActive: false, dropTargetId: null })
     } else {
       set({ internalDragReq })
     }
@@ -558,7 +643,7 @@ export const useStore = create<AppState>((set, get) => ({
   async clear(ids?: string[]) {
     if (!ids || ids.length === 0) {
       const previousItems = get().items
-      set({ items: previousItems.filter((it) => it.pinned) })
+      set({ items: previousItems.filter((it) => isKept(it)) })
       try {
         const items = await edge.clearItems()
         const current = get().items
@@ -591,7 +676,9 @@ export const useStore = create<AppState>((set, get) => ({
     // guard active so the external edge copy indicator flare does not appear.
     set({ isInternalCopying: true })
     try {
-      await edge.copyItem(id)
+      return await edge.copyItem(id)
+    } catch {
+      return false
     } finally {
       setTimeout(() => set({ isInternalCopying: false }), 400)
     }
@@ -606,10 +693,77 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  async paste(id) {
+  async paste(id, opts) {
     set({ isInternalCopying: true })
-    await edge.pasteItem(id)
+    await edge.pasteItem(id, opts?.plain ? { plain: true } : undefined)
     setTimeout(() => set({ isInternalCopying: false }), 600)
+  },
+
+  cardMenu: null,
+  cardMenuRect: null,
+  openCardMenu: (itemId, x, y) => {
+    set({ cardMenu: { itemId, x, y, mode: 'menu' }, cardMenuRect: null })
+  },
+  editCardMeta: () => {
+    const menu = get().cardMenu
+    if (!menu) return
+    set({ cardMenu: { ...menu, mode: 'edit' } })
+  },
+  closeCardMenu: () => {
+    if (!get().cardMenu && !get().cardMenuRect) return
+    set({
+      cardMenu: null,
+      cardMenuRect: null,
+      cardMenuStayUntil: get().open ? Date.now() + CARD_MENU_STAY_MS : 0
+    })
+  },
+  cardMenuStayUntil: 0,
+  clearCardMenuStay: () => {
+    if (get().cardMenuStayUntil !== 0) set({ cardMenuStayUntil: 0 })
+  },
+  setCardMenuRect: (cardMenuRect) => set({ cardMenuRect }),
+
+  async setItemMeta(id, patch) {
+    const before = get().items.find((it) => it.id === id)
+    if (!before) return
+    // Optimistic: show the cleaned note at once; main sends the stored truth.
+    const note = 'note' in patch ? normalizeNote(patch.note) : before.note
+    set({
+      items: get().items.map((it) => {
+        if (it.id !== id) return it
+        const next: ClipboardItemDto = { ...it }
+        if (note) next.note = note
+        else delete next.note
+        return next
+      })
+    })
+    try {
+      const items = await edge.setItemMeta(id, patch)
+      set({ items })
+    } catch {
+      set({ items: get().items.map((it) => (it.id === id ? before : it)) })
+      get().pushToast({ id: `meta-${Date.now()}`, message: t('toast.noteFailed'), tone: 'error' })
+    }
+  },
+
+  async copyText(text, opts) {
+    set({ isInternalCopying: true })
+    try {
+      const ok = await edge.copyText(text)
+      if (ok && !opts?.quiet) get().pushToast({ id: `copied-${Date.now()}`, message: t('toast.copiedToClipboard'), tone: 'info' })
+      return ok
+    } catch {
+      return false
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
+  },
+
+  async saveImages(id) {
+    // Main shows the result toast (saved name or failure).
+    try {
+      await edge.saveImages(id)
+    } catch { /* ignore */ }
   },
 
   async pasteSubitem(req) {

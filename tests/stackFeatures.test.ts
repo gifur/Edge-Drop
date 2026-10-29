@@ -17,7 +17,7 @@ describe('Stack Features: SVG Folder Silhouette, Sizing, Horizontal Expansion & 
   it('ClipboardItem.tsx uses FileStackPhoto for image stacks with responsive photoSize', () => {
     const src = read('src/components/ClipboardItem.tsx')
     expect(src).toContain('<FileStackPhoto src={img.preview} width={photoSize} height={photoSize} />')
-    expect(src).toContain('photoSize = isHorizontal ? 76 : 124')
+    expect(src).toContain('photoSize = isHorizontal ? 88 : 132')
     expect(src).toContain('HorizontalBundleExpanded')
   })
 
@@ -51,18 +51,18 @@ describe('Stack Features: SVG Folder Silhouette, Sizing, Horizontal Expansion & 
 
   it('Panel.tsx passes stickPosition to SplitDropZone for left/top/right orientations without text pill', () => {
     const src = read('src/components/Panel.tsx')
-    expect(src).toContain('SplitDropZone stickPosition={settings.stickPosition')
+    expect(src).toMatch(/<SplitDropZone\s+stickPosition=\{settings\.stickPosition/)
     expect(src).toContain('pos-${stickPosition}')
-    expect(src).toContain("isTop = stickPosition === 'top'")
-    expect(src).toContain("isRight = stickPosition === 'right'")
+    // grows out of its own edge in each dock (the bar's side class)
+    expect(src).toContain('side-${stickPosition}')
     // Text pill must NOT be introduced into SplitDropZone
     expect(src).not.toContain('split-dropzone-pill')
   })
 
   it('item.css includes styles for orientation-aware split-dropzone and no split-dropzone-pill', () => {
     const css = read('src/styles/item.css')
+    // one per dock (left, right, top; there is no bottom dock)
     expect(css).toContain('.split-dropzone.pos-top')
-    expect(css).toContain('.split-dropzone.pos-bottom')
     expect(css).toContain('.split-dropzone.pos-left')
     expect(css).toContain('.split-dropzone.pos-right')
     expect(css).not.toContain('.split-dropzone-pill')

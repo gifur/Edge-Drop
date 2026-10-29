@@ -31,10 +31,16 @@ export interface EdgeApi {
   removeSubitem: (req: DragRequest) => Promise<boolean>
   copyItem: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<boolean>
-  pasteItem: (id: string) => Promise<boolean>
+  pasteItem: (id: string, opts?: { plain?: boolean }) => Promise<boolean>
+  setItemMeta: (id: string, meta: import('./itemMeta').ItemMetaPatch) => Promise<import('./types').ClipboardItemDto[]>
+  copyText: (text: string) => Promise<boolean>
+  saveImages: (id: string) => Promise<string[]>
   pasteSubitem: (req: DragRequest) => Promise<boolean>
   captureClipboard: () => Promise<boolean>
   pasteEmoji: (text: string) => Promise<boolean>
+  emojiGlyphs: (files: string[]) => Promise<Record<string, string>>
+  /** A file-kind folder icon's SVG source, or null (see ipc 'icon:svg'). */
+  iconSvg: (kind: string) => Promise<string | null>
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>
@@ -62,6 +68,8 @@ export interface EdgeApi {
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   refreshLaunchAtLogin: () => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
+  /** Re-check what the pointer is over after the cards moved under it (ipc 'window:resync-hover'). */
+  resyncHover: () => void
   setPreviewMode: (active: boolean) => Promise<void>
   pauseHotkey: (paused: boolean) => Promise<void>
   revealFile: (path: string) => Promise<boolean>
@@ -86,6 +94,8 @@ export interface EdgeApi {
     stickPosition: import('./types').StickPosition
     displayWidth: number
     displayHeight: number
+    /** A drag from another app is in progress anywhere on screen (see electron/main/externalDrag.ts). */
+    drag?: boolean
   }) => void) => () => void
   onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }) => void) => () => void
   onCopyFlare: (cb: () => void) => () => void

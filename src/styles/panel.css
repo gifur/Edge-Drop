@@ -167,7 +167,225 @@
   display: block;
 }
 
+/* Content veil. The blade is pure black, so fading a black layer away over
+   the content looks exactly like fading the content in, without lifting the
+   whole content tree into its own layer. Open: the shape leads and the
+   content follows 50ms behind it. Close: the content dims first, then the
+   shape draws back into the edge bar. background-color (not opacity) was
+   measured to keep CPU and memory at or below the old reveal. Once the close
+   has finished (300ms) the veil is hidden, so the resting edge bar is drawn
+   exactly as before; on open it is visible again from the first frame. */
+.blade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 400; /* above every layer inside the blade (ClearMenu menu is 350) */
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 1);
+  visibility: hidden;
+  transition: background-color 120ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 300ms;
+}
+.blade-container.is-open .blade::after {
+  background-color: rgba(0, 0, 0, 0);
+  visibility: visible;
+  transition: background-color 240ms cubic-bezier(0.2, 0, 0, 1) 50ms, visibility 0s linear 0s;
+}
+.blade-container.reduce-motion .blade::after {
+  transition-duration: 0.01s;
+  transition-delay: 0s;
+}
 
+
+
+/* Edge bar getting ready for a drag from another app (EdgeDragCue): the bar
+   itself, solid black like it, swelling a little wider and longer. It starts
+   just wider than the bar and grows in three eased steps as the drag comes
+   closer: --pull is 0, 1/3, 2/3 or 1 (set from the cursor poll, see
+   lib/edgeDrag.ts), so it only animates when it changes step. The pill is
+   laid out at its largest (bar + 10px thick, 114% long) and scaled down to
+   the step, so a step is a transform on its own layer: no layout or repaint
+   per frame. --barn is the bar's thickness as a plain number. */
+.edge-drag-cue {
+  --pull: 0;
+  --bar: 3px;
+  --barn: 3;
+  --cue-thick: calc((var(--barn) + 3 + 7 * var(--pull)) / (var(--barn) + 10));
+  --cue-long: calc((1.04 + 0.1 * var(--pull)) / 1.14);
+  position: absolute;
+  background-color: #000000;
+  will-change: transform;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.edge-drag-cue.side-left,
+.edge-drag-cue.side-right {
+  top: 50%;
+  width: calc(var(--bar) + 10px);
+  height: 114%;
+  transform: translateY(-50%) scale(var(--cue-thick), var(--cue-long));
+}
+.edge-drag-cue.side-left {
+  left: 0;
+  transform-origin: left center;
+  border-radius: 0 100% 100% 0 / 0 24px 24px 0;
+}
+.edge-drag-cue.side-right {
+  right: 0;
+  transform-origin: right center;
+  border-radius: 100% 0 0 100% / 24px 0 0 24px;
+}
+.edge-drag-cue.side-top {
+  top: 0;
+  left: 50%;
+  height: calc(var(--bar) + 10px);
+  width: 114%;
+  transform-origin: center top;
+  transform: translateX(-50%) scale(var(--cue-long), var(--cue-thick));
+  border-radius: 0 0 24px 24px / 0 0 100% 100%;
+}
+/* Grows out of the bar itself */
+.edge-drag-cue.side-left,
+.edge-drag-cue.side-right {
+  animation-name: edge-drag-cue-in-side;
+}
+.edge-drag-cue.side-top {
+  animation-name: edge-drag-cue-in-top;
+}
+@keyframes edge-drag-cue-in-side {
+  from {
+    transform: translateY(-50%) scale(calc(var(--barn) / (var(--barn) + 10)), calc(1 / 1.14));
+  }
+}
+@keyframes edge-drag-cue-in-top {
+  from {
+    transform: translateX(-50%) scale(calc(1 / 1.14), calc(var(--barn) / (var(--barn) + 10)));
+  }
+}
+[data-motion='reduce'] .edge-drag-cue {
+  transition: none;
+  animation: none;
+}
+
+/* The drag targets' dashed line (DashedOutline): a 2px stroke,
+   10px dashes with round ends and 8px clear between them, the same for the
+   drop zone, the stacking ring and the detach edge. --dash-color sets how lit
+   it is. The rect is inset by half the stroke so it is never clipped. */
+.dashed-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.dashed-outline-shape {
+  fill: none;
+  stroke: var(--dash-color, rgba(255, 255, 255, 0.38));
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-dasharray: 8 10;
+  transition: stroke 180ms ease;
+}
+rect.dashed-outline-shape {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+}
+
+/* Drop zone for drags from other apps (DropOverlay): solid black over the
+   whole shelf (nothing shows through), a dashed well, and the tray icon on its
+   own. The well's dashes light up once the drag is over the shelf, and it
+   tightens as it takes the drop. */
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 320; /* above the header and the split zone, below the content veil (400) */
+  display: flex;
+  padding: 12px;
+  pointer-events: none;
+  background: #000000;
+}
+.drop-overlay.is-horizontal {
+  padding: 10px 12px 12px;
+}
+.drop-well {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+  border-radius: 16px;
+  --dash-color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  transform: scale(0.98);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: drop-well-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drop-overlay.is-horizontal .drop-well {
+  flex-direction: row;
+  gap: 14px;
+  text-align: left;
+}
+@keyframes drop-well-in {
+  from {
+    transform: scale(0.94);
+  }
+}
+.drop-overlay.is-over .drop-well {
+  --dash-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1);
+}
+.drop-overlay.is-accepted .drop-well {
+  --dash-color: rgba(255, 255, 255, 0.9);
+  transform: scale(0.97);
+  transition-duration: 200ms;
+}
+.drop-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+.drop-icon .drop-arrow {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease;
+}
+.drop-overlay.is-over .drop-icon .drop-arrow {
+  transform: translateY(1.5px);
+}
+.drop-overlay.is-accepted .drop-icon .drop-arrow {
+  transform: translateY(4px);
+  opacity: 0;
+}
+.drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.drop-title {
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.01em;
+}
+.drop-sub {
+  font-size: calc(12px * var(--font-scale, 1));
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+[data-motion='reduce'] .dashed-outline-shape,
+[data-motion='reduce'] .drop-well,
+[data-motion='reduce'] .drop-icon,
+[data-motion='reduce'] .drop-icon .drop-arrow {
+  transition: none;
+  animation: none;
+}
 
 /* Header */
 .header {
@@ -211,41 +429,111 @@
   color: var(--text-primary);
 }
 
-/* Search */
+/* Search: borderless pill on the card surface. Focus lifts the fill a step
+   further than hover and brightens the icon (no ring: the UI is borderless);
+   a macOS-style clear button appears once there is text. */
 .search {
-  margin: 0 var(--pad) 6px;
+  --search-h: 34px;
+  --search-font: 13px;
+  --search-inset: 12px; /* icon / clear distance from the ends */
+  margin: 4px var(--pad) 6px;
   position: relative;
   z-index: 1;
 }
 .search input {
   width: 100%;
-  height: 36px;
-  padding: 0 12px 0 34px;
+  height: var(--search-h);
+  padding: 0 calc(var(--search-inset) + 22px) 0 calc(var(--search-inset) + 22px);
   background: var(--bg-card);
   border: none;
   border-radius: var(--radius-pill);
   outline: none;
   color: var(--text-primary);
-  transition: background var(--dur-fast) var(--ease-out);
+  caret-color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(var(--search-font) * var(--font-scale, 1));
+  font-weight: 500;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .search input::placeholder {
   color: var(--text-tertiary);
+  font-weight: 400;
+}
+.search input::selection {
+  background: rgba(255, 255, 255, 0.28);
+}
+.search input:hover {
+  background: var(--bg-card-hover);
 }
 .search input:focus {
-  background: var(--bg-card-hover);
+  background: #222222;
 }
 .search .search-icon {
   position: absolute;
-  left: 11px;
+  left: var(--search-inset);
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-tertiary);
   pointer-events: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.search:focus-within .search-icon,
+.search.has-query .search-icon {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Clear: grey disc with a dark cross, like a macOS search field. */
+.search-clear {
+  position: absolute;
+  right: calc(var(--search-inset) - 2px);
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: #141414;
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  scale: 0.6;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    scale 0.16s cubic-bezier(0.2, 0.9, 0.3, 1),
+    background-color 0.12s ease,
+    visibility 0s linear 0.16s;
+}
+.search.has-query .search-clear {
+  opacity: 1;
+  scale: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.12s ease,
+    scale 0.16s cubic-bezier(0.2, 0.9, 0.3, 1),
+    background-color 0.12s ease,
+    visibility 0s;
+}
+.search-clear:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.search-clear:active {
+  scale: 0.9;
+}
+.search-clear:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
 }
 
 /* Header-embedded search (horizontal dock): centered overlay, long field.
    Absolutely centered to the header so side widths can't offset it; fixed
-   width so focusing never shifts any neighboring buttons. */
+   width so focusing never shifts any neighboring buttons. Same field, just
+   the 30px control height and 12px text of that dock. */
 .header-search-center {
   position: absolute;
   left: 50%;
@@ -256,17 +544,19 @@
   align-items: center;
 }
 .header-search-center .search {
+  --search-h: 30px;
+  --search-font: 12px;
+  --search-inset: 10px;
   margin: 0;
 }
 .header-search-center .search input {
-  height: 30px;
   width: 300px;
   max-width: 100%;
-  padding: 0 10px 0 30px;
-  font-size: calc(12px * var(--font-scale, 1));
 }
-.header-search-center .search .search-icon {
-  left: 9px;
+.header-search-center .search-clear {
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
 }
 
 /* Scroll area */
@@ -276,9 +566,13 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+<<<<<<< HEAD
   /* The card action pill sits fully above its card. Keep the first pill
      inside this scrollport instead of letting overflow clip it. */
   padding: 44px var(--pad) 16px;
+=======
+  padding: 2px var(--pad) 4px;
+>>>>>>> main
   position: relative;
   z-index: 1;
   scrollbar-width: none; /* Firefox */
@@ -299,41 +593,96 @@
 }
 .list.horizontal .list-stack {
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
-  height: 100%;
+  height: 146px;
 }
-.list.horizontal .pinned-section,
-.list.horizontal .recent-section {
+.list.horizontal .pinned-section {
+  display: flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  height: 146px;
+}
+.list.horizontal .recent-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 10px;
   margin: 0;
-  height: 100%;
+  height: 146px;
 }
 
-.list.horizontal .pinned-header-interactive {
+/* Horizontal Pinned Accordion Drawer — Smooth width transition */
+.pinned-accordion.horizontal {
+  display: block;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  height: 146px;
+  overflow: hidden;
+  margin-right: 0;
+  flex-shrink: 0;
+  transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.24s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width, max-width;
+}
+
+.pinned-accordion.horizontal.is-expanded {
+  width: var(--pinned-target-width, max-content);
+  max-width: var(--pinned-target-width, 3000px);
+  margin-right: 10px;
+}
+
+.pinned-accordion.horizontal .pinned-accordion-inner {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  height: 146px;
+  width: var(--pinned-target-width, max-content);
+  min-width: var(--pinned-target-width, max-content);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s ease;
+}
+
+.pinned-accordion.horizontal.is-expanded .pinned-accordion-inner {
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Horizontal Floating Pinned Pill */
+.pinned-floating-pill.horizontal {
+  align-self: center;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  width: 32px;
-  min-width: 32px;
-  max-width: 32px;
-  height: 146px;
+  justify-content: center;
+  gap: 5px;
+  width: 26px;
+  min-width: 26px;
+  max-width: 26px;
+  height: auto;
+  padding: 8px 0;
   margin: 0;
-  padding: 10px 4px 10px;
-  background: transparent;
+  background: #141414;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
+  color: #ffffff;
   cursor: pointer;
   user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.14s ease, transform 0.12s ease;
   flex-shrink: 0;
-  box-sizing: border-box;
-  transition: background 0.15s ease, transform 0.12s ease;
-  position: relative;
 }
 
+<<<<<<< HEAD
 .list.horizontal .pinned-header-interactive:hover {
   background: var(--bg-card-hover);
 }
@@ -391,20 +740,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
+=======
+.pinned-floating-pill.horizontal:hover {
+  background: #1c1c1c;
+}
+
+.pinned-floating-pill.horizontal:active {
+  transform: scale(0.96);
+  background: #222222;
+}
+
+.pinned-floating-pill.horizontal .pinned-pill-icon {
+  display: block;
+  color: #ffffff;
+  opacity: 0.92;
+>>>>>>> main
   flex-shrink: 0;
 }
 
-.list.horizontal .pinned-header-interactive .pinned-header-right {
-  margin-top: auto;
-  margin-bottom: 0;
-}
-
-.list.horizontal .pinned-header-interactive .bundle-collapse-btn {
-  width: 18px;
-  height: 18px;
+.pinned-floating-pill.horizontal .pinned-pill-count {
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+  height: 11px;
+  letter-spacing: 0.01em;
   display: flex;
   align-items: center;
   justify-content: center;
+<<<<<<< HEAD
   background: transparent;
   border: none;
   border-radius: 0;
@@ -415,7 +779,28 @@
 .list.horizontal .pinned-header-interactive:hover .bundle-collapse-btn {
   background: transparent;
   color: var(--text-primary);
+=======
 }
+
+.pinned-floating-pill.horizontal .pinned-pill-arrow {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: color 0.14s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pinned-floating-pill.horizontal:hover .pinned-pill-arrow {
+  color: #ffffff;
+>>>>>>> main
+}
+
+[data-motion="reduce"] .pinned-accordion.horizontal,
+[data-motion="reduce"] .pinned-accordion.horizontal .pinned-accordion-inner,
+[data-motion="reduce"] .pinned-floating-pill.horizontal .pinned-pill-arrow {
+  transition: none !important;
+}
+
+
 
 .list.horizontal .recent-section .section-label.recent-header {
   display: flex;
@@ -454,7 +839,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #a1a1aa;
-  margin: 16px 6px 8px;
+  margin: 8px 6px 6px;
 }
 .section-label:first-child {
   margin-top: 4px;
@@ -473,7 +858,100 @@
   border: none;
   border-radius: 0;
   padding: 0;
-  margin: 8px 0 12px;
+  margin: 0 0 4px;
+}
+
+/* Pinned Accordion Drawer — Hardware-accelerated 0fr/1fr grid transition */
+.pinned-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: grid-template-rows;
+}
+
+.pinned-accordion.is-expanded {
+  grid-template-rows: 1fr;
+}
+
+.pinned-accordion-inner {
+  overflow: hidden;
+  min-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s ease;
+}
+
+.pinned-accordion.is-expanded .pinned-accordion-inner {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Ensure pinned cards are pre-rendered and never culled during accordion reveal */
+.pinned-section .item {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}
+
+/* Floating Pinned Pill */
+.pinned-floating-pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px 0 7px;
+  margin: 2px 0 6px 1px;
+  background: #141414;
+  border: none;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+
+.pinned-floating-pill:hover {
+  background: #1c1c1c;
+}
+
+.pinned-floating-pill:active {
+  transform: scale(0.96);
+  background: #222222;
+}
+
+.pinned-floating-pill .pinned-pill-icon {
+  color: #ffffff;
+  opacity: 0.92;
+  flex-shrink: 0;
+}
+
+.pinned-floating-pill .pinned-pill-count {
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.pinned-floating-pill .pinned-pill-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: color 0.14s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pinned-floating-pill:hover .pinned-pill-arrow {
+  color: #ffffff;
+}
+
+[data-motion="reduce"] .pinned-accordion,
+[data-motion="reduce"] .pinned-accordion-inner,
+[data-motion="reduce"] .pinned-floating-pill .pinned-pill-arrow {
+  transition: none !important;
 }
 
 /* Interactive Pinned Section Header */
@@ -482,7 +960,7 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 6px 6px;
+  padding: 4px 6px;
   margin: 0 0 2px 0;
   border-radius: 8px;
   background: transparent;
@@ -578,7 +1056,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px var(--pad) 12px;
+  padding: 6px var(--pad) 12px;
   position: relative;
   z-index: 100;
   background: transparent;
@@ -970,19 +1448,32 @@
   }
 }
 
-/* Copy Indicator Sine Curve Morph Styles */
-.copy-curve-container {
+/* Copy indicator: a liquid tab that grows out of the edge bar.
+   .copy-ind is a zero-size anchor on the screen edge at the middle of the
+   bar. The shape is drawn for a left dock; .copy-ind__orient mirrors it for
+   the right dock and turns it for the top. Everything animates with
+   transform/opacity, so the compositor runs it (no per-frame JS). */
+.copy-ind {
+  position: absolute;
+  width: 0;
+  height: 0;
   pointer-events: none;
-  z-index: 100;
+  z-index: 9999;
 }
 
-.copy-indicator-badge {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.25);
-  user-select: none;
-  font-family: inherit;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+.copy-ind__orient {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.copy-ind--right .copy-ind__orient {
+  transform: scaleX(-1);
+}
+.copy-ind--top .copy-ind__orient {
+  transform: rotate(90deg);
 }
 
+<<<<<<< HEAD
 :root[data-theme='light'] .filter-chip__skin {
   background: var(--bg-3);
   color: var(--text-secondary);
@@ -994,3 +1485,92 @@
   color: #ffffff;
 }
 
+=======
+/* Rest: squashed into the bar (bar thickness / tab depth) and hidden once
+   the exit has finished. Exit: critically damped spring, no bounce, starts
+   60ms after the icon leaves. */
+.copy-ind__shape {
+  position: absolute;
+  display: block;
+  overflow: visible;
+  transform: scale(var(--copy-tab-start), 0.62);
+  visibility: hidden;
+  transition:
+    transform 289ms linear(0, 0.021 1.8%, 0.058 3.8%, 0.116 6.3%, 0.23 10.5%, 0.402 16.8%, 0.503 20.8%, 0.586 24.5%, 0.659 28.2%, 0.725 32.3%, 0.782 36.5%, 0.832 41%, 0.874 46%, 0.911 51.7%, 0.941 58.5%, 0.965 66.8%, 0.982 77.5%, 0.994 93.8%, 1) 60ms,
+    visibility 0s linear 360ms;
+}
+/* Enter: spring with response 0.40s and damping 0.72, a 3.8% overshoot. */
+.copy-ind.is-on .copy-ind__shape {
+  transform: scale(1, 1);
+  visibility: visible;
+  transition:
+    transform 444ms linear(0, 0.007 1.8%, 0.03 3.8%, 0.071 6%, 0.138 8.8%, 0.246 12.5%, 0.524 21.5%, 0.649 26%, 0.745 30%, 0.826 34%, 0.891 38%, 0.944 42.3%, 0.985 46.8%, 1.014 51.7%, 1.032 57.8%, 1.038 65.5%, 1.026 80%, 1.006 99.8%, 1),
+    visibility 0s;
+}
+
+/* Icon: centred on the tab's flat cap, upright in every dock. */
+.copy-ind__icon {
+  position: absolute;
+  left: 25px;
+  top: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 110ms cubic-bezier(0.4, 0, 1, 1),
+    transform 160ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 160ms;
+}
+.copy-ind--right .copy-ind__icon {
+  left: -25px;
+}
+.copy-ind--top .copy-ind__icon {
+  left: 0;
+  top: 25px;
+}
+/* Pops in once the tab is big enough to hold it (110ms): spring with
+   response 0.34s, damping 0.62. */
+.copy-ind.is-on .copy-ind__icon {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 160ms cubic-bezier(0.2, 0, 0, 1) 110ms,
+    transform 348ms linear(0, 0.008 2%, 0.033 4.3%, 0.078 6.8%, 0.149 9.8%, 0.255 13.5%, 0.58 24%, 0.705 28.5%, 0.802 32.5%, 0.884 36.5%, 0.95 40.5%, 1.001 44.5%, 1.039 48.8%, 1.067 53.5%, 1.081 59%, 1.082 65.8%, 1.061 76.3%, 1.016 95.3%, 1.008 99.8%, 1) 110ms,
+    visibility 0s;
+}
+
+/* Check style: the tick draws itself in once the icon has appeared. */
+.copy-ind .tick-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0s linear 200ms;
+}
+.copy-ind.is-on .tick-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 280ms cubic-bezier(0.22, 1, 0.36, 1) 170ms;
+}
+
+/* Reduce motion: full-size shape and icon simply fade. */
+.copy-ind.is-reduced .copy-ind__shape {
+  transform: none;
+  opacity: 0;
+  transition: opacity 120ms linear, visibility 0s linear 120ms;
+}
+.copy-ind.is-reduced.is-on .copy-ind__shape {
+  opacity: 1;
+  transition: opacity 120ms linear, visibility 0s;
+}
+.copy-ind.is-reduced .copy-ind__icon {
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms linear, visibility 0s linear 120ms;
+}
+.copy-ind.is-reduced.is-on .copy-ind__icon {
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms linear, visibility 0s;
+}
+.copy-ind.is-reduced .tick-draw {
+  stroke-dashoffset: 0;
+  transition: none;
+}
+>>>>>>> main

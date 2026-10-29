@@ -11,7 +11,7 @@
 import { app, BrowserWindow, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, PATHS } from '../store/paths'
-import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
+import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener, isInteractive } from './window'
 import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { reconcileLaunchAtLoginOnStartup } from './loginItems'
@@ -22,11 +22,11 @@ import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { flushStagedTempRegistry } from './stagedTemp'
-import { extname, normalize } from 'node:path'
+import { extname, join, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { resolveStoredImage, resolveEmojiAsset, emojiAssetDir } from './imageProtocol'
-import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
+import { resolveStoredImage, resolveEmojiAsset, resolveIconAsset, emojiAssetDir } from './imageProtocol'
+import { getThumbnailPayloadScheduled, thumbnailCacheControl } from './thumbnailCache'
 
 // Edge-Drop renders a small, mostly static transparent panel. Chromium's GPU
 // process costs substantially more memory (~150–250 MB) than the iGPU compositing
@@ -120,7 +120,7 @@ app.whenReady().then(() => {
   registerIpc()
   registerSendListeners()
   initState()
-  prewarmDragIcons()
+  prewarmDragIcons(isInteractive)
 
   // Reflect settings immediately.
   let settings = loadSettings()
@@ -186,6 +186,25 @@ function registerImageProtocol(): void {
         })
       }
 
+      // File-kind folder icons (static SVG set, same immutable-cache shape
+      // as emoji). Must sit before the generic imageId fallback below.
+      if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://icon/`)) {
+        const fileName = decodeURIComponent(request.url.slice(`${APP_CONFIG.imageProtocol}://icon/`.length).split('?')[0] ?? '')
+        // Same location pattern as PATHS.icon: works in dev (project root)
+        // and packaged (inside asar, readable via fs).
+        const filePath = resolveIconAsset(join(app.getAppPath(), 'resources', 'file-icons'), fileName)
+        if (!filePath) return new Response('Not found', { status: 404 })
+        const stream = createReadStream(filePath)
+        const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body
+        return new Response(body, {
+          status: 200,
+          headers: new Headers({
+            'Content-Type': 'image/svg+xml',
+            'Cache-Control': 'public, max-age=31536000, immutable'
+          })
+        })
+      }
+
       // List cards request bounded raster thumbnails.  Do not hand an original
       // multi-megapixel file to Chromium merely to paint a 50–240px card.
       if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://thumb/`)) {
@@ -196,7 +215,7 @@ function registerImageProtocol(): void {
           : resolveStoredImage(PATHS.imagesDir(), rawTarget)?.filePath
 
         if (!filePath || !existsSync(filePath)) return new Response('Not found', { status: 404 })
-        return createThumbnailResponse(filePath, !isFileThumb, request)
+        return await createThumbnailResponse(filePath, !isFileThumb, request)
       }
 
       // Support streaming full-resolution local image files: edgelocal://file/<encodedPath>
@@ -254,9 +273,10 @@ function registerImageProtocol(): void {
  * Serve a bounded thumbnail with proper HTTP caching: long immutable freshness
  * for content-addressed captures, short freshness + ETag/304 for external
  * files. Payloads come from the LRU thumbnail engine so repeated requests do
- * zero decode work in the main process.
+ * zero decode work in the main process; misses decode via its motion-aware
+ * queue so they never land inside a panel transition.
  */
-function createThumbnailResponse(filePath: string, isStoredCapture: boolean, request?: Request): Response {
+async function createThumbnailResponse(filePath: string, isStoredCapture: boolean, request?: Request): Promise<Response> {
   const ext = extname(filePath).toLowerCase()
   // SVG files are vector XML documents; stream them directly with correct MIME type
   // rather than failing inside nativeImage.createFromPath (which only supports raster bitmaps).
@@ -272,7 +292,7 @@ function createThumbnailResponse(filePath: string, isStoredCapture: boolean, req
     })
   }
 
-  const payload = getThumbnailPayload(filePath)
+  const payload = await getThumbnailPayloadScheduled(filePath)
   if (!payload) return new Response('Unsupported image', { status: 415 })
 
   const headers = new Headers({

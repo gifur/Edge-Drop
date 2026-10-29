@@ -26,7 +26,7 @@ export function itemRenderKey(item: ClipboardItemDto): string {
       // text feeds both the plain preview and the offline link-preview card;
       // isUrl switches the whole body layout. Do not include html: Excel
       // CF_HTML can be megabytes and cards never render it.
-      key = `t|${d.isUrl ? 1 : 0}|${d.isColor ? 1 : 0}|${d.text}`
+      key = `t|${d.isUrl ? 1 : 0}|${d.isColor ? 1 : 0}|${d.linkTitle ?? ''}|${d.text}`
       break
     case 'image':
       key = `i|${d.imageId}|${d.width}x${d.height}|${d.bytes}|${d.ext ?? ''}|${d.source ?? ''}|${d.fileName ?? ''}|${d.preview}`
@@ -49,6 +49,14 @@ export function itemRenderKey(item: ClipboardItemDto): string {
     }
   }
 
+  // The note is drawn on the card, so editing it alone must re-render.
+  key += `|m|${itemMetaKey(item)}`
+
   renderKeyCache.set(item, key)
   return key
+}
+
+/** The note as a comparable string ('' when the item has none). */
+export function itemMetaKey(item: Pick<ClipboardItemDto, 'note'>): string {
+  return item.note ?? ''
 }

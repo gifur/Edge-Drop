@@ -9,22 +9,27 @@ import { useStore } from '../store/appStore'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 import { basename, isImagePath } from '../lib/format'
 import { parseColor } from '../lib/colorUtils'
+import { matchesWords, queryWords, searchText, type SearchText, type SearchWord } from '../lib/search'
 
-function matches(it: ClipboardItemDto, q: string): boolean {
-  if (!q) return true
-  const needle = q.toLowerCase()
-  switch (it.data.kind) {
-    case 'text':
-      return it.data.text.toLowerCase().includes(needle)
-    case 'files':
-      return it.data.paths.some((p) => basename(p).toLowerCase().includes(needle))
-    case 'image':
-      // images have no searchable text; hidden by query
-      return false
-    case 'image-collection':
-      // image collections have no searchable text; hidden by query
-      return false
+// Each item's searchable text, folded once per item object (items are
+// replaced, never mutated, when they change), so typing doesn't redo it.
+const textCache = new WeakMap<ClipboardItemDto, SearchText>()
+
+function itemText(it: ClipboardItemDto): SearchText {
+  let text = textCache.get(it)
+  if (!text) {
+    const d = it.data
+    // Images have no text of their own: they are found through their note.
+    const content = d.kind === 'text' ? d.text : d.kind === 'files' ? d.paths.map((p) => basename(p)).join('\n') : ''
+    // a link is also found by the page title copied with it
+    text = searchText([content, d.kind === 'text' ? d.linkTitle : undefined, it.note])
+    textCache.set(it, text)
   }
+  return text
+}
+
+export function matches(it: ClipboardItemDto, words: readonly SearchWord[]): boolean {
+  return words.length === 0 || matchesWords(itemText(it), words)
 }
 
 /**
@@ -89,8 +94,9 @@ export function useFilteredItems(): GroupedItems {
       }
     })
 
+    const words = queryWords(query)
     for (const it of filteredByTutorial) {
-      if (!matches(it, query.trim())) continue
+      if (!matches(it, words)) continue
       if (!itemMatchesTypeFilter(it, typeFilter)) continue
       ;(it.pinned ? pinned : recent).push(it)
     }

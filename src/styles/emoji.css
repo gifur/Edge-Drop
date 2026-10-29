@@ -9,6 +9,7 @@
   z-index: 1;
 }
 
+<<<<<<< HEAD
 :root[data-theme='light'] .emoji-picker,
 :root[data-theme='light'] .emoji-category-tabs,
 :root[data-theme='light'] .emoji-search {
@@ -29,6 +30,9 @@
 }
 
 /* Sleek Category Pill Bar (RubberSegment) */
+=======
+/* Category bar wrapper (SegmentedControl inside) */
+>>>>>>> main
 .emoji-cat-bar {
   display: flex;
   align-items: center;
@@ -37,7 +41,7 @@
   border: none;
   border-radius: 999px;
   padding: 0;
-  margin: 2px var(--pad) 8px;
+  margin: 4px var(--pad) 6px;
   height: 32px;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -81,7 +85,9 @@
   padding: 0;
   color: inherit;
   position: relative;
-  transform: translateZ(0);
+  /* No forced layer (translateZ): one compositor layer per cell (130-340 of
+     them) made every grid update costlier. The hover/press scale still runs
+     on the compositor while it animates. */
   transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.14s cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-user-drag: none;

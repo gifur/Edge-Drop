@@ -55,6 +55,7 @@ function on<C extends EventChannel>(
  * to fail. Handling it here natively bypasses the bridge entirely.
  */
 import { reduceGuard, isGuarded } from './internalDragGuard'
+import { isLinkText } from '../../shared/linkText'
 
 let guard: import('./internalDragGuard').GuardState = { phase: 'idle', fireAt: null }
 let guardIdleTimer: ReturnType<typeof setTimeout> | null = null
@@ -163,7 +164,7 @@ win.addEventListener('drop', (e: any) => {
   // 3. Plain Text / HTML
   if (plainText) {
     e.preventDefault()
-    const isUrl = /^(https?:\/\/|www\.)[^\s]+$/i.test(plainText)
+    const isUrl = isLinkText(plainText)
     const isColor = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(plainText)
     invoke('item:add-data', {
       kind: 'text',
@@ -186,10 +187,15 @@ const api = {
   getFullText: (id: string) => invoke('item:get-full-text', id),
   copyItem: (id: string) => invoke('item:copy', id),
   copySubitem: (req: import('../../shared/types').DragRequest) => invoke('item:copy-subitem', req),
-  pasteItem: (id: string) => invoke('item:paste', id),
+  pasteItem: (id: string, opts?: { plain?: boolean }) => invoke('item:paste', id, opts),
+  setItemMeta: (id: string, meta: import('../../shared/itemMeta').ItemMetaPatch) => invoke('item:set-meta', id, meta),
+  copyText: (text: string) => invoke('item:copy-text', text),
+  saveImages: (id: string) => invoke('item:save-images', id),
   pasteSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:paste-subitem', req),
   captureClipboard: () => invoke('clipboard:manual-capture'),
   pasteEmoji: (text: string) => invoke('emoji:paste', text),
+  emojiGlyphs: (files: string[]) => invoke('emoji:glyphs', files),
+  iconSvg: (kind: string) => invoke('icon:svg', kind),
   installUpdate: () => invoke('app:install-update'),
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
@@ -217,6 +223,7 @@ const api = {
   focusWindow: (focusable?: boolean) => invoke('window:focus', focusable),
   setInternalDrag: (active: boolean) => { setInternalDragState(active) },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
+  resyncHover: () => send('window:resync-hover'),
 
   /* Main -> Renderer */
   onItems: (cb: (items: EventArgs<'state:items'>[0]) => void) => on('state:items', cb),

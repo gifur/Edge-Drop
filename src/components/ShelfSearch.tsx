@@ -13,10 +13,9 @@
  */
 import { useCallback, useEffect, useRef } from 'react'
 import { useStore } from '../store/appStore'
-import { edge } from '../lib/edge'
-import { noteSearchEngaged } from '../lib/searchFocus'
+import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
 import { useTranslation } from '../i18n'
-import { SearchIcon } from './icons'
+import { CloseIcon, SearchIcon } from './icons'
 
 export function ShelfSearch() {
   const { t } = useTranslation()
@@ -28,13 +27,7 @@ export function ShelfSearch() {
   const disengage = useCallback(() => {
     if (!engagedRef.current) return
     engagedRef.current = false
-    noteSearchEngaged(false)
-    try {
-      void edge.focusWindow(false)?.catch?.(() => {})
-    } catch { /* ignore */ }
-    try {
-      void edge.pauseHotkey(false)?.catch?.(() => {})
-    } catch { /* ignore */ }
+    releaseKeyboard('search')
   }, [])
 
   // Engage BEFORE focus can happen: pointer-down always fires, focus may not.
@@ -42,23 +35,9 @@ export function ShelfSearch() {
   const engage = useCallback(() => {
     if (engagedRef.current) return
     engagedRef.current = true
-    noteSearchEngaged(true)
-    try {
-      window.focus()
-    } catch { /* ignore */ }
-    try {
-      const p = edge.focusWindow(true) as unknown as Promise<void> | undefined
-      if (p && typeof (p as Promise<void>).then === 'function') {
-        ;(p as Promise<void>).then(() => {
-          try { inputRef.current?.focus() } catch { /* ignore */ }
-        }).catch(() => {})
-      } else {
-        try { inputRef.current?.focus() } catch { /* ignore */ }
-      }
-    } catch { /* ignore */ }
-    try {
-      void edge.pauseHotkey(true)?.catch?.(() => {})
-    } catch { /* ignore */ }
+    void acquireKeyboard('search').then(() => {
+      try { inputRef.current?.focus() } catch { /* ignore */ }
+    })
   }, [])
 
   // Safety: if the input unmounts mid-focus (view switch), restore state.
@@ -67,7 +46,7 @@ export function ShelfSearch() {
   }, [disengage])
 
   return (
-    <div className="search">
+    <div className={`search${query ? ' has-query' : ''}`}>
       <SearchIcon className="search-icon" width={14} height={14} />
       <input
         ref={inputRef}
@@ -98,6 +77,27 @@ export function ShelfSearch() {
         }}
         spellCheck={false}
       />
+      {/* Clear (macOS search-field style). It must never touch focus: the
+          OS-focus handover above is driven purely by the input's own
+          focus/blur. So the button can't take focus (mousedown/pointerdown
+          cancelled, out of the tab order; Escape clears from the keyboard)
+          and it never calls focus() — after an app switch the page still
+          remembers the input as focused, and refocusing it from here could
+          pull OS focus back from the user's app. If the user was typing,
+          the input simply keeps focus. Always mounted so it can fade. */}
+      <button
+        type="button"
+        className="search-clear"
+        aria-label={t('item.clear')}
+        title={t('item.clear')}
+        tabIndex={-1}
+        aria-hidden={!query}
+        onPointerDown={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setQuery('')}
+      >
+        <CloseIcon width={10} height={10} weight="bold" />
+      </button>
     </div>
   )
 }

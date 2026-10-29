@@ -11,10 +11,33 @@ function read(rel: string): string {
 describe('update prompt placement contracts', () => {
   it('keeps update renderers available while the product surface is disabled', () => {
     const src = read('src/components/Settings.tsx')
+<<<<<<< HEAD
     expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
     expect(src).toContain('if (!SHOW_UPDATE_SETTINGS) return null')
     expect(src).toContain('if (isStoreBuild || hasPromotedTopUpdate) return null')
     expect(src).toContain('{SHOW_UPDATE_SETTINGS && !isStoreBuild && !hasPromotedTopUpdate && (')
+=======
+    // Top card shows all active update lifecycle stages.
+    expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild && (')
+    // The manual "check for updates" row hides while promoted, in both docks.
+    expect(src).toContain('if (isStoreBuild || hasPromotedTopUpdate) return null')
+    expect(src).toContain('...(updateCheck ? [updateCheck] : [])')
+  })
+
+  it('the check row keeps its title and reports the state underneath', () => {
+    const src = read('src/components/Settings.tsx')
+    const row = src.slice(src.indexOf('const renderUpdateCheckRow'), src.indexOf('// ── Building blocks shared by both layouts'))
+    expect(row).toContain("title: t('behaviour.checkForUpdates'),")
+    expect(row).toContain("t('behaviour.checkingForUpdates')")
+    expect(row).toContain("t('behaviour.isUpToDate')")
+    expect(row).toContain("checkState.error || t('behaviour.updateCheckFailed')")
+    // the refresh arrow spins while checking (no coloured dot)
+    expect(row).toContain("status === 'checking' ? ' is-busy' : ''")
+    const css = read('src/styles/settings.css')
+    expect(css).toMatch(/\.set-row-icon-btn\.is-busy svg \{[^}]*animation: setRowSpin/)
+    expect(css).toMatch(/\.update-dot \{[^}]*background: #ffffff;/)
+    expect(css).not.toContain('updateBtnGlow')
+>>>>>>> main
   })
 
   it('store tracks manual-flow ownership across check, download, and dismiss', () => {

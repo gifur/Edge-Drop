@@ -1,56 +1,58 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { useStore } from '../store/appStore'
-import { formatBytes, formatImageDisplayName } from '../lib/format'
+import { formatBytes, formatImageDisplayName, relativeTime } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
-import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon } from './icons'
-import { parseUrlPreview } from '../lib/urlPreview'
+import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon, TypeIcon, ImageIcon, PaletteIcon, FilesIcon } from './icons'
+import { cleanLink, externalHref, parseUrlPreview } from '../lib/urlPreview'
+import { colorFormats, parseColor } from '../lib/colorUtils'
+import { fitPreviewImage, type PreviewImageFit } from '../lib/previewImageFit'
+import { detectCode } from '../lib/codeDetect'
+import { CodeBlock } from './CodeBlock'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
+import { usePresence } from '../hooks/usePresence'
 import { useDragOut } from '../hooks/useDragOut'
 import { tryPaste } from '../lib/tryPaste'
 import { playButtonClickSound, playToggleSound } from '../lib/soundEffects'
+import '../styles/previewFlyout.css'
 
 import { useTranslation, t } from '../i18n'
 
-/** Fast start, soft landing — no overshoot, no spring hang. */
-const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
-const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
+/**
+ * How long the close animation runs (previewFlyout.css, `is-leaving`). The
+ * shell stays mounted this long; then the window may leave preview mode.
+ */
+export const PREVIEW_EXIT_MS = 170
+/** Batch bar close animation (previewFlyout.css, `.pf-batch.is-leaving`). */
+const BATCH_EXIT_MS = 140
 
-const flyoutVariants = {
-  hidden: (dir: 'left' | 'right' | 'top') => ({
-    opacity: 0,
-    x: dir === 'right' ? 14 : dir === 'left' ? -14 : 0,
-    y: dir === 'top' ? -14 : 0,
-    scale: 0.97,
-  }),
-  shown: {
-    opacity: 1,
-    x: 0,
-    y: 0,
-    scale: 1,
-    transition: {
-      x: { duration: 0.26, ease: flyoutEaseOpen },
-      y: { duration: 0.26, ease: flyoutEaseOpen },
-      scale: { duration: 0.26, ease: flyoutEaseOpen },
-      opacity: { duration: 0.18, ease: 'easeOut' as const },
-    },
-  },
-  exit: (dir: 'left' | 'right' | 'top') => ({
-    opacity: 0,
-    x: dir === 'right' ? 10 : dir === 'left' ? -10 : 0,
-    y: dir === 'top' ? -10 : 0,
-    scale: 0.98,
-    transition: {
-      x: { duration: 0.18, ease: flyoutEaseClose },
-      y: { duration: 0.18, ease: flyoutEaseClose },
-      scale: { duration: 0.18, ease: flyoutEaseClose },
-      opacity: { duration: 0.14, ease: 'easeIn' as const },
-    },
-  }),
-  reducedHidden: { opacity: 0 },
-  reducedShown: { opacity: 1 },
+/** Normal flyout width (every kind but large images). */
+const FLYOUT_W = 440
+/** Blade width (var(--panel-width)) and the flyout's gap to it. */
+const PANEL_W = 270
+const FLYOUT_GAP = 12
+/**
+ * Side docks: the window is this wide while previewing (main/window.ts,
+ * getStickGeometry), so a flyout may reach this far from the screen edge
+ * with a gap to spare.
+ */
+const PREVIEW_WINDOW_W = 820
+const SIDE_FLYOUT_MAX_W = PREVIEW_WINDOW_W - PANEL_W - 2 * FLYOUT_GAP
+/** Top dock: widest an image flyout gets (the dock itself is up to 1080). */
+const TOP_FLYOUT_MAX_W = 760
+/** Header (14 + 30) and body padding (14 + 20) around an image. */
+const IMAGE_CHROME_H = 78
+const BODY_SIDE_PADDING = 40
+
+/** Rough height of the note above the content (up to 120 characters wrap to ~3 lines). */
+function metaHeight(item: any): number {
+  const note: string | undefined = item?.note
+  if (!note) return 0
+  return 14 + 20 * Math.min(3, Math.ceil(note.length / 46))
 }
+
+/** Same soft spring as the CSS open, for the slide when the anchor card moves. */
+const PF_SPRING = 'linear(0, 0.0172, 0.0616, 0.1238, 0.1968, 0.275, 0.3545, 0.4322, 0.5062, 0.5751, 0.6381, 0.6948, 0.7453, 0.7896, 0.828, 0.8611, 0.8892, 0.9128, 0.9326, 0.9488, 0.9621, 0.9728, 0.9813, 0.988, 0.9932, 0.9971, 1, 1.002, 1.0034, 1.0043, 1.0048, 1.005, 1.005, 1.0048, 1.0045, 1.0042, 1.0038, 1.0034, 1.003, 1.0026, 1)'
 
 export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const { t } = useTranslation()
@@ -58,8 +60,18 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const items = useStore((s) => s.items)
   const settings = useStore((s) => s.settings)
   const adaptiveSpring = useAdaptiveSpring()
-  
-  const item = previewItemId ? items.find((i) => i.id === previewItemId) : null
+
+  const liveItem = previewItemId ? items.find((i) => i.id === previewItemId) ?? null : null
+  // While the close animation plays, keep drawing the item that was open.
+  const lastItemRef = useRef(liveItem)
+  if (liveItem) lastItemRef.current = liveItem
+  const presence = usePresence(!!liveItem, PREVIEW_EXIT_MS, () => {
+    if (!useStore.getState().previewItemId) {
+      window.edge.setPreviewMode(false)
+    }
+  })
+  const item = liveItem ?? (presence.mounted ? lastItemRef.current : null)
+  const leaving = presence.leaving
 
   const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top'
   const isTop = stickPosition === 'top'
@@ -78,11 +90,33 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const reduceMotion = settings.reduceMotion || adaptiveSpring.type === 'tween'
 
   const dockWidth = Math.min(screenW - 60, 1080)
-  const flyoutWidth = 440
-  const maxFlyoutHeight = isHorizontal ? Math.min(460, Math.max(200, screenH - 240)) : Math.max(100, panelH - 24)
+  // Top dock: the window grows to its preview height (min(work area - 20,
+  // 720), main/geometry.ts) only after this first render; size for that.
+  const availH = typeof window !== 'undefined' && window.screen?.availHeight ? window.screen.availHeight : screenH
+  const topWindowH = Math.max(screenH, Math.min(availH - 20, 720))
+  const maxFlyoutHeight = isHorizontal ? Math.min(460, Math.max(200, topWindowH - 240)) : Math.max(100, panelH - 24)
+
+  // Images get a flyout sized to them (wider for screenshots, scrolling for
+  // long ones, never blown up); everything else is the normal width.
+  const imageFit: PreviewImageFit | null = item?.data.kind === 'image'
+    ? fitPreviewImage(item.data.width, item.data.height, {
+        minFlyoutWidth: FLYOUT_W,
+        maxFlyoutWidth: isHorizontal ? Math.max(FLYOUT_W, Math.min(TOP_FLYOUT_MAX_W, dockWidth - 24)) : SIDE_FLYOUT_MAX_W,
+        maxImageHeight: maxFlyoutHeight - IMAGE_CHROME_H - metaHeight(item),
+        sidePadding: BODY_SIDE_PADDING,
+        devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+      })
+    : null
+  const flyoutWidth = imageFit?.flyoutWidth ?? FLYOUT_W
 
   const dockLeft = Math.round((screenW - dockWidth) / 2)
-  const previewItemRect = useStore((s) => s.previewItemRect)
+  // Closing clears the card's rect in the store at once; keep the last one
+  // while the exit plays, or the flyout would jump to its fallback spot
+  // (the middle of the dock) before it fades.
+  const liveItemRect = useStore((s) => s.previewItemRect)
+  const lastItemRectRef = useRef(liveItemRect)
+  if (liveItem) lastItemRectRef.current = liveItemRect
+  const previewItemRect = liveItem ? liveItemRect : lastItemRectRef.current
   const cardCenterXInBlade = previewItemRect?.x !== undefined
     ? (previewItemRect.x + (previewItemRect.width || 210) / 2) - dockLeft
     : dockWidth / 2
@@ -90,11 +124,41 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const maxLeft = Math.max(minLeft, dockWidth - flyoutWidth - 12)
   const flyoutLeft = Math.max(minLeft, Math.min(maxLeft, Math.round(cardCenterXInBlade - flyoutWidth / 2)))
 
+  // Grow out of the card that was previewed: the scale's fixed point sits on
+  // the card's side of the flyout, level with (or under) the card.
+  const transformOrigin = (() => {
+    const r = previewItemRect
+    if (isHorizontal) {
+      const ox = Math.max(0, Math.min(flyoutWidth, Math.round(cardCenterXInBlade - flyoutLeft)))
+      return `${ox}px 0px`
+    }
+    const oy = r?.y !== undefined
+      ? `${Math.max(0, Math.min(panelH, Math.round(r.y + (r.height || 0) / 2 - panelTop)))}px`
+      : '50%'
+    return `${isRight ? '100%' : '0%'} ${oy}`
+  })()
+
+  // Top dock: previewing another card moves the flyout under it. Slide it
+  // there (FLIP on `translate`, compositor-run) instead of jumping.
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const prevLeftRef = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    const prev = prevLeftRef.current
+    prevLeftRef.current = item && !leaving ? flyoutLeft : null
+    const el = wrapRef.current
+    if (!el || prev === null || !isHorizontal || reduceMotion || leaving) return
+    const dx = prev - flyoutLeft
+    if (Math.abs(dx) < 1 || typeof el.animate !== 'function') return
+    el.animate([{ translate: `${dx}px 0` }, { translate: '0 0' }], { duration: 460, easing: PF_SPRING })
+  }, [item?.id, flyoutLeft, leaving, isHorizontal, reduceMotion])
+
   const [dragOver, setDragOver] = useState(false)
   const flyoutRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!item || !flyoutRef.current) {
+    // liveItem, not item: the hover keep-alive zone goes the moment the
+    // preview closes, not after the exit animation.
+    if (!liveItem || !flyoutRef.current) {
       useStore.getState().setPreviewFlyoutRect(null)
       return
     }
@@ -113,7 +177,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
         })
       } else {
         const top = panelTop + (panelH - h) / 2
-        useStore.getState().setPreviewFlyoutRect({ top, bottom: top + h })
+        useStore.getState().setPreviewFlyoutRect({ top, bottom: top + h, reach: PANEL_W + FLYOUT_GAP + flyoutWidth })
       }
     }
 
@@ -127,7 +191,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
       window.removeEventListener('resize', updateRect)
       useStore.getState().setPreviewFlyoutRect(null)
     }
-  }, [item?.id, panelTop, panelH, isHorizontal, isTop, dockLeft, flyoutLeft, flyoutWidth])
+  }, [liveItem?.id, panelTop, panelH, isHorizontal, isTop, dockLeft, flyoutLeft, flyoutWidth])
 
   // Dismiss preview flyout when user clicks inside the clipboard shelf (outside the flyout)
   useEffect(() => {
@@ -162,7 +226,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
 
   const handleDragOver = (e: React.DragEvent) => {
     const activeDrag = useStore.getState().internalDragReq
-    if (item && activeDrag && activeDrag.id !== item.id) {
+    if (liveItem && activeDrag && activeDrag.id !== liveItem.id) {
       e.preventDefault()
       e.stopPropagation()
       setDragOver(true)
@@ -180,8 +244,8 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
     e.stopPropagation()
     setDragOver(false)
     const activeDrag = useStore.getState().internalDragReq
-    if (item && activeDrag && activeDrag.id !== item.id) {
-      await window.edge.mergeItems(activeDrag.id, item.id)
+    if (liveItem && activeDrag && activeDrag.id !== liveItem.id) {
+      await window.edge.mergeItems(activeDrag.id, liveItem.id)
       useStore.getState().setInternalDragReq(null)
     }
   }
@@ -192,7 +256,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   // Reset selection whenever preview item changes or closes
   useEffect(() => {
     setSelectedKeys(new Set())
-  }, [item?.id])
+  }, [liveItem?.id])
 
   const toggleSelectKey = (key: string, e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -249,56 +313,74 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
     }
   }
 
+  // The batch bar plays its own close; keep its last count while it does.
+  const batch = usePresence(selectedKeys.size > 0, BATCH_EXIT_MS)
+  const lastSelCountRef = useRef(0)
+  if (selectedKeys.size > 0) lastSelCountRef.current = selectedKeys.size
+  const selCount = selectedKeys.size || lastSelCountRef.current
+
+  const fromClass = isTop ? 'from-top' : isRight ? 'from-right' : 'from-left'
+  const wrapClass = `pf-wrap ${reduceMotion ? 'is-reduced' : fromClass}${leaving ? ' is-leaving' : ''}`
+
   return createPortal(
-    <AnimatePresence onExitComplete={() => {
-      if (!useStore.getState().previewItemId) {
-        window.edge.setPreviewMode(false)
-      }
-    }}>
-      {item && (
-        <motion.div
-          key={item.id}
-          custom={stickPosition}
-          variants={flyoutVariants}
-          initial={reduceMotion ? 'reducedHidden' : 'hidden'}
-          animate={reduceMotion ? 'reducedShown' : 'shown'}
-          exit={reduceMotion ? 'reducedHidden' : 'exit'}
-          transition={reduceMotion ? { duration: 0.12, ease: 'linear' } : undefined}
-          style={
-            isHorizontal
-              ? {
-                  position: 'absolute',
-                  left: dockLeft + flyoutLeft,
-                  width: flyoutWidth,
-                  top: 222,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  pointerEvents: 'none',
-                  zIndex: 5,
-                  originX: 0.5,
-                  originY: 0,
-                  willChange: 'transform, opacity',
-                  backfaceVisibility: 'hidden',
-                }
-              : {
-                  position: 'absolute',
-                  top: panelTop,
-                  height: panelH,
-                  [isRight ? 'right' : 'left']: 'var(--panel-width)',
-                  marginLeft: isRight ? 0 : 12,
-                  marginRight: isRight ? 12 : 0,
-                  width: 440,
-                  display: 'flex',
-                  alignItems: 'center',
-                  pointerEvents: 'none',
-                  zIndex: 5,
-                  originX: isRight ? 1 : 0,
-                  originY: 0.5,
-                  willChange: 'transform, opacity',
-                  backfaceVisibility: 'hidden',
-                }
-          }
+    item ? (
+      <div
+        ref={wrapRef}
+        className={wrapClass}
+        style={
+          isHorizontal
+            ? {
+                position: 'absolute',
+                left: dockLeft + flyoutLeft,
+                width: flyoutWidth,
+                top: 222,
+                display: 'flex',
+                flexDirection: 'column',
+                pointerEvents: 'none',
+                zIndex: 5,
+                transformOrigin,
+              }
+            : {
+                position: 'absolute',
+                top: panelTop,
+                height: panelH,
+                [isRight ? 'right' : 'left']: 'var(--panel-width)',
+                marginLeft: isRight ? 0 : FLYOUT_GAP,
+                marginRight: isRight ? FLYOUT_GAP : 0,
+                width: flyoutWidth,
+                display: 'flex',
+                alignItems: 'center',
+                pointerEvents: 'none',
+                zIndex: 5,
+                transformOrigin,
+              }
+        }
+      >
+        <div
+          ref={flyoutRef}
+          className="preview-flyout"
+          data-preview-flyout="true"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          style={{
+            width: '100%',
+            maxHeight: maxFlyoutHeight,
+            background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#000000',
+            borderRadius: 20,
+            border: dragOver ? '2px dashed #4caf50' : 'none',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            // undefined (not 'none') so the stylesheet's inner rim shows
+            boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : undefined,
+            // a closing flyout no longer takes clicks
+            pointerEvents: leaving ? 'none' : 'auto',
+            transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
+            position: 'relative'
+          }}
         >
+<<<<<<< HEAD
           <div
             ref={flyoutRef}
             className="preview-flyout"
@@ -321,6 +403,8 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               position: 'relative'
             }}
           >
+=======
+>>>>>>> main
           {dragOver && (
             <div
               style={{
@@ -345,15 +429,18 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               <span>+ {t('onboarding.dropToExtract')}</span>
             </div>
           )}
-          {/* Content — even bezels, no header chrome */}
-          <div style={{ padding: selectedKeys.size > 0 ? '20px 20px 68px 20px' : '20px', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none', flex: 1, minHeight: 0 }}>
+          {/* Re-keyed per item: switching cards settles the new content in place. */}
+          <div key={item.id} className="pf-swap">
             <PreviewContent
               item={item}
               selectedKeys={selectedKeys}
               onToggleSelectKey={toggleSelectKey}
+              hasBatch={batch.mounted}
+              imageFit={imageFit}
             />
           </div>
 
+<<<<<<< HEAD
           {/* Floating Multi-Selection Batch Action Bar */}
           <AnimatePresence>
             {selectedKeys.size > 0 && (
@@ -411,8 +498,21 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                   >
                     {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
                   </button>
+=======
+          {/* Floating multi-selection batch action bar */}
+          {batch.mounted && (
+            <div className={`pf-batch${batch.leaving ? ' is-leaving' : ''}`}>
+              <div className="pf-batch-group">
+                <div className="flyout-chip">
+                  {t('flyout.selectedCount').replace('{count}', String(selCount))}
+>>>>>>> main
                 </div>
+                <button type="button" className="flyout-text-btn" onClick={handleSelectAllToggle}>
+                  {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
+                </button>
+              </div>
 
+<<<<<<< HEAD
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
                     title={t('flyout.copySelected')}
@@ -508,6 +608,45 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
         </motion.div>
       )}
     </AnimatePresence>,
+=======
+              <div className="pf-batch-group">
+                <button
+                  type="button"
+                  className="flyout-btn"
+                  title={t('flyout.copySelected')}
+                  onClick={handleBatchCopy}
+                >
+                  <CopyIcon width={13} height={13} />
+                  <span>{t('item.copy')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="flyout-btn primary"
+                  title={t('flyout.pasteSelected')}
+                  onClick={handleBatchPaste}
+                >
+                  <span>{t('flyout.paste')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="act"
+                  title={t('flyout.clearSelection')}
+                  onClick={() => {
+                    playButtonClickSound()
+                    setSelectedKeys(new Set())
+                  }}
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null,
+>>>>>>> main
     document.body
   )
 }
@@ -526,27 +665,24 @@ function getItemKeys(item: any): string[] {
 function QuickActionButton({
   title,
   icon: Icon,
-  onClick,
-  activeColor = '#4caf50',
-  solidDark = false,
-  size = 28
+  onClick
 }: {
   title: string
   icon: any
   onClick: () => any
-  activeColor?: string
-  solidDark?: boolean
-  size?: number
 }) {
   const [copied, setCopied] = useState(false)
 
-  const handleClick = async (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
+    e.preventDefault()
+    e.currentTarget.blur()
     await onClick()
     setCopied(true)
     setTimeout(() => setCopied(false), 1200)
   }
 
+<<<<<<< HEAD
   const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
   const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
   const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
@@ -556,10 +692,15 @@ function QuickActionButton({
   const iconSize = size === 24 ? 12 : 14
   const borderRadius = size === 24 ? 6 : 8
 
+=======
+>>>>>>> main
   return (
     <button
+      type="button"
+      className={`act${copied ? ' active' : ''}`}
       title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
+<<<<<<< HEAD
       style={{
         width: size,
         height: size,
@@ -587,24 +728,23 @@ function QuickActionButton({
           e.currentTarget.style.color = defaultColor
         }
       }}
+=======
+>>>>>>> main
     >
-      {copied ? <CheckIcon width={iconSize} height={iconSize} /> : <Icon width={iconSize} height={iconSize} />}
+      {copied ? <CheckIcon /> : <Icon />}
     </button>
   )
 }
 
 function ExplorerButton({
   path,
-  title,
-  size = 28,
-  solidDark = false
+  title
 }: {
   path: string
   title?: string
-  size?: number
-  solidDark?: boolean
 }) {
   const { t } = useTranslation()
+<<<<<<< HEAD
   const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
   const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
   const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
@@ -612,14 +752,21 @@ function ExplorerButton({
   const hoverColor = 'var(--text-primary)'
   const iconSize = size === 24 ? 12 : 14
   const borderRadius = size === 24 ? 6 : 8
+=======
+>>>>>>> main
 
   return (
     <button
+      type="button"
+      className="act"
       title={title || t('flyout.openInExplorer')}
       onClick={(e) => {
         e.stopPropagation()
+        e.preventDefault()
+        e.currentTarget.blur()
         window.edge.revealFile(path)
       }}
+<<<<<<< HEAD
       style={{
         width: size,
         height: size,
@@ -643,40 +790,99 @@ function ExplorerButton({
         e.currentTarget.style.background = defaultBg
         e.currentTarget.style.color = defaultColor
       }}
+=======
+>>>>>>> main
     >
-      <FolderOpenIcon width={iconSize} height={iconSize} />
+      <FolderOpenIcon />
     </button>
   )
 }
 
-const SYS_FONT = 'var(--font-ui)'
-const CODE_FONT = 'var(--font-ui)'
-
 function SelectionBadge({
   isSelected,
+  forceVisible,
   onToggle
 }: {
   isSelected: boolean
+  forceVisible?: boolean
   onToggle: (e: React.MouseEvent) => void
 }) {
   return (
     <div
+      className={`subitem-select-badge${isSelected ? ' selected' : ''}${forceVisible ? ' force-visible' : ''}`}
       onClick={(e) => {
         e.stopPropagation()
         onToggle(e)
       }}
-                      title={isSelected ? t('flyout.deselectItem') : t('flyout.selectItem')}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 4,
-        margin: -4,
-        cursor: 'pointer',
-        zIndex: 6,
-        flexShrink: 0
+      title={isSelected ? t('flyout.deselectItem') : t('flyout.selectItem')}
+    >
+      {isSelected && (
+        <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
+      )}
+    </div>
+  )
+}
+
+/**
+ * One header row for every kind: what it is, a detail, when it was copied,
+ * and the item's quick actions. It stays put while the body scrolls.
+ */
+function FlyoutHead({
+  icon,
+  title,
+  detail,
+  time,
+  children
+}: {
+  icon: ReactNode
+  title: string
+  detail?: string
+  time: string
+  children?: ReactNode
+}) {
+  return (
+    <div className="pf-head">
+      <span className="pf-head-icon">{icon}</span>
+      <span className="pf-head-title" title={title}>{title}</span>
+      {detail ? <span className="pf-head-detail" title={detail}>{detail}</span> : null}
+      <span className="pf-head-time">{time}</span>
+      <span className="pf-head-spacer" />
+      {children ? <div className="act-pill">{children}</div> : null}
+    </div>
+  )
+}
+
+/** The item's whole note, above the content. */
+function MetaHead({ item }: { item: any }) {
+  if (!item.note) return null
+  return (
+    <div className="flyout-meta-head">
+      <div className="flyout-meta-label">{item.note}</div>
+    </div>
+  )
+}
+
+/** One color format ("RGB  rgb(59, 130, 246)"); a click copies it. */
+function ColorFormatRow({ name, value }: { name: string; value: string }) {
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    if (!done) return
+    const id = setTimeout(() => setDone(false), 1200)
+    return () => clearTimeout(id)
+  }, [done])
+  return (
+    <button
+      type="button"
+      className={`pf-format${done ? ' is-done' : ''}`}
+      title={done ? t('flyout.copied') : t('flyout.copyText')}
+      onClick={(e) => {
+        e.stopPropagation()
+        e.currentTarget.blur()
+        // Through main (watcher paused): the copy is not captured as a new card.
+        void useStore.getState().copyText(value, { quiet: true }).then((ok) => { if (ok) setDone(true) })
       }}
     >
+<<<<<<< HEAD
       <div
         style={{
           width: 22,
@@ -697,17 +903,27 @@ function SelectionBadge({
         )}
       </div>
     </div>
+=======
+      <span className="pf-format-name">{name}</span>
+      <span className="pf-format-value">{value}</span>
+      <span className="pf-format-icon">{done ? <CheckIcon /> : <CopyIcon />}</span>
+    </button>
+>>>>>>> main
   )
 }
 
 function PreviewContent({
   item,
   selectedKeys,
-  onToggleSelectKey
+  onToggleSelectKey,
+  hasBatch,
+  imageFit
 }: {
   item: any
   selectedKeys?: Set<string>
   onToggleSelectKey?: (key: string, e?: React.MouseEvent) => void
+  hasBatch?: boolean
+  imageFit?: PreviewImageFit | null
 }) {
   const { t } = useTranslation()
   const startDrag = useDragOut()
@@ -722,6 +938,31 @@ function PreviewContent({
     }
   }, [item?.id, item?.data?.hasFullPayload])
 
+  const time = relativeTime(item.capturedAt)
+  /** Header on top, then the scrolling body (label + tags first). */
+  const frame = (head: ReactNode, body: ReactNode) => (
+    <>
+      {head}
+      <div className={`pf-scroll${hasBatch ? ' has-batch' : ''}`}>
+        <MetaHead item={item} />
+        {body}
+      </div>
+    </>
+  )
+  const pasteOnClick = (e: React.MouseEvent) => {
+    const sel = window.getSelection()?.toString()
+    if (sel && sel.trim().length > 0) return
+    e.stopPropagation()
+    tryPaste(() => useStore.getState().paste(item.id))
+  }
+  const copyButton = (title: string) => (
+    <QuickActionButton
+      title={title}
+      icon={CopyIcon}
+      onClick={() => useStore.getState().copy(item.id)}
+    />
+  )
+
   if (item.data.kind === 'text') {
     const activeText = fullText ?? item.data.text
     const text: string = activeText.length > 20000
@@ -731,17 +972,28 @@ function PreviewContent({
 
     if (isUrl) {
       const info = parseUrlPreview(activeText)
-      return (
+      // the page title copied with the link, else what the link itself tells
+      const linkTitle = (item.data.linkTitle || info.title || '').trim()
+      return frame(
+        <FlyoutHead icon={<GlobeIcon />} title={info.serviceName} detail={info.domain} time={time}>
+          <QuickActionButton
+            title={t('flyout.openLink')}
+            icon={ExternalLinkIcon}
+            onClick={() => window.open(externalHref(activeText), '_blank')}
+          />
+          <QuickActionButton
+            title={t('flyout.copyText')}
+            icon={CopyIcon}
+            // Through main (watcher paused): the copy is not captured as a new card.
+            onClick={() => void useStore.getState().copyText(cleanLink(activeText), { quiet: true })}
+          />
+        </FlyoutHead>,
         <div
-          onClick={(e) => {
-            const sel = window.getSelection()?.toString()
-            if (sel && sel.trim().length > 0) return
-            e.stopPropagation()
-            tryPaste(() => useStore.getState().paste(item.id))
-          }}
+          onClick={pasteOnClick}
           title={t('flyout.clickToPaste')}
-          style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 14, cursor: 'pointer' }}
+          style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, cursor: 'pointer' }}
         >
+<<<<<<< HEAD
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
             <div style={{
               display: 'inline-flex',
@@ -833,32 +1085,71 @@ function PreviewContent({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'var(--bg-3)'
               e.currentTarget.style.borderColor = 'var(--edge-light)'
+=======
+          {linkTitle && <div className="pf-link-title">{linkTitle}</div>}
+          {info.subtitle && <span className="pf-link-sub">{info.subtitle}</span>}
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              window.open(externalHref(activeText), '_blank')
+>>>>>>> main
             }}
+            className="flyout-url"
           >
-            {info.cleanUrl || activeText}
+            {info.displayUrl || activeText}
           </div>
         </div>
       )
     }
 
-    return (
-      <div
-        onClick={(e) => {
-          const sel = window.getSelection()?.toString()
-          if (sel && sel.trim().length > 0) return
-          e.stopPropagation()
-          tryPaste(() => useStore.getState().paste(item.id))
-        }}
-        title={t('flyout.clickToPaste')}
-        style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'sticky', top: 0, zIndex: 2 }}>
-          <QuickActionButton
-            title={t('flyout.copyText')}
-            icon={CopyIcon}
-            onClick={() => useStore.getState().copy(item.id)}
+    const colorInfo = parseColor(activeText)
+    if (colorInfo) {
+      const formats = colorFormats(activeText)
+      return frame(
+        <FlyoutHead icon={<PaletteIcon />} title={(formats?.source ?? 'hex').toUpperCase()} time={time}>
+          {copyButton(t('flyout.copyText'))}
+        </FlyoutHead>,
+        <>
+          <div
+            className="pf-swatch"
+            onClick={pasteOnClick}
+            title={t('flyout.clickToPaste')}
+            style={{ background: colorInfo.cssColor, color: colorInfo.isLight ? '#111827' : '#ffffff' }}
+          >
+            {colorInfo.displayText}
+          </div>
+          {formats && (
+            <div className="pf-formats">
+              <ColorFormatRow name="HEX" value={formats.hex} />
+              <ColorFormatRow name="RGB" value={formats.rgb} />
+              <ColorFormatRow name="HSL" value={formats.hsl} />
+            </div>
+          )}
+        </>
+      )
+    }
+
+    const codeInfo = detectCode(activeText)
+    if (codeInfo.isCode) {
+      return frame(
+        <FlyoutHead icon={<TypeIcon />} title={codeInfo.displayName} time={time}>
+          {copyButton(t('flyout.copyText'))}
+        </FlyoutHead>,
+        <div
+          onClick={pasteOnClick}
+          title={t('flyout.clickToPaste')}
+          style={{ position: 'relative', cursor: 'pointer', width: '100%' }}
+        >
+          <CodeBlock
+            code={text}
+            language={codeInfo.language}
+            showFrame={false}
+            showHeader={false}
+            showLineNumbers={true}
+            showCopyButton={false}
           />
         </div>
+<<<<<<< HEAD
         <div style={{
           color: 'var(--text-primary)',
           whiteSpace: 'pre-wrap',
@@ -871,12 +1162,36 @@ function PreviewContent({
         }}>
           {text}
         </div>
+=======
+      )
+    }
+
+    return frame(
+      <FlyoutHead icon={<TypeIcon />} title={t('filters.text')} time={time}>
+        {copyButton(t('flyout.copyText'))}
+      </FlyoutHead>,
+      <div
+        className="pf-text"
+        onClick={pasteOnClick}
+        title={t('flyout.clickToPaste')}
+        style={{ cursor: 'pointer' }}
+      >
+        {text}
+>>>>>>> main
       </div>
     )
   }
-  
+
   if (item.data.kind === 'image') {
-    return (
+    return frame(
+      <FlyoutHead
+        icon={<ImageIcon />}
+        title={`${item.data.width} × ${item.data.height}`}
+        detail={formatBytes(item.data.bytes)}
+        time={time}
+      >
+        {copyButton(t('flyout.copyImage'))}
+      </FlyoutHead>,
       <div
         draggable={true}
         onDragStart={(e) => {
@@ -891,34 +1206,43 @@ function PreviewContent({
           tryPaste(() => useStore.getState().paste(item.id))
         }}
         title={t('flyout.clickToPasteDrag')}
-        style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
+        className="pf-image-box"
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
-          <QuickActionButton
-            title={t('flyout.copyImage')}
-            icon={CopyIcon}
-            onClick={() => useStore.getState().copy(item.id)}
-            solidDark={true}
-          />
-        </div>
         {item.data.imageId && (
-          <img src={`edgelocal://${item.data.imageId}`} alt="preview" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
+          <img
+            className="pf-image"
+            src={`edgelocal://${item.data.imageId}`}
+            alt="preview"
+            draggable={false}
+            decoding="async"
+            // exact size up front: no reflow when it loads, no stretching
+            style={imageFit ? { width: imageFit.width, height: imageFit.height } : undefined}
+          />
         )}
+<<<<<<< HEAD
         <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
           {item.data.width} × {item.data.height} · {formatBytes(item.data.bytes)}
         </div>
+=======
+>>>>>>> main
       </div>
     )
   }
 
   if (item.data.kind === 'image-collection') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    return frame(
+      <FlyoutHead
+        icon={<ImageIcon />}
+        title={`${item.data.images.length} ${t('filters.images').toLowerCase()}`}
+        time={time}
+      />,
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {item.data.images.map((img: any, idx: number) => {
           const isSelected = selectedKeys?.has(img.imageId) ?? false
           return (
             <div
               key={img.imageId}
+              className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
               draggable={true}
               onDragStart={(e) => {
                 e.preventDefault()
@@ -939,6 +1263,7 @@ function PreviewContent({
                 }
               }}
               title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? t('flyout.clickToDeselect') : t('flyout.clickToSelect')) : t('flyout.clickToPasteImageDrag')}
+<<<<<<< HEAD
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -952,14 +1277,31 @@ function PreviewContent({
                 boxShadow: isSelected ? '0 0 16px var(--selection-shadow)' : 'none',
                 transition: 'all 0.15s ease'
               }}
+=======
+>>>>>>> main
             >
-              <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
-                <SelectionBadge
-                  isSelected={isSelected}
-                  onToggle={(e) => onToggleSelectKey?.(img.imageId, e)}
-                />
-              </div>
+              <div className="item-main">
+                <div className="body">
+                  <div className="item-content">
+                    <div className="thumb-wrap">
+                      <img
+                        className="thumb"
+                        src={`edgelocal://${img.imageId}`}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        style={{ maxHeight: '60vh' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="item-footer">
+                    <span className="kind-badge">{idx + 1} / {item.data.images.length} · {img.width} × {img.height}</span>
+                    <span className="meta-size">{formatBytes(img.bytes)}</span>
+                  </div>
+                </div>
 
+<<<<<<< HEAD
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
                 <QuickActionButton
                   title={t('flyout.copyImage')}
@@ -971,6 +1313,23 @@ function PreviewContent({
               <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                 {idx + 1} / {item.data.images.length} · {img.width} × {img.height} · {formatBytes(img.bytes)}
+=======
+                <div className="actions" onClick={(e) => e.stopPropagation()}>
+                  <QuickActionButton
+                    title={t('flyout.copyImage')}
+                    icon={CopyIcon}
+                    onClick={() => useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })}
+                  />
+                </div>
+
+                {onToggleSelectKey && (
+                  <SelectionBadge
+                    isSelected={isSelected}
+                    forceVisible={selectedKeys && selectedKeys.size > 0}
+                    onToggle={(e) => onToggleSelectKey(img.imageId, e)}
+                  />
+                )}
+>>>>>>> main
               </div>
             </div>
           )
@@ -986,8 +1345,11 @@ function PreviewContent({
       const entry = item.data.entries?.[0]
       const fileName = formatImageDisplayName(entry?.name || p, item.capturedAt)
       const fullResUrl = `edgelocal://file/${encodeURIComponent(p.replace(/\\/g, '/'))}`
-      return (
+      const ext = (entry?.ext || '').toUpperCase()
+      return frame(
+        <FlyoutHead icon={<ImageIcon />} title={ext || fileName} time={time} />,
         <div
+          className="item flyout-subitem single-hero-card"
           draggable={true}
           onDragStart={(e) => {
             e.preventDefault()
@@ -1001,8 +1363,8 @@ function PreviewContent({
             tryPaste(() => useStore.getState().paste(item.id))
           }}
           title={t('flyout.clickToPasteDrag')}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
         >
+<<<<<<< HEAD
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
             <QuickActionButton
               title={t('flyout.copyFile')}
@@ -1032,6 +1394,45 @@ function PreviewContent({
           <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>{fileName}</span>
             {entry?.size ? <span>{formatBytes(entry.size)}</span> : null}
+=======
+          <div className="item-main">
+            <div className="body">
+              <div className="item-content">
+                <div className="thumb-wrap">
+                  <img
+                    className="thumb"
+                    src={fullResUrl}
+                    onError={(e) => {
+                      if (entry?.preview) {
+                        e.currentTarget.src = entry.preview
+                      }
+                    }}
+                    alt={fileName}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    style={{ maxHeight: '60vh' }}
+                  />
+                </div>
+              </div>
+              <div className="item-footer">
+                <span className="kind-badge">{fileName}</span>
+                {entry?.size ? <span className="meta-size">{formatBytes(entry.size)}</span> : null}
+              </div>
+            </div>
+
+            <div className="actions" onClick={(e) => e.stopPropagation()}>
+              <QuickActionButton
+                title={t('flyout.copyFile')}
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+              <ExplorerButton
+                path={p}
+                title={t('flyout.openInExplorer')}
+              />
+            </div>
+>>>>>>> main
           </div>
         </div>
       )
@@ -1043,8 +1444,14 @@ function PreviewContent({
       const entry = item.data.entries?.[0]
       const info = getFileKind(p, entry?.isDirectory)
       const fileName = formatImageDisplayName(entry?.name || p, item.capturedAt)
-      return (
+      return frame(
+        <FlyoutHead
+          icon={<FileKindIcon path={p} width={14} height={14} isDirectory={entry?.isDirectory} />}
+          title={info.label}
+          time={time}
+        />,
         <div
+          className="item flyout-subitem single-hero-card"
           draggable={true}
           onDragStart={(e) => {
             e.preventDefault()
@@ -1058,6 +1465,7 @@ function PreviewContent({
             tryPaste(() => useStore.getState().paste(item.id))
           }}
           title={t('flyout.clickToPasteDrag')}
+<<<<<<< HEAD
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -1114,6 +1522,43 @@ function PreviewContent({
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
               {!entry?.isDirectory && entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
+=======
+        >
+          <div className="item-main">
+            <div className="body">
+              <div className="item-content" style={{ padding: '24px 20px 12px 20px' }}>
+                <div className="single-file-preview">
+                  <div className="single-file-hero" style={{ color: info.color }}>
+                    <FileKindIcon path={p} width={154} height={154} isDirectory={entry?.isDirectory} layered />
+                  </div>
+                  <div className="single-file-meta" style={{ marginTop: 8 }}>
+                    <div className="preview single single-file-name" title={fileName} style={{ fontSize: 15, WebkitLineClamp: 3, whiteSpace: 'normal', lineHeight: 1.4 }}>
+                      {fileName}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="item-footer" style={{ padding: '8px 18px 12px 18px' }}>
+                <span className="kind-badge" style={{ color: info.color, fontSize: 12 }}>
+                  {info.label.toLowerCase()}
+                </span>
+                {!entry?.isDirectory && entry?.size ? (
+                  <span className="meta-size" style={{ fontSize: 12 }}>{formatBytes(entry.size)}</span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="actions" onClick={(e) => e.stopPropagation()}>
+              <QuickActionButton
+                title={t('flyout.copyFile')}
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+              <ExplorerButton
+                path={p}
+                title={t('flyout.openInExplorer')}
+              />
+>>>>>>> main
             </div>
           </div>
         </div>
@@ -1126,8 +1571,13 @@ function PreviewContent({
     })
     const useSingleColumn = hasImageFiles
 
-    return (
-      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 12, width: '100%', boxSizing: 'border-box' }}>
+    return frame(
+      <FlyoutHead
+        icon={<FilesIcon />}
+        title={`${item.data.paths.length} ${t('filters.files').toLowerCase()}`}
+        time={time}
+      />,
+      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 10, width: '100%', boxSizing: 'border-box' }}>
         {item.data.paths.map((p: string, i: number) => {
           const entry = item.data.entries?.[i]
           const info = getFileKind(p, entry?.isDirectory)
@@ -1140,6 +1590,7 @@ function PreviewContent({
             return (
               <div
                 key={i}
+                className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
                 draggable={true}
                 onDragStart={(e) => {
                   e.preventDefault()
@@ -1160,6 +1611,7 @@ function PreviewContent({
                   }
                 }}
                 title={t('flyout.clickToPasteDrag')}
+<<<<<<< HEAD
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -1174,16 +1626,46 @@ function PreviewContent({
                   width: '100%',
                   boxSizing: 'border-box'
                 }}
+=======
+>>>>>>> main
               >
-                {onToggleSelectKey && (
-                  <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
-                    <SelectionBadge
-                      isSelected={isSelected}
-                      onToggle={(e) => onToggleSelectKey(p, e)}
+                <div className="item-main">
+                  <div className="body">
+                    <div className="item-content">
+                      <div className="thumb-wrap">
+                        <img
+                          className="thumb"
+                          src={fullResUrl}
+                          onError={(e) => {
+                            if (entry?.preview) e.currentTarget.src = entry.preview
+                          }}
+                          alt={fileName}
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                          style={{ maxHeight: useSingleColumn ? '50vh' : 110 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="item-footer">
+                      <span className="kind-badge">{t('filters.images').toLowerCase().slice(0, -1)}</span>
+                      {entry?.size ? <span className="meta-size">{formatBytes(entry.size)}</span> : null}
+                    </div>
+                  </div>
+
+                  <div className="actions" onClick={(e) => e.stopPropagation()}>
+                    <QuickActionButton
+                      title={t('flyout.copyFile')}
+                      icon={CopyIcon}
+                      onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
+                    />
+                    <ExplorerButton
+                      path={p}
+                      title={t('flyout.openInExplorer')}
                     />
                   </div>
-                )}
 
+<<<<<<< HEAD
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
                   <QuickActionButton
                     title={t('flyout.copyFile')}
@@ -1211,6 +1693,15 @@ function PreviewContent({
                 />
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                   {fileName}{entry?.size ? ` · ${formatBytes(entry.size)}` : ''}
+=======
+                  {onToggleSelectKey && (
+                    <SelectionBadge
+                      isSelected={isSelected}
+                      forceVisible={selectedKeys && selectedKeys.size > 0}
+                      onToggle={(e) => onToggleSelectKey(p, e)}
+                    />
+                  )}
+>>>>>>> main
                 </div>
               </div>
             )
@@ -1220,6 +1711,7 @@ function PreviewContent({
           return (
             <div
               key={i}
+              className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
               draggable={true}
               onDragStart={(e) => {
                 e.preventDefault()
@@ -1240,6 +1732,7 @@ function PreviewContent({
                 }
               }}
               title={t('flyout.clickToPasteDrag')}
+<<<<<<< HEAD
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -1281,24 +1774,46 @@ function PreviewContent({
                     {isSelected && (
                       <CheckIcon width={12} height={12} style={{ color: 'var(--selection-ink)', strokeWidth: 3 }} />
                     )}
+=======
+            >
+              <div className="item-main">
+                <div className="body">
+                  <div className="item-content">
+                    <div className="single-file-preview">
+                      <div className="single-file-hero" style={{ color: info.color }}>
+                        <FileKindIcon path={p} width={120} height={120} isDirectory={entry?.isDirectory} layered />
+                      </div>
+                      <div className="single-file-meta">
+                        <div className="preview single single-file-name" title={fileName}>
+                          {fileName}
+                        </div>
+                      </div>
+                    </div>
+>>>>>>> main
                   </div>
-                ) : <div />}
+                  <div className="item-footer">
+                    <span className="kind-badge" style={{ color: info.color }}>
+                      {info.label.toLowerCase()}
+                    </span>
+                    {!entry?.isDirectory && entry?.size ? (
+                      <span className="meta-size">{formatBytes(entry.size)}</span>
+                    ) : null}
+                  </div>
+                </div>
 
-                <div style={{ display: 'flex', gap: 4 }}>
+                <div className="actions" onClick={(e) => e.stopPropagation()}>
                   <QuickActionButton
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                    size={24}
                   />
                   <ExplorerButton
                     path={p}
                     title={t('flyout.openInExplorer')}
-                    size={24}
                   />
                 </div>
-              </div>
 
+<<<<<<< HEAD
               {/* Centered Large 3D Pastel Vector Icon */}
               <div style={{
                 width: 64,
@@ -1335,6 +1850,15 @@ function PreviewContent({
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                   {!entry?.isDirectory && entry?.size ? formatBytes(entry.size) : info.label}
                 </span>
+=======
+                {onToggleSelectKey && (
+                  <SelectionBadge
+                    isSelected={isSelected}
+                    forceVisible={selectedKeys && selectedKeys.size > 0}
+                    onToggle={(e) => onToggleSelectKey(p, e)}
+                  />
+                )}
+>>>>>>> main
               </div>
             </div>
           )

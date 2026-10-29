@@ -19,17 +19,39 @@
  *     before React's mouseleave has a chance to fire.
  *
  *  Drag-awareness: while an external OS file drag is active we never close.
+ *  A drag from another app is also seen before it reaches the window (main
+ *  flags it on every cursor update): the edge bar gets ready for it, and at
+ *  the bar the shelf opens straight into its drop zone (see lib/edgeDrag.ts).
  */
 import { useEffect, useRef } from 'react'
 import { edge } from '../lib/edge'
 import { useStore } from '../store/appStore'
+import { normalizeHoverOpenDelay } from '../../shared/types'
+import { DRAG_CATCH_DWELL_MS, edgeDragPull, inEdgeDragCatch, setEdgeDragPull, type EdgeDragLane } from '../lib/edgeDrag'
 
 const TRIGGER_PX = 3    // leftmost px that count as "the edge"
-const DWELL_MS = 40      // cursor must linger this long to open
+const DWELL_MS = 40      // cursor must linger this long to open (base; user delay adds on top)
 const GRACE_MS = 250     // close delay after leaving
 const PANEL_WIDE = 270   // default blade width (var(--panel-width))
 const BUFFER_PX = 30                 // 30px overshoot buffer across adjacent monitors
 const PREVIEW_WIDE = 740             // Extended width when preview flyout is active
+/** Keep-open margin past the flyout's far edge (740 = 270 + 12 + 440 + 18). */
+const PREVIEW_EDGE_MARGIN = 18
+
+/**
+ * Side docks: how far from the screen edge an open flyout keeps the shelf
+ * open. An image preview can be wider than the usual 440px; its flyout
+ * publishes how far it reaches, and the zone grows to match (never shrinks).
+ */
+function flyoutWide(state: ReturnType<typeof useStore.getState>): number {
+  const reach = state.previewItemId ? state.previewFlyoutRect?.reach : undefined
+  return reach ? Math.max(PREVIEW_WIDE, reach + PREVIEW_EDGE_MARGIN) : PREVIEW_WIDE
+}
+
+/** Total dwell before a hover opens the shelf: base + the user's Open Delay setting. */
+function dwellMsFor(state: { settings: { hoverOpenDelay?: number } }): number {
+  return DWELL_MS + normalizeHoverOpenDelay(state.settings.hoverOpenDelay)
+}
 
 export const PANEL_LEAVE_EVENT = 'panel:leave'
 export const PANEL_ENTER_EVENT = 'panel:enter'
@@ -95,6 +117,48 @@ export function getHorizontalDockMetrics(
     triggerLeft,
     triggerRight
   }
+}
+
+/** Extra margin around the card menu that still counts as "on the menu". */
+const CARD_MENU_BUFFER = 12
+
+/**
+ * The main-process cursor poll reports work-area coordinates; the card menu's
+ * box is in window (client) coordinates. The window sits at the work area's
+ * left edge (left dock), right edge (right dock) or 30px left of the dock
+ * (top dock), always at the work area's top.
+ */
+export function cursorToWindow(
+  cursor: { x: number; y: number },
+  stickPosition: 'left' | 'right' | 'top' | undefined,
+  displayWidth: number,
+  windowWidth: number,
+  dockX: number
+): { x: number; y: number } {
+  if (stickPosition === 'right') return { x: cursor.x - (displayWidth - windowWidth), y: cursor.y }
+  if (stickPosition === 'top') return { x: cursor.x - (dockX - 30), y: cursor.y }
+  return { x: cursor.x, y: cursor.y }
+}
+
+/**
+ * True while the card menu (or the note editor it turns into) holds the shelf
+ * open for this cursor: only while the pointer is on it. Leaving both the
+ * shelf and the menu closes the shelf like any other leave; an open editor
+ * saves what was typed as it closes (setOpen in the store) and the keyboard
+ * goes back to the app that had it.
+ */
+export function cardMenuHolds(
+  menu: { mode: 'menu' | 'edit' } | null,
+  rect: { left: number; top: number; right: number; bottom: number } | null,
+  point: { x: number; y: number }
+): boolean {
+  if (!menu || !rect) return false
+  return (
+    point.x >= rect.left - CARD_MENU_BUFFER &&
+    point.x <= rect.right + CARD_MENU_BUFFER &&
+    point.y >= rect.top - CARD_MENU_BUFFER &&
+    point.y <= rect.bottom + CARD_MENU_BUFFER
+  )
 }
 
 export function useEdgeHover(): void {
@@ -204,6 +268,7 @@ export function useEdgeHover(): void {
     let dwellTimer: number | undefined
     let graceTimer: number | undefined
     let interactiveTimer: number | undefined
+    let dragOpenTimer: number | undefined
 
     const closePanelNow = () => {
       const s = useStore.getState()
@@ -269,6 +334,11 @@ export function useEdgeHover(): void {
       } else if (_previewClosedByUser) {
         effectiveDelay = PREVIEW_CLOSE_STAY_MS
       }
+      // The card menu just closed (an action, Escape, a click outside): it
+      // may have left the pointer outside the blade, so give it a moment to
+      // come back before the shelf closes.
+      const menuStayLeft = state.cardMenuStayUntil - Date.now()
+      if (menuStayLeft > 0) effectiveDelay = Math.max(effectiveDelay, menuStayLeft)
 
       graceTimer = window.setTimeout(closePanel, effectiveDelay)
     }
@@ -290,6 +360,8 @@ export function useEdgeHover(): void {
       if (elapsed >= 1750) {
         state.resetPositionChangedTime()
       }
+      // Back inside: the post-menu grace has done its job.
+      state.clearCardMenuStay()
       if (_previewClosedByUser) {
         _previewClosedByUser = false
         if (_previewClosedTimer !== undefined) {
@@ -339,9 +411,19 @@ export function useEdgeHover(): void {
     // reflow repositions an exiting child out from under the cursor (e.g. on
     // expand). So we treat `panel:leave` as a *hint* and only actually close
     // if the last known pointer position is genuinely outside the blade.
+    const cursorInWindow = (state: ReturnType<typeof useStore.getState>, point: { x: number; y: number }) => {
+      const s = state.settings
+      const dispW = displaySize.current.width
+      const dockX = s.stickPosition === 'top'
+        ? getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center').dockX
+        : 0
+      return cursorToWindow(point, s.stickPosition, dispW, window.innerWidth, dockX)
+    }
+
     const isInsideBlade = () => {
       const state = useStore.getState()
       if (state.sliderActive || state.edgeTransition?.active) return true
+      if (state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, lastClient.current))) return true
       const timeSincePositionChange = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
       if (timeSincePositionChange < 1750) return true
 
@@ -349,9 +431,13 @@ export function useEdgeHover(): void {
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
+<<<<<<< HEAD
       const panelWide = s.panelWidth ?? PANEL_WIDE
       const currentPanelWide = hasFlyout ? PREVIEW_WIDE : panelWide
       const keepOpenPx = panelWide - 15
+=======
+      const currentPanelWide = hasFlyout ? flyoutWide(state) : PANEL_WIDE
+>>>>>>> main
 
       if (s.stickPosition === 'top') {
         const dispW = displaySize.current.width
@@ -423,6 +509,13 @@ export function useEdgeHover(): void {
     // The main process polls screen.getCursorScreenPoint() every 16ms and
     // sends window:cursor-edge with raw x/y coords. We check the hot zone
     // here with the renderer's own settings so everything stays in sync.
+    const clearDragOpen = () => {
+      if (dragOpenTimer !== undefined) {
+        window.clearTimeout(dragOpenTimer)
+        dragOpenTimer = undefined
+      }
+    }
+
     const unsubCursorEdge = window.edge.onCursorEdge((data) => {
       lastClient.current = { x: data.x, y: data.y }
       if (data.displayWidth) displaySize.current.width = data.displayWidth
@@ -430,12 +523,58 @@ export function useEdgeHover(): void {
       const state = useStore.getState()
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
+
+      // ── A drag from another app (anywhere on screen) ─────────────────────
+      // Follows the hover setting: with hover opening off, cursor moves never
+      // open the shelf, dragged or not.
+      const drag = !!data.drag && !state.internalDragReq && (state.settings.hoverActivation ?? true)
+      if (state.externalDrag !== drag) state.setExternalDrag(drag)
+      if (drag && !state.open) {
+        const dispW = displayWidth || displaySize.current.width
+        const s = state.settings
+        const bar = stickPosition === 'top'
+          ? getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
+          : null
+        const lane: EdgeDragLane = bar
+          ? { stickPosition: 'top', start: bar.triggerLeft, end: bar.triggerRight, displayWidth: dispW }
+          : { stickPosition: stickPosition === 'right' ? 'right' : 'left', start: top, end: bottom, displayWidth: dispW }
+        setEdgeDragPull(edgeDragPull(lane, data.x, data.y))
+        if (inEdgeDragCatch(lane, data.x, data.y)) {
+          if (dragOpenTimer === undefined) {
+            dragOpenTimer = window.setTimeout(() => {
+              dragOpenTimer = undefined
+              if (useStore.getState().externalDrag) openPanel()
+            }, DRAG_CATCH_DWELL_MS)
+          }
+        } else {
+          clearDragOpen()
+        }
+      } else {
+        clearDragOpen()
+        if (!drag) setEdgeDragPull(0)
+      }
+
+      // The card menu (or its note editor) is part of the shelf while the pointer is on it.
+      if (state.open && state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, data))) {
+        const now = Date.now()
+        if (now - lastSetInteractiveRef.current > 2000) {
+          lastSetInteractiveRef.current = now
+          edge.setInteractive(true)
+        }
+        cancelClose()
+        return
+      }
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
+<<<<<<< HEAD
       const panelWide = state.settings.panelWidth ?? PANEL_WIDE
       const keepOpenPx = panelWide - 15
       const startClosePx = panelWide + 20
       const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : keepOpenPx
       const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : startClosePx
+=======
+      const currentKeepOpenPx = hasFlyout ? flyoutWide(state) - 15 : KEEP_OPEN_PX
+      const currentStartClosePx = hasFlyout ? flyoutWide(state) + 20 : START_CLOSE_PX
+>>>>>>> main
 
       switch (stickPosition) {
         case 'top': {
@@ -463,7 +602,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }
@@ -531,7 +670,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }
@@ -593,7 +732,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }
@@ -718,6 +857,7 @@ export function useEdgeHover(): void {
       window.clearTimeout(dwellTimer)
       window.clearTimeout(graceTimer)
       window.clearTimeout(interactiveTimer)
+      window.clearTimeout(dragOpenTimer)
     }
   }, [])
 }
