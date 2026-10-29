@@ -48,8 +48,6 @@
   opacity: 1.2;
 }
 
-<<<<<<< HEAD
-=======
 /* Performance culling — invisible to users.
    Cards outside the scroll viewport skip style/layout/paint of their whole
    subtree; scrolling near them renders them normally. The `auto` keyword
@@ -67,7 +65,6 @@
   contain-intrinsic-size: none !important;
 }
 
->>>>>>> main
 .item:hover {
   z-index: 30;
   background: var(--item-hover-bg);
@@ -241,16 +238,10 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-<<<<<<< HEAD
-  background: var(--bg-card);
-  border: 1px solid var(--edge-light);
-  color: var(--text-primary);
-=======
   /* Same surface as the action pills, just bigger: it is a page-level control. */
   background: var(--act-surface);
   border: none;
   color: #ffffff;
->>>>>>> main
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,14 +252,7 @@
 }
 
 .scroll-top-btn:hover {
-<<<<<<< HEAD
-  background: var(--bg-card-hover);
-  border-color: var(--edge-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-=======
   background: var(--act-surface-hover);
->>>>>>> main
 }
 
 .scroll-top-btn:active {
@@ -1605,24 +1589,8 @@ html[data-motion='reduce'] .file-stack-folder {
   position: absolute;
   top: 0;
   right: 8px;
-<<<<<<< HEAD
-  transform: translateY(-100%) scale(0.96);
-  display: flex;
-  gap: 3px;
-  padding: 3px 5px;
-  background: #141414;
-  border: none;
-  border-radius: 999px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.14s ease, transform 0.14s ease;
-  transform-origin: right bottom;
-  will-change: opacity, transform;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
-=======
-  opacity: 0;
-  pointer-events: none;
->>>>>>> main
   z-index: 20;
 }
 
@@ -1631,42 +1599,7 @@ html[data-motion='reduce'] .file-stack-folder {
 .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-<<<<<<< HEAD
-  transform: translateY(-100%) scale(1);
-}
-
-.reorder-handle {
-  cursor: grab;
-  touch-action: none;
-}
-
-.reorder-handle:active {
-  cursor: grabbing;
-}
-
-.item.reorder-before::after,
-.item.reorder-after::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 72%, transparent);
-  z-index: 31;
-  pointer-events: none;
-}
-
-.item.reorder-before::after {
-  top: -4px;
-}
-
-.item.reorder-after::after {
-  bottom: -4px;
-=======
   scale: 1;
->>>>>>> main
 }
 
 .act {
@@ -2034,8 +1967,8 @@ html[data-motion='reduce'] .file-stack-folder {
 }
 
 .item.flyout-subitem.is-selected {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 1.5px #ffffff, 0 8px 24px rgba(0, 0, 0, 0.6);
+  background: var(--selection-bg);
+  box-shadow: 0 0 0 1.5px var(--selection-border), 0 8px 24px var(--selection-shadow);
 }
 
 .item.flyout-subitem.is-selected::before {
@@ -2169,7 +2102,7 @@ html[data-motion='reduce'] .file-stack-folder {
 
 .flyout-subitem .subitem-select-badge.selected {
   opacity: 1;
-  background: #ffffff;
+  background: var(--selection-border);
   border-color: #ffffff;
   color: #000000;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.3), 0 2px 6px rgba(0, 0, 0, 0.5);
@@ -2385,17 +2318,6 @@ html[data-motion='reduce'] .file-stack-folder {
 .list.horizontal .actions {
   top: 0;
   right: 6px;
-<<<<<<< HEAD
-  padding: 2px 4px;
-  gap: 2px;
-  background: #121216;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.4);
-  border-radius: 999px;
-  transform: translateY(-100%) scale(0.92);
-  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
-=======
->>>>>>> main
 }
 
 .list.horizontal .item-main:hover .actions,
@@ -2403,40 +2325,7 @@ html[data-motion='reduce'] .file-stack-folder {
 .list.horizontal .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-<<<<<<< HEAD
-  transform: translateY(-100%) scale(1);
-}
-
-.list.horizontal .item.reorder-before::after,
-.list.horizontal .item.reorder-after::after {
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  height: auto;
-}
-
-.list.horizontal .item.reorder-before::after {
-  left: -4px;
-  right: auto;
-}
-
-.list.horizontal .item.reorder-after::after {
-  left: auto;
-  right: -4px;
-}
-
-.list.horizontal .act {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-}
-
-.list.horizontal .act > svg {
-  width: 13px;
-  height: 13px;
-=======
   scale: 1;
->>>>>>> main
 }
 
 .list.horizontal .act-divider {
@@ -3058,97 +2947,9 @@ html[data-motion='reduce'] .file-stack-folder {
   box-sizing: border-box;
 }
 
-<<<<<<< HEAD
-/* Shared neutral controls and text for the light theme. Color cards retain
-   their own contrast rules because their content background is user data. */
-:root[data-theme='light'] .item,
-:root[data-theme='light'] .item-main,
-:root[data-theme='light'] .item-content,
-:root[data-theme='light'] .item-footer,
-:root[data-theme='light'] .body,
-:root[data-theme='light'] .meta,
-:root[data-theme='light'] .meta-detail,
-:root[data-theme='light'] .meta-hit-count,
-:root[data-theme='light'] .meta-time,
-:root[data-theme='light'] .fluid-row-content,
-:root[data-theme='light'] .single-file-meta,
-:root[data-theme='light'] .bundle-actions-label {
-  color: var(--text-primary);
-}
-
-:root[data-theme='light'] .item .preview,
-:root[data-theme='light'] .item:hover .preview,
-:root[data-theme='light'] .link-card-body {
-  color: var(--text-primary);
-}
-
-:root[data-theme='light'] .item-footer {
-  background: linear-gradient(180deg, transparent 0%, rgba(32, 38, 49, 0.1) 100%);
-}
-
-:root[data-theme='light'] .item.pinned {
-  background: var(--bg-card);
-}
-
-:root[data-theme='light'] .actions {
-  background: var(--bg-card);
-  border: 1px solid var(--edge-light);
-  box-shadow: var(--shadow-card);
-}
-
-:root[data-theme='light'] .item,
-:root[data-theme='light'] .fluid-card-row,
-:root[data-theme='light'] .horizontal-subitem-tile,
-:root[data-theme='light'] .bundle-preview,
-:root[data-theme='light'] .single-file-preview,
-:root[data-theme='light'] .link-card {
-  background: var(--bg-card);
-  border-color: var(--edge-light);
-  box-shadow: var(--shadow-card);
-}
-
-:root[data-theme='light'] .item:hover,
-:root[data-theme='light'] .fluid-card-row:hover,
-:root[data-theme='light'] .horizontal-subitem-tile:hover,
-:root[data-theme='light'] .item:hover .link-card {
-  background: var(--item-hover-bg);
-  border-color: var(--edge-strong);
-}
-
-:root[data-theme='light'] .item .meta-time,
-:root[data-theme='light'] .item .meta-detail,
-:root[data-theme='light'] .item .meta-hit-count,
-:root[data-theme='light'] .link-card-domain,
-:root[data-theme='light'] .link-card-url,
-:root[data-theme='light'] .fluid-row-sub,
-:root[data-theme='light'] .single-file-name,
-:root[data-theme='light'] .single-file-meta,
-:root[data-theme='light'] .bundle-more-label {
-  color: var(--text-tertiary);
-}
-
-:root[data-theme='light'] .kind-badge,
-:root[data-theme='light'] .act,
-:root[data-theme='light'] .actions-pill,
-:root[data-theme='light'] .scroll-top-btn {
-  color: var(--text-secondary);
-  background: var(--bg-3);
-  border-color: var(--edge-light);
-}
-
-:root[data-theme='light'] .act:hover,
-:root[data-theme='light'] .scroll-top-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-card-hover);
-  border-color: var(--edge-strong);
-}
-
-/* Top Dock: Attached to top screen edge */
-=======
 /* Each dock: along the edge the card is dragged out to. The hit area is the
    whole strip; Panel's internal-drop fallback uses the same reach (80px from
    the top, 100px from a side). */
->>>>>>> main
 .split-dropzone.pos-top {
   top: 0;
   left: 0;
@@ -3529,4 +3330,34 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   line-height: 1.3;
   color: #ffffff;
   word-break: break-word;
+}
+
+/* Light cards keep text and controls legible without changing color cards. */
+:root[data-theme='light'] .item,
+:root[data-theme='light'] .item-main,
+:root[data-theme='light'] .item-content,
+:root[data-theme='light'] .item-footer,
+:root[data-theme='light'] .body,
+:root[data-theme='light'] .meta,
+:root[data-theme='light'] .meta-detail,
+:root[data-theme='light'] .meta-hit-count,
+:root[data-theme='light'] .meta-time,
+:root[data-theme='light'] .single-file-meta {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .item .preview,
+:root[data-theme='light'] .item:hover .preview,
+:root[data-theme='light'] .link-card-body {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .item-footer {
+  background: linear-gradient(180deg, transparent 0%, rgba(32, 38, 49, 0.1) 100%);
+}
+
+:root[data-theme='light'] .actions {
+  background: var(--bg-card);
+  border: 1px solid var(--edge-light);
+  box-shadow: var(--shadow-card);
 }

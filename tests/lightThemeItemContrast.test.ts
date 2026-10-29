@@ -7,6 +7,7 @@ const headerTsx = readFileSync(join(__dirname, '..', 'src', 'components', 'Heade
 const indicatorTsx = readFileSync(join(__dirname, '..', 'src', 'components', 'CopyIndicatorCurve.tsx'), 'utf8')
 const tokensCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'tokens.css'), 'utf8')
 const settingsCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'settings.css'), 'utf8')
+const segmentedCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'SegmentedControl.css'), 'utf8')
 
 describe('light theme item contrast', () => {
   it('uses the warm light surface for both the panel and cards', () => {
@@ -31,8 +32,8 @@ describe('light theme item contrast', () => {
   })
 
   it('uses theme-aware controls for the filter bar, edge indicator, and action pill', () => {
-    expect(headerTsx).toContain('trackColor="var(--segment-track)"')
-    expect(headerTsx).toContain('textColor="var(--segment-ink)"')
+    expect(segmentedCss).toContain('background: var(--segment-track, var(--bg-card))')
+    expect(segmentedCss).toContain('color: var(--segment-ink)')
     expect(indicatorTsx).toContain('fill="var(--indicator-fill)"')
     expect(itemCss).toContain(":root[data-theme='light'] .actions")
     expect(tokensCss).toContain('--segment-track: #e7ebf1')

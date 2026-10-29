@@ -243,88 +243,20 @@ export function CopyIndicatorCurve() {
             transformOrigin: `${COPY_TAB_BEHIND_EDGE}px ${shape.halfLength}px`
           }}
         >
-<<<<<<< HEAD
-          <svg
-            width={boxW}
-            height={boxH}
-            viewBox={`0 0 ${boxW} ${boxH}`}
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ overflow: 'visible' }}
-          >
-            <motion.path
-              d={activePath}
-              fill="var(--indicator-fill)"
-              stroke="none"
-              initial={{ d: reduceMotion ? activePath : flatPath }}
-              animate={{ d: activePath }}
-              exit={{ d: reduceMotion ? activePath : flatPath }}
-              transition={fade}
-            />
-          </svg>
-
-          <motion.div
-            initial={reduceMotion ? { opacity: 0 } : { scale: 0.92, opacity: 0 }}
-            animate={reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { scale: 0.92, opacity: 0 }}
-            transition={{ ...fade, delay: reduceMotion ? 0 : 0.04 }}
-            style={
-              isHorizontal
-                ? {
-                    position: 'absolute',
-                    left: '50%',
-                    x: '-50%',
-                    top: 2,
-                    width: 43.3,
-                    height: 43.3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pointerEvents: 'none'
-                  }
-                : {
-                    position: 'absolute',
-                    top: '50%',
-                    y: '-50%',
-                    [isRight ? 'right' : 'left']: 2,
-                    width: 43.3,
-                    height: 43.3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pointerEvents: 'none'
-                  }
-            }
-          >
-            {indicatorStyle === 'check' ? (
-              <TickIndicatorIcon fillColor="#ffffff" animated />
-            ) : indicatorStyle === 'copy' ? (
-              <CopyIndicatorIcon fillColor="#ffffff" animated />
-            ) : indicatorStyle === 'sparkle' ? (
-              <SparkleIndicatorIcon fillColor="#ffffff" animated />
-            ) : (
-              <LogoIndicatorIcon fillColor="#ffffff" size={38} />
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-=======
-          <path d={shape.d} fill="#000000" />
+          <path d={shape.d} fill="var(--indicator-fill)" />
         </svg>
       </div>
       <div className="copy-ind__icon">
         {indicatorStyle === 'check' ? (
-          <TickIndicatorIcon fillColor="#ffffff" size={26} draw />
+          <TickIndicatorIcon fillColor="var(--indicator-ink)" size={26} draw />
         ) : indicatorStyle === 'copy' ? (
-          <CopyIndicatorIcon fillColor="#ffffff" size={24} />
+          <CopyIndicatorIcon fillColor="var(--indicator-ink)" size={24} />
         ) : indicatorStyle === 'sparkle' ? (
-          <SparkleIndicatorIcon fillColor="#ffffff" size={26} />
+          <SparkleIndicatorIcon fillColor="var(--indicator-ink)" size={26} />
         ) : (
-          <LogoIndicatorIcon fillColor="#ffffff" size={30} />
+          <LogoIndicatorIcon fillColor="var(--indicator-ink)" size={30} />
         )}
       </div>
     </div>
->>>>>>> main
   )
 }

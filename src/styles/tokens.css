@@ -57,6 +57,7 @@
   --segment-ink: rgba(255, 255, 255, 0.72);
   --segment-ink-active: #000000;
   --indicator-fill: #000000;
+  --indicator-ink: #ffffff;
 
   /* Accent (overridden at runtime by theme.ts) */
   --accent: #8b5cf6;
@@ -133,6 +134,7 @@
   --segment-ink: #536071;
   --segment-ink-active: #202631;
   --indicator-fill: #000000;
+  --indicator-ink: #ffffff;
 
   --accent: #000000;
   --accent-glow: rgba(0, 0, 0, 0.2);

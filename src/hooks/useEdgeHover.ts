@@ -431,13 +431,9 @@ export function useEdgeHover(): void {
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
-<<<<<<< HEAD
       const panelWide = s.panelWidth ?? PANEL_WIDE
-      const currentPanelWide = hasFlyout ? PREVIEW_WIDE : panelWide
+      const currentPanelWide = hasFlyout ? flyoutWide(state) : panelWide
       const keepOpenPx = panelWide - 15
-=======
-      const currentPanelWide = hasFlyout ? flyoutWide(state) : PANEL_WIDE
->>>>>>> main
 
       if (s.stickPosition === 'top') {
         const dispW = displaySize.current.width
@@ -565,16 +561,11 @@ export function useEdgeHover(): void {
         return
       }
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
-<<<<<<< HEAD
       const panelWide = state.settings.panelWidth ?? PANEL_WIDE
       const keepOpenPx = panelWide - 15
       const startClosePx = panelWide + 20
-      const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : keepOpenPx
-      const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : startClosePx
-=======
-      const currentKeepOpenPx = hasFlyout ? flyoutWide(state) - 15 : KEEP_OPEN_PX
-      const currentStartClosePx = hasFlyout ? flyoutWide(state) + 20 : START_CLOSE_PX
->>>>>>> main
+      const currentKeepOpenPx = hasFlyout ? flyoutWide(state) - 15 : keepOpenPx
+      const currentStartClosePx = hasFlyout ? flyoutWide(state) + 20 : startClosePx
 
       switch (stickPosition) {
         case 'top': {

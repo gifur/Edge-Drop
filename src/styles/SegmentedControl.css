@@ -17,7 +17,7 @@
   padding: var(--seg-pad);
   box-sizing: border-box;
   border-radius: 999px;
-  background: var(--bg-card, #141414);
+  background: var(--segment-track, var(--bg-card));
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -34,7 +34,7 @@
   border: 0;
   border-radius: 999px;
   background: none;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--segment-ink);
   cursor: pointer;
   outline: none;
   transition: color 140ms ease;
@@ -46,7 +46,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .seg__item[aria-checked='false']:hover {
-    color: #ffffff;
+    color: var(--text-primary);
   }
 }
 
@@ -62,7 +62,7 @@
   width: var(--seg-slot);
   height: calc(var(--seg-h) - var(--seg-pad) * 2);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--segment-thumb);
   overflow: hidden;
   pointer-events: none;
   /* translate (not transform) so the press scale stays centred on the slot. */
@@ -82,7 +82,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: var(--seg-slot);
-  color: #000000;
+  color: var(--segment-ink-active);
   translate: calc(var(--i) * var(--seg-slot) * -1) 0;
   transition: translate var(--seg-motion);
 }
@@ -113,8 +113,8 @@
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: var(--bg-card, #141414);
-  color: rgba(255, 255, 255, 0.72);
+  background: var(--segment-track, var(--bg-card));
+  color: var(--segment-ink);
   cursor: pointer;
   outline: none;
   transition:
@@ -125,7 +125,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .emoji-mode-btn:hover {
-    color: #ffffff;
+    color: var(--text-primary);
   }
 }
 
@@ -134,8 +134,8 @@
 }
 
 .emoji-mode-btn.active {
-  background: #ffffff;
-  color: #000000;
+  background: var(--segment-thumb);
+  color: var(--segment-ink-active);
 }
 
 .emoji-mode-btn:focus-visible {

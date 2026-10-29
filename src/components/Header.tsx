@@ -122,28 +122,8 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               playButtonClickSound()
               setTypeFilter(val)
             }}
-<<<<<<< HEAD
-            onHoverItem={(val) => {
-              if (val === 'emoji') void loadEmojiCatalog()
-            }}
-            trackColor="var(--segment-track)"
-            thumbColor="var(--segment-thumb)"
-            textColor="var(--segment-ink)"
-            activeTextColor="var(--segment-ink-active)"
-            size="custom"
-            height={filterTrackHeight}
-            minWidth={filterSlotSize}
-            radius={9999}
-            inset={2}
-            equalSlots={true}
-            stretch={80}
-            squash={2}
-            glide={60}
-            draggable={true}
-=======
             ariaLabel={t('filters.title') || 'Filters'}
             reduceMotion={reduceMotion}
->>>>>>> main
             tabIndex={settingsOpen ? -1 : undefined}
           />
           {/* Emoji is a separate view, not a filter, so it gets its own toggle. */}

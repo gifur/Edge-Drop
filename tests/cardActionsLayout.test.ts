@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 const panelCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'panel.css'), 'utf8')
 const itemCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'item.css'), 'utf8')
+const tokensCss = readFileSync(join(__dirname, '..', 'src', 'styles', 'tokens.css'), 'utf8')
 
 function declaration(css: string, selector: string, property: string): string {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -28,9 +29,10 @@ function verticalPadding(value: string): { top: number; bottom: number } {
 describe('vertical card action menu layout', () => {
   it('reserves the full floating menu height plus an 8px top safety gap', () => {
     const listPadding = verticalPadding(declaration(panelCss, '.list', 'padding'))
-    const actionPadding = verticalPadding(declaration(itemCss, '.actions', 'padding'))
-    const actionButtonHeight = pixels(declaration(itemCss, '.act', 'height'))
-    const actionMenuHeight = actionButtonHeight + actionPadding.top + actionPadding.bottom
+    expect(itemCss).toMatch(/\.actions,[\s\S]*?padding: var\(--act-pad\);/)
+    const actionButtonHeight = pixels(tokensCss.match(/--act-size:\s*([^;]+);/)?.[1].trim() ?? '')
+    const actionPadding = pixels(tokensCss.match(/--act-pad:\s*([^;]+);/)?.[1].trim() ?? '')
+    const actionMenuHeight = actionButtonHeight + actionPadding * 2
 
     expect(listPadding.top).toBeGreaterThanOrEqual(actionMenuHeight + 8)
   })

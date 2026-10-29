@@ -24,13 +24,10 @@ import { LanguageFlyout } from './LanguageFlyout'
 import { CardMenu } from './CardMenu'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
-<<<<<<< HEAD
 import { isManualPasteShortcut } from '../lib/manualPaste'
-=======
 import { registerEdgeDragCue } from '../lib/edgeDrag'
 import { DashedOutline } from './DashedOutline'
 import { isKept } from '../../shared/itemMeta'
->>>>>>> main
 
 import { useTranslation } from '../i18n'
 
@@ -847,52 +844,6 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-<<<<<<< HEAD
-          transition={{ duration: 0.2 }}
-          className="drop-overlay"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '14px',
-            pointerEvents: 'none',
-            background: 'var(--bg-glass)',
-            textAlign: 'center',
-            padding: '24px'
-          }}
-        >
-          <div
-            className="drop-overlay-icon"
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '16px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-primary)'
-            }}
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v13"></path>
-              <path d="m8 12 4 4 4-4"></path>
-              <path d="M4 20h16"></path>
-            </svg>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div className="drop-overlay-title" style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>
-              {t('item.dropToSave')}
-            </div>
-            <div className="drop-overlay-desc" style={{ fontSize: '12px', fontWeight: 400, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
-              {t('item.dropToSaveDesc')}
-            </div>
-=======
           transition={{ duration: reduceMotion ? 0.01 : accepted ? 0.2 : 0.14, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="drop-well">
@@ -904,7 +855,6 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
               <span className="drop-title">{t('item.dropToSave')}</span>
               <span className="drop-sub">{t('item.dropToSaveDesc')}</span>
             </span>
->>>>>>> main
           </div>
         </motion.div>
       )}

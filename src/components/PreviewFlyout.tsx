@@ -366,7 +366,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
           style={{
             width: '100%',
             maxHeight: maxFlyoutHeight,
-            background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#000000',
+            background: dragOver ? 'rgba(15, 30, 18, 0.95)' : 'var(--bg-card)',
             borderRadius: 20,
             border: dragOver ? '2px dashed #4caf50' : 'none',
             overflow: 'hidden',
@@ -380,31 +380,6 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             position: 'relative'
           }}
         >
-<<<<<<< HEAD
-          <div
-            ref={flyoutRef}
-            className="preview-flyout"
-            data-preview-flyout="true"
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            style={{
-              width: '100%',
-              maxHeight: maxFlyoutHeight,
-              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : 'var(--bg-card)',
-              borderRadius: 20,
-              border: dragOver ? '2px dashed #4caf50' : 'none',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : 'none',
-              pointerEvents: 'auto',
-              transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
-              position: 'relative'
-            }}
-          >
-=======
->>>>>>> main
           {dragOver && (
             <div
               style={{
@@ -440,175 +415,18 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             />
           </div>
 
-<<<<<<< HEAD
-          {/* Floating Multi-Selection Batch Action Bar */}
-          <AnimatePresence>
-            {selectedKeys.size > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 14, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 14, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                style={{
-                  position: 'absolute',
-                  bottom: 12,
-                  left: 12,
-                  right: 12,
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--edge-strong)',
-                  boxShadow: 'var(--shadow-card)',
-                  borderRadius: 12,
-                  padding: '7px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  zIndex: 20
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    background: 'var(--bg-3)',
-                    border: '1px solid var(--edge-strong)',
-                    color: 'var(--text-primary)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    fontFamily: CODE_FONT,
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {t('flyout.selectedCount').replace('{count}', String(selectedKeys.size))}
-                  </div>
-                  <button
-                    onClick={handleSelectAllToggle}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-secondary)',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      padding: '2px 4px',
-                      fontFamily: SYS_FONT,
-                      transition: 'color 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-                  >
-                    {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
-                  </button>
-=======
           {/* Floating multi-selection batch action bar */}
           {batch.mounted && (
             <div className={`pf-batch${batch.leaving ? ' is-leaving' : ''}`}>
               <div className="pf-batch-group">
                 <div className="flyout-chip">
                   {t('flyout.selectedCount').replace('{count}', String(selCount))}
->>>>>>> main
                 </div>
                 <button type="button" className="flyout-text-btn" onClick={handleSelectAllToggle}>
                   {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
                 </button>
               </div>
 
-<<<<<<< HEAD
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button
-                    title={t('flyout.copySelected')}
-                    onClick={handleBatchCopy}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      height: 28,
-                      background: 'var(--bg-3)',
-                      border: '1px solid var(--edge-light)',
-                      color: 'var(--text-secondary)',
-                      borderRadius: 8,
-                      padding: '0 10px',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      fontFamily: SYS_FONT,
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-card-hover)'
-                      e.currentTarget.style.color = 'var(--text-primary)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-3)'
-                      e.currentTarget.style.color = 'var(--text-secondary)'
-                    }}
-                  >
-                    <CopyIcon width={13} height={13} />
-                    <span>{t('item.copy')}</span>
-                  </button>
-
-                  <button
-                    title={t('flyout.pasteSelected')}
-                    onClick={handleBatchPaste}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      height: 28,
-                      background: 'var(--preview-control-bg)',
-                      border: 'none',
-                      color: 'var(--preview-control-ink)',
-                      borderRadius: 8,
-                      padding: '0 12px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: SYS_FONT,
-                      boxShadow: 'var(--shadow-card)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <span>{t('flyout.paste')}</span>
-                  </button>
-
-                  <button
-                    title={t('flyout.clearSelection')}
-                    onClick={() => {
-                      playButtonClickSound()
-                      setSelectedKeys(new Set())
-                    }}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      background: 'var(--bg-3)',
-                      border: '1px solid var(--edge-light)',
-                      color: 'var(--text-secondary)',
-                      borderRadius: 8,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-card-hover)'
-                      e.currentTarget.style.color = 'var(--text-primary)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-3)'
-                      e.currentTarget.style.color = 'var(--text-secondary)'
-                    }}
-                  >
-                    <CloseIcon width={14} height={14} />
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-=======
               <div className="pf-batch-group">
                 <button
                   type="button"
@@ -646,7 +464,6 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
         </div>
       </div>
     ) : null,
->>>>>>> main
     document.body
   )
 }
@@ -682,54 +499,12 @@ function QuickActionButton({
     setTimeout(() => setCopied(false), 1200)
   }
 
-<<<<<<< HEAD
-  const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
-  const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
-  const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
-
-  const hoverBg = solidDark ? 'var(--preview-control-hover-bg)' : 'var(--bg-card-hover)'
-  const hoverColor = 'var(--text-primary)'
-  const iconSize = size === 24 ? 12 : 14
-  const borderRadius = size === 24 ? 6 : 8
-
-=======
->>>>>>> main
   return (
     <button
       type="button"
       className={`act${copied ? ' active' : ''}`}
       title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
-<<<<<<< HEAD
-      style={{
-        width: size,
-        height: size,
-        background: copied ? (solidDark ? '#4caf50' : 'rgba(76, 175, 80, 0.2)') : defaultBg,
-        border: copied ? (solidDark ? '1px solid #4caf50' : '1px solid rgba(76, 175, 80, 0.4)') : defaultBorder,
-        color: copied ? (solidDark ? 'var(--preview-control-ink)' : activeColor) : defaultColor,
-        borderRadius,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s ease',
-        flexShrink: 0,
-        boxShadow: solidDark ? 'var(--shadow-card)' : undefined
-      }}
-      onMouseEnter={(e) => {
-        if (!copied) {
-          e.currentTarget.style.background = hoverBg
-          e.currentTarget.style.color = hoverColor
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!copied) {
-          e.currentTarget.style.background = defaultBg
-          e.currentTarget.style.color = defaultColor
-        }
-      }}
-=======
->>>>>>> main
     >
       {copied ? <CheckIcon /> : <Icon />}
     </button>
@@ -744,16 +519,6 @@ function ExplorerButton({
   title?: string
 }) {
   const { t } = useTranslation()
-<<<<<<< HEAD
-  const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'
-  const defaultBorder = solidDark ? '1px solid var(--edge-strong)' : '1px solid var(--edge-light)'
-  const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'
-  const hoverBg = solidDark ? 'var(--preview-control-hover-bg)' : 'var(--bg-card-hover)'
-  const hoverColor = 'var(--text-primary)'
-  const iconSize = size === 24 ? 12 : 14
-  const borderRadius = size === 24 ? 6 : 8
-=======
->>>>>>> main
 
   return (
     <button
@@ -766,32 +531,6 @@ function ExplorerButton({
         e.currentTarget.blur()
         window.edge.revealFile(path)
       }}
-<<<<<<< HEAD
-      style={{
-        width: size,
-        height: size,
-        background: defaultBg,
-        border: defaultBorder,
-        color: defaultColor,
-        borderRadius,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s ease',
-        flexShrink: 0,
-        boxShadow: solidDark ? 'var(--shadow-card)' : undefined
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = hoverBg
-        e.currentTarget.style.color = hoverColor
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = defaultBg
-        e.currentTarget.style.color = defaultColor
-      }}
-=======
->>>>>>> main
     >
       <FolderOpenIcon />
     </button>
@@ -882,33 +621,10 @@ function ColorFormatRow({ name, value }: { name: string; value: string }) {
         void useStore.getState().copyText(value, { quiet: true }).then((ok) => { if (ok) setDone(true) })
       }}
     >
-<<<<<<< HEAD
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 5,
-          background: isSelected ? 'var(--selection-border)' : 'var(--bg-0)',
-          border: isSelected ? '2px solid var(--selection-border)' : '2px solid var(--edge-strong)',
-          color: isSelected ? 'var(--selection-ink)' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: isSelected ? '0 2px 8px var(--selection-shadow)' : '0 2px 6px var(--selection-shadow)',
-          transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease'
-        }}
-      >
-        {isSelected && (
-          <CheckIcon width={14} height={14} />
-        )}
-      </div>
-    </div>
-=======
       <span className="pf-format-name">{name}</span>
       <span className="pf-format-value">{value}</span>
       <span className="pf-format-icon">{done ? <CheckIcon /> : <CopyIcon />}</span>
     </button>
->>>>>>> main
   )
 }
 
@@ -993,106 +709,12 @@ function PreviewContent({
           title={t('flyout.clickToPaste')}
           style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, cursor: 'pointer' }}
         >
-<<<<<<< HEAD
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'var(--bg-3)',
-              border: '1px solid var(--edge-strong)',
-              borderRadius: 999,
-              padding: '3px 10px',
-              maxWidth: 'calc(100% - 75px)',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              boxSizing: 'border-box'
-            }}>
-              <GlobeIcon width={13} height={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', fontFamily: SYS_FONT, flexShrink: 0, whiteSpace: 'nowrap' }}>{info.serviceName}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>·</span>
-              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', fontFamily: SYS_FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1 }}>{info.domain}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <QuickActionButton
-                title={t('flyout.openLink')}
-                icon={ExternalLinkIcon}
-                onClick={() => window.open(activeText, '_blank')}
-              />
-              <QuickActionButton
-                title={t('flyout.copyText')}
-                icon={CopyIcon}
-                onClick={() => navigator.clipboard.writeText(info.cleanUrl || activeText)}
-              />
-            </div>
-          </div>
-
-          {info.title && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{
-                fontSize: 16,
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                lineHeight: 1.35,
-                fontFamily: SYS_FONT,
-                wordBreak: 'break-word'
-              }}>
-                {info.title}
-              </div>
-              {info.subtitle && (
-                <div>
-                  <span style={{
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    color: 'var(--text-secondary)',
-                    background: 'var(--bg-3)',
-                    padding: '2px 7px',
-                    borderRadius: 4,
-                    display: 'inline-block'
-                  }}>
-                    {info.subtitle}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(activeText, '_blank')
-            }}
-            style={{
-              padding: '10px 12px',
-              background: 'var(--bg-3)',
-              border: '1px solid var(--edge-light)',
-              borderRadius: 10,
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              fontFamily: 'var(--font-ui)',
-              wordBreak: 'break-all',
-              lineHeight: 1.45,
-              cursor: 'pointer',
-              transition: 'background 0.15s ease, border-color 0.15s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-card-hover)'
-              e.currentTarget.style.borderColor = 'var(--edge-strong)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-3)'
-              e.currentTarget.style.borderColor = 'var(--edge-light)'
-=======
           {linkTitle && <div className="pf-link-title">{linkTitle}</div>}
           {info.subtitle && <span className="pf-link-sub">{info.subtitle}</span>}
           <div
             onClick={(e) => {
               e.stopPropagation()
               window.open(externalHref(activeText), '_blank')
->>>>>>> main
             }}
             className="flyout-url"
           >
@@ -1149,20 +771,6 @@ function PreviewContent({
             showCopyButton={false}
           />
         </div>
-<<<<<<< HEAD
-        <div style={{
-          color: 'var(--text-primary)',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          fontSize: 13.5,
-          lineHeight: 1.65,
-          fontFamily: 'var(--font-ui)',
-          fontWeight: 400,
-          letterSpacing: '0.01em'
-        }}>
-          {text}
-        </div>
-=======
       )
     }
 
@@ -1177,7 +785,6 @@ function PreviewContent({
         style={{ cursor: 'pointer' }}
       >
         {text}
->>>>>>> main
       </div>
     )
   }
@@ -1219,12 +826,6 @@ function PreviewContent({
             style={imageFit ? { width: imageFit.width, height: imageFit.height } : undefined}
           />
         )}
-<<<<<<< HEAD
-        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-          {item.data.width} × {item.data.height} · {formatBytes(item.data.bytes)}
-        </div>
-=======
->>>>>>> main
       </div>
     )
   }
@@ -1263,22 +864,6 @@ function PreviewContent({
                 }
               }}
               title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? t('flyout.clickToDeselect') : t('flyout.clickToSelect')) : t('flyout.clickToPasteImageDrag')}
-<<<<<<< HEAD
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                position: 'relative',
-                cursor: 'grab',
-                padding: 4,
-                borderRadius: 10,
-                border: isSelected ? '2px solid var(--selection-border)' : '2px solid transparent',
-                background: isSelected ? 'var(--selection-bg)' : 'transparent',
-                boxShadow: isSelected ? '0 0 16px var(--selection-shadow)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-=======
->>>>>>> main
             >
               <div className="item-main">
                 <div className="body">
@@ -1301,19 +886,6 @@ function PreviewContent({
                   </div>
                 </div>
 
-<<<<<<< HEAD
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-                <QuickActionButton
-                  title={t('flyout.copyImage')}
-                  icon={CopyIcon}
-                  onClick={() => useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })}
-                  solidDark={true}
-                />
-              </div>
-              <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                {idx + 1} / {item.data.images.length} · {img.width} × {img.height} · {formatBytes(img.bytes)}
-=======
                 <div className="actions" onClick={(e) => e.stopPropagation()}>
                   <QuickActionButton
                     title={t('flyout.copyImage')}
@@ -1329,7 +901,6 @@ function PreviewContent({
                     onToggle={(e) => onToggleSelectKey(img.imageId, e)}
                   />
                 )}
->>>>>>> main
               </div>
             </div>
           )
@@ -1364,37 +935,6 @@ function PreviewContent({
           }}
           title={t('flyout.clickToPasteDrag')}
         >
-<<<<<<< HEAD
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
-            <QuickActionButton
-              title={t('flyout.copyFile')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-              solidDark={true}
-              size={28}
-            />
-            <ExplorerButton
-              path={p}
-              title={t('flyout.openInExplorer')}
-              solidDark={true}
-              size={28}
-            />
-          </div>
-          <img
-            src={fullResUrl}
-            onError={(e) => {
-              if (entry?.preview) {
-                e.currentTarget.src = entry.preview
-              }
-            }}
-            alt={fileName}
-            style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
-            draggable={false}
-          />
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>{fileName}</span>
-            {entry?.size ? <span>{formatBytes(entry.size)}</span> : null}
-=======
           <div className="item-main">
             <div className="body">
               <div className="item-content">
@@ -1432,7 +972,6 @@ function PreviewContent({
                 title={t('flyout.openInExplorer')}
               />
             </div>
->>>>>>> main
           </div>
         </div>
       )
@@ -1465,64 +1004,6 @@ function PreviewContent({
             tryPaste(() => useStore.getState().paste(item.id))
           }}
           title={t('flyout.clickToPasteDrag')}
-<<<<<<< HEAD
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: 16,
-            padding: '36px 20px 28px',
-            background: 'var(--bg-3)',
-            borderRadius: 14,
-            border: '1px solid var(--edge-light)',
-            position: 'relative',
-            cursor: 'grab'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-            <QuickActionButton
-              title={t('flyout.copyFile')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-              size={28}
-            />
-            <ExplorerButton
-              path={p}
-              title={t('flyout.openInExplorer')}
-              size={28}
-            />
-          </div>
-
-          <div style={{
-            width: 104,
-            height: 104,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.55))',
-            marginTop: 4
-          }}>
-            <FileKindIcon path={p} width={104} height={104} isDirectory={entry?.isDirectory} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: '100%', padding: '0 10px' }}>
-            <div
-              title={fileName}
-              style={{
-                fontSize: 15,
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                wordBreak: 'break-word',
-                lineHeight: 1.4,
-                fontFamily: SYS_FONT
-              }}
-            >
-              {fileName}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-              {!entry?.isDirectory && entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
-=======
         >
           <div className="item-main">
             <div className="body">
@@ -1558,7 +1039,6 @@ function PreviewContent({
                 path={p}
                 title={t('flyout.openInExplorer')}
               />
->>>>>>> main
             </div>
           </div>
         </div>
@@ -1611,23 +1091,6 @@ function PreviewContent({
                   }
                 }}
                 title={t('flyout.clickToPasteDrag')}
-<<<<<<< HEAD
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  padding: 4,
-                  background: isSelected ? 'var(--selection-bg)' : 'transparent',
-                  borderRadius: 10,
-                  border: isSelected ? '2px solid var(--selection-border)' : '2px solid transparent',
-                  cursor: 'grab',
-                  position: 'relative',
-                  minWidth: 0,
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-=======
->>>>>>> main
               >
                 <div className="item-main">
                   <div className="body">
@@ -1665,35 +1128,6 @@ function PreviewContent({
                     />
                   </div>
 
-<<<<<<< HEAD
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-                  <QuickActionButton
-                    title={t('flyout.copyFile')}
-                    icon={CopyIcon}
-                    onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                    solidDark={true}
-                  />
-                  <ExplorerButton
-                    path={p}
-                    title={t('flyout.openInExplorer')}
-                    solidDark={true}
-                  />
-                </div>
-
-                <img
-                  src={fullResUrl}
-                  onError={(e) => {
-                    if (entry?.preview) e.currentTarget.src = entry.preview
-                  }}
-                  alt={fileName}
-                  loading="lazy"
-                  decoding="async"
-                  draggable={false}
-                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
-                />
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                  {fileName}{entry?.size ? ` · ${formatBytes(entry.size)}` : ''}
-=======
                   {onToggleSelectKey && (
                     <SelectionBadge
                       isSelected={isSelected}
@@ -1701,7 +1135,6 @@ function PreviewContent({
                       onToggle={(e) => onToggleSelectKey(p, e)}
                     />
                   )}
->>>>>>> main
                 </div>
               </div>
             )
@@ -1732,49 +1165,6 @@ function PreviewContent({
                 }
               }}
               title={t('flyout.clickToPasteDrag')}
-<<<<<<< HEAD
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: 8,
-                padding: '14px 10px 12px',
-                background: isSelected ? 'var(--selection-bg)' : 'var(--bg-3)',
-                borderRadius: 12,
-                border: isSelected ? '1px solid var(--selection-border)' : '1px solid var(--edge-light)',
-                cursor: 'grab',
-                position: 'relative',
-                minWidth: 0,
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
-              {/* Top Controls: Checkbox (left) + Action Buttons (right) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 4 }}>
-                {onToggleSelectKey ? (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleSelectKey(p, e)
-                    }}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 4,
-                      border: isSelected ? '1.5px solid var(--selection-border)' : '1.5px solid var(--edge-strong)',
-                      background: isSelected ? 'var(--selection-border)' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                  >
-                    {isSelected && (
-                      <CheckIcon width={12} height={12} style={{ color: 'var(--selection-ink)', strokeWidth: 3 }} />
-                    )}
-=======
             >
               <div className="item-main">
                 <div className="body">
@@ -1789,7 +1179,6 @@ function PreviewContent({
                         </div>
                       </div>
                     </div>
->>>>>>> main
                   </div>
                   <div className="item-footer">
                     <span className="kind-badge" style={{ color: info.color }}>
@@ -1813,44 +1202,6 @@ function PreviewContent({
                   />
                 </div>
 
-<<<<<<< HEAD
-              {/* Centered Large 3D Pastel Vector Icon */}
-              <div style={{
-                width: 64,
-                height: 64,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45))',
-                marginTop: 8
-              }}>
-                <FileKindIcon path={p} width={64} height={64} isDirectory={entry?.isDirectory} />
-              </div>
-
-              {/* File Name & Metadata below icon */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0, padding: '0 4px', boxSizing: 'border-box' }}>
-                <span
-                  title={fileName}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                    wordBreak: 'break-word',
-                    overflowWrap: 'anywhere',
-                    lineHeight: 1.35,
-                    fontFamily: SYS_FONT,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {fileName}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                  {!entry?.isDirectory && entry?.size ? formatBytes(entry.size) : info.label}
-                </span>
-=======
                 {onToggleSelectKey && (
                   <SelectionBadge
                     isSelected={isSelected}
@@ -1858,7 +1209,6 @@ function PreviewContent({
                     onToggle={(e) => onToggleSelectKey(p, e)}
                   />
                 )}
->>>>>>> main
               </div>
             </div>
           )

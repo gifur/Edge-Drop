@@ -61,17 +61,14 @@ export function ItemList() {
   const prevFilterRef = useRef(typeFilter)
 
   const [showScrollTop, setShowScrollTop] = useState(false)
-<<<<<<< HEAD
   const reorderSourceRef = useRef<string | null>(null)
   const reorderTargetRef = useRef<ReorderDropTarget | null>(null)
   const [reorderSourceId, setReorderSourceId] = useState<string | null>(null)
   const [reorderTarget, setReorderTarget] = useState<ReorderDropTarget | null>(null)
-=======
   // The way back to where the list was, offered for a moment after a reopen
   // started it at the top (null when there is nothing to go back to).
   const [backSpot, setBackSpot] = useState<BackSpot | null>(null)
   const closedSpot = useRef<BackSpot | null>(null)
->>>>>>> main
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem('edge_drop_pinned_collapsed_map')
@@ -372,27 +369,6 @@ export function ItemList() {
     }
   }
 
-<<<<<<< HEAD
-  const updateEdgeScroll = (clientX: number, clientY: number) => {
-    if (!listRef.current) return
-    const rect = listRef.current.getBoundingClientRect()
-
-    if (isHorizontal) {
-      const x = clientX - rect.left
-      const edgeSize = 80
-      if (x < edgeSize) {
-        const intensity = Math.max(0, 1 - (x / edgeSize))
-        scrollVelocity.current = -(intensity * 20 + 2)
-        startScrolling()
-      } else if (x > rect.width - edgeSize) {
-        const intensity = Math.max(0, 1 - ((rect.width - x) / edgeSize))
-        scrollVelocity.current = (intensity * 20 + 2)
-        startScrolling()
-      } else {
-        stopScrolling()
-      }
-      return
-=======
   // Edge auto-scroll tuning: separate enter/exit thresholds (hysteresis) so
   // cursor jitter at the boundary can't start/stop the loop every event —
   // that start/stop flicker is what made edge scrolling feel stuttery.
@@ -405,11 +381,11 @@ export function ItemList() {
     if (v !== 0) startScrolling()
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const updateEdgeScroll = (clientX: number, clientY: number) => {
     const rect = getListRect()
     if (!rect) return
 
-    const pos = isHorizontal ? e.clientX - rect.left : e.clientY - rect.top
+    const pos = isHorizontal ? clientX - rect.left : clientY - rect.top
     const len = isHorizontal ? rect.width : rect.height
     // Base 5px/frame so the scroll feels alive the moment the zone is
     // entered (the old +2 crawled at ~120px/s across most of the zone).
@@ -426,27 +402,13 @@ export function ItemList() {
       setScrollTarget(-speedFor(pos))
     } else if (pos > len - EDGE_ENTER) {
       setScrollTarget(speedFor(len - pos))
->>>>>>> main
     }
   }
 
-<<<<<<< HEAD
-    const y = clientY - rect.top
-    const edgeSize = 80 // slightly larger comfortable trigger zone
+  const handleDragOver = (e: React.DragEvent) => {
+    updateEdgeScroll(e.clientX, e.clientY)
+  }
 
-    if (y < edgeSize) {
-      // Speed scales up as you get closer to the absolute edge
-      const intensity = Math.max(0, 1 - (y / edgeSize))
-      scrollVelocity.current = -(intensity * 20 + 2)
-      startScrolling()
-    } else if (y > rect.height - edgeSize) {
-      const intensity = Math.max(0, 1 - ((rect.height - y) / edgeSize))
-      scrollVelocity.current = (intensity * 20 + 2)
-      startScrolling()
-    } else {
-      stopScrolling()
-    }
-=======
   const handleDragLeave = (e: React.DragEvent) => {
     // dragleave BUBBLES from every card crossed mid-gesture — without a
     // containment check, crossing any card boundary hard-stops the scroll
@@ -456,18 +418,12 @@ export function ItemList() {
     const related = e.relatedTarget as Node | null
     if (related && listRef.current?.contains(related)) return
     stopScrolling()
->>>>>>> main
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    updateEdgeScroll(e.clientX, e.clientY)
   }
 
   const handleDragLeaveOrDrop = () => {
     stopScrolling()
   }
 
-<<<<<<< HEAD
   const clearReorderDrag = useCallback(() => {
     reorderSourceRef.current = null
     reorderTargetRef.current = null
@@ -508,14 +464,18 @@ export function ItemList() {
       return
     }
 
-    const cards: ReorderCardRect[] = Array.from(
-      list.querySelectorAll<HTMLElement>('[data-reorder-id]')
-    ).flatMap((element) => {
-      const id = element.dataset.reorderId
-      if (!id) return []
-      const rect = element.getBoundingClientRect()
-      return [{ id, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }]
-    })
+    const cards: ReorderCardRect[] = Array.from(list.querySelectorAll<HTMLElement>('[data-reorder-id]'))
+      .map((card) => {
+        const rect = card.getBoundingClientRect()
+        return {
+          id: card.dataset.reorderId ?? '',
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom
+        }
+      })
+      .filter((card) => card.id.length > 0)
     const nextTarget = findReorderPointerTarget(
       sourceId,
       clientX,
@@ -527,9 +487,7 @@ export function ItemList() {
     reorderTargetRef.current = nextTarget
     setReorderTarget((current) => {
       if (!current && !nextTarget) return current
-      if (current && nextTarget && current.id === nextTarget.id && current.placement === nextTarget.placement) {
-        return current
-      }
+      if (current && nextTarget && current.id === nextTarget.id && current.placement === nextTarget.placement) return current
       return nextTarget
     })
   }, [isHorizontal])
@@ -544,7 +502,6 @@ export function ItemList() {
     clearReorderDrag()
   }, [clearReorderDrag])
 
-=======
   // In-app drag: mark the card a drop would stack the dragged card into.
   // One listener for the whole window instead of enter/leave pairs on every
   // card: dragover fires on whatever is under the drag (also while it rests),
@@ -577,7 +534,6 @@ export function ItemList() {
   // to be keyed on this for that, which destroyed and rebuilt every card on
   // each keystroke; keeping it lets unchanged cards stay and replays the same
   // fade (started before paint, so the first frame is already at 0.45).
->>>>>>> main
   const filterKey = `${typeFilter}:${query}`
   const stackRef = useRef<HTMLDivElement>(null)
   const hasStack = total > 0
@@ -612,7 +568,16 @@ export function ItemList() {
               >
                 <div className="pinned-accordion-inner">
                   {pinned.map((it) => (
-                    <ClipboardItemCard key={it.id} item={it} />
+                    <ClipboardItemCard
+                      key={it.id}
+                      item={it}
+                      reorderDragging={reorderSourceId === it.id}
+                      dropPlacement={reorderTarget?.id === it.id ? reorderTarget.placement : undefined}
+                      onReorderPointerStart={handleReorderPointerStart}
+                      onReorderPointerMove={handleReorderPointerMove}
+                      onReorderPointerEnd={handleReorderPointerEnd}
+                      onReorderPointerCancel={clearReorderDrag}
+                    />
                   ))}
                 </div>
               </div>
@@ -627,46 +592,6 @@ export function ItemList() {
                 title={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
                 aria-label={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
               >
-<<<<<<< HEAD
-                <div className="pinned-header-left">
-                  <PinFillIcon width={13} height={13} style={{ opacity: 0.9, color: 'var(--text-primary)' }} />
-                  <div className="pinned-label-group">
-                    <span style={isHorizontal ? getVerticalPinnedLabelStyle(t('item.pinned')) : undefined}>
-                      {t('item.pinned')}
-                    </span>
-                    <span className="pinned-count-badge">{pinned.length}</span>
-                  </div>
-                </div>
-                <div className="pinned-header-right">
-                  <button
-                    className="act bundle-collapse-btn"
-                    type="button"
-                    aria-label={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
-                  >
-                    <ChevronDownIcon
-                      style={{
-                        transform: isHorizontal
-                          ? (pinnedCollapsed ? 'rotate(-90deg)' : 'rotate(90deg)')
-                          : (pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)'),
-                        transition: 'transform 0.14s ease'
-                      }}
-                    />
-                  </button>
-                </div>
-              </div>
-              {!pinnedCollapsed && pinned.map((it) => (
-                <ClipboardItemCard
-                  key={it.id}
-                  item={it}
-                  reorderDragging={reorderSourceId === it.id}
-                  dropPlacement={reorderTarget?.id === it.id ? reorderTarget.placement : undefined}
-                  onReorderPointerStart={handleReorderPointerStart}
-                  onReorderPointerMove={handleReorderPointerMove}
-                  onReorderPointerEnd={handleReorderPointerEnd}
-                  onReorderPointerCancel={clearReorderDrag}
-                />
-              ))}
-=======
                 <PinFillIcon width={11} height={11} className="pinned-pill-icon" />
                 <span className="pinned-pill-count">{pinned.length}</span>
                 <ChevronDownIcon
@@ -680,7 +605,6 @@ export function ItemList() {
                   }}
                 />
               </button>
->>>>>>> main
             </section>
           )}
 

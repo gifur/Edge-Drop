@@ -108,30 +108,10 @@ function CategoryBar({ className = '' }: EmojiCategoryBarProps) {
           return { value: c.id, label: t(c.labelKey), icon: <Icon width={14} height={14} /> }
         })}
         value={category}
-<<<<<<< HEAD
-        onChange={(val) => selectCategory(val as EmojiCategoryId)}
-        trackColor="var(--segment-track)"
-        thumbColor="var(--segment-thumb)"
-        textColor="var(--segment-ink)"
-        activeTextColor="var(--segment-ink-active)"
-        size="custom"
-        height={trackHeight}
-        minWidth={slotSize}
-        radius={9999}
-        inset={2}
-        equalSlots={true}
-        stretch={80}
-        squash={2}
-        glide={60}
-        draggable={true}
-        onHoverItem={onHoverCategory ? (val) => onHoverCategory(val as EmojiCategoryId) : undefined}
-        aria-label={t('emoji.categories')}
-=======
         onChange={(val) => selectCategory(val)}
         onHoverItem={warmOnRest}
         ariaLabel={t('emoji.categories')}
         reduceMotion={reduceMotion}
->>>>>>> main
       />
     </div>
   )

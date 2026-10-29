@@ -344,7 +344,6 @@ export class ItemStore {
     this.persist()
   }
 
-<<<<<<< HEAD
   reorder({ sourceId, targetId, placement }: ReorderRequest): boolean {
     if (sourceId === targetId) return false
     const sourceIndex = this.items.findIndex((item) => item.id === sourceId)
@@ -358,7 +357,10 @@ export class ItemStore {
     this.items.splice(nextTargetIndex + (placement === 'after' ? 1 : 0), 0, source)
 
     if (this.items.every((item, index) => item.id === before[index])) return false
-=======
+    this.persist()
+    return true
+  }
+
   /**
    * Set or clear an item's note. Normalized here, so nothing unclean is ever
    * stored. The pin is left alone: a note keeps the item by itself (history
@@ -369,7 +371,6 @@ export class ItemStore {
     const it = this.items.find((x) => x.id === id)
     if (!it || !patch || typeof patch !== 'object') return false
     if ('note' in patch) applyNote(it, normalizeNote(patch.note))
->>>>>>> main
     this.persist()
     return true
   }

@@ -13,13 +13,8 @@ import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
-<<<<<<< HEAD
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher, captureClipboardOnce } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
-=======
-import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
->>>>>>> main
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
@@ -254,13 +249,11 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
-<<<<<<< HEAD
   handle('item:reorder', (request) => {
     if (getStore().reorder(request)) pushState.items()
     return getStore().toDto()
   })
 
-=======
   handle('item:set-meta', (id, meta) => {
     getStore().setMeta(id, meta)
     return getStore().toDto()
@@ -313,7 +306,6 @@ export function registerIpc(): void {
     return saved.map((p) => basename(p))
   })
 
->>>>>>> main
   handle('item:delete', (id) => {
     const item = getStore().get(id)
     const watcher = getWatcher()
@@ -598,7 +590,6 @@ export function registerIpc(): void {
     return true
   })
 
-<<<<<<< HEAD
   handle('clipboard:manual-capture', async () => {
     const watcher = getWatcher()
     watcher.setPaused(true)
@@ -610,7 +601,9 @@ export function registerIpc(): void {
     } finally {
       watcher.resyncSignature()
       watcher.setPaused(loadSettings().incognito)
-=======
+    }
+  })
+
   handle('emoji:glyphs', (files) =>
     readEmojiBatch(
       emojiAssetDir({ packaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath(), cwd: process.cwd() }),
@@ -626,7 +619,6 @@ export function registerIpc(): void {
       return await readFile(filePath, 'utf8')
     } catch {
       return null
->>>>>>> main
     }
   })
 

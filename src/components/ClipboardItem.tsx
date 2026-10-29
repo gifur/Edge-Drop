@@ -25,12 +25,8 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-<<<<<<< HEAD
 import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, GripIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
-=======
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { DashedOutline } from './DashedOutline'
->>>>>>> main
 import { LinkPreviewCard } from './LinkPreviewCard'
 import { parseUrlPreview } from '../lib/urlPreview'
 import { CodeBlock } from './CodeBlock'
@@ -322,22 +318,15 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({
 
   return (
     <motion.div
-<<<<<<< HEAD
-      ref={ref}
-      layout="position"
-      initial={false}
-      animate={{ opacity: reorderDragging ? 0.55 : 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${reorderDragging ? ' reorder-dragging' : ''}${dropPlacement ? ` reorder-${dropPlacement}` : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
-=======
       ref={(node: HTMLDivElement | null) => {
         cardRef.current = node
         if (typeof ref === 'function') ref(node)
         else if (ref) (ref as any).current = node
       }}
+      layout="position"
       initial={false}
-      animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
->>>>>>> main
+      animate={{ opacity: reorderDragging ? 0.55 : 1 }}
+      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${reorderDragging ? ' reorder-dragging' : ''}${dropPlacement ? ` reorder-${dropPlacement}` : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       data-reorder-id={item.id}
       style={{

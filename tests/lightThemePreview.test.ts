@@ -9,21 +9,20 @@ function read(relPath: string): string {
 describe('light theme preview and pinned surfaces', () => {
   it('PreviewFlyout uses theme tokens for its surface and controls', () => {
     const src = read('src/components/PreviewFlyout.tsx')
+    const css = read('src/styles/previewFlyout.css')
 
     expect(src).toContain("background: dragOver ? 'rgba(15, 30, 18, 0.95)' : 'var(--bg-card)'")
-    expect(src).toContain("background: 'var(--bg-card)'")
-    expect(src).toContain("color: 'var(--text-primary)'")
-    expect(src).toContain("border: '1px solid var(--edge-light)'")
+    expect(css).toContain('box-shadow: inset 0 0 0 1px var(--edge-light)')
+    expect(css).toContain('color: var(--text-primary)')
     expect(src).not.toContain("background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414'")
   })
 
   it('PreviewFlyout action buttons and selection badges use theme-aware colors', () => {
-    const src = read('src/components/PreviewFlyout.tsx')
+    const itemCss = read('src/styles/item.css')
 
-    expect(src).toContain("const defaultBg = solidDark ? 'var(--preview-control-bg)' : 'var(--bg-card)'")
-    expect(src).toContain("const defaultColor = solidDark ? 'var(--preview-control-ink)' : 'var(--text-secondary)'")
-    expect(src).toContain("background: isSelected ? 'var(--selection-bg)' : 'transparent'")
-    expect(src).toContain("border: isSelected ? '2px solid var(--selection-border)' : '2px solid transparent'")
+    expect(itemCss).toContain('background: var(--selection-bg)')
+    expect(itemCss).toContain('var(--selection-border)')
+    expect(itemCss).toContain('var(--selection-shadow)')
   })
 
   it('pinned header and pinned item text use theme tokens', () => {

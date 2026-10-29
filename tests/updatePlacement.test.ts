@@ -11,12 +11,10 @@ function read(rel: string): string {
 describe('update prompt placement contracts', () => {
   it('keeps update renderers available while the product surface is disabled', () => {
     const src = read('src/components/Settings.tsx')
-<<<<<<< HEAD
     expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
     expect(src).toContain('if (!SHOW_UPDATE_SETTINGS) return null')
     expect(src).toContain('if (isStoreBuild || hasPromotedTopUpdate) return null')
-    expect(src).toContain('{SHOW_UPDATE_SETTINGS && !isStoreBuild && !hasPromotedTopUpdate && (')
-=======
+    expect(src.match(/if \(!SHOW_UPDATE_SETTINGS\) return null/g)?.length).toBeGreaterThanOrEqual(3)
     // Top card shows all active update lifecycle stages.
     expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild && (')
     // The manual "check for updates" row hides while promoted, in both docks.
@@ -37,7 +35,6 @@ describe('update prompt placement contracts', () => {
     expect(css).toMatch(/\.set-row-icon-btn\.is-busy svg \{[^}]*animation: setRowSpin/)
     expect(css).toMatch(/\.update-dot \{[^}]*background: #ffffff;/)
     expect(css).not.toContain('updateBtnGlow')
->>>>>>> main
   })
 
   it('store tracks manual-flow ownership across check, download, and dismiss', () => {

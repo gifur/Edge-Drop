@@ -566,13 +566,7 @@ rect.dashed-outline-shape {
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-<<<<<<< HEAD
-  /* The card action pill sits fully above its card. Keep the first pill
-     inside this scrollport instead of letting overflow clip it. */
   padding: 44px var(--pad) 16px;
-=======
-  padding: 2px var(--pad) 4px;
->>>>>>> main
   position: relative;
   z-index: 1;
   scrollbar-width: none; /* Firefox */
@@ -682,65 +676,6 @@ rect.dashed-outline-shape {
   flex-shrink: 0;
 }
 
-<<<<<<< HEAD
-.list.horizontal .pinned-header-interactive:hover {
-  background: var(--bg-card-hover);
-}
-
-.list.horizontal .pinned-header-interactive:active {
-  background: var(--bg-card-hover);
-  transform: scale(0.97);
-}
-
-.list.horizontal .pinned-header-interactive .pinned-header-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  flex: 1;
-  width: 100%;
-  min-height: 0;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-label-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: auto 0;
-  min-height: 0;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-label-group span:not(.pinned-count-badge) {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: calc(9.5px * var(--font-scale, 1));
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  margin: 0;
-  max-height: 68px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-count-badge {
-  background: transparent;
-  color: var(--text-tertiary);
-  font-size: calc(10px * var(--font-scale, 1));
-  font-weight: 600;
-  padding: 0;
-  border-radius: 0;
-  border: none;
-  letter-spacing: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-=======
 .pinned-floating-pill.horizontal:hover {
   background: #1c1c1c;
 }
@@ -754,7 +689,6 @@ rect.dashed-outline-shape {
   display: block;
   color: #ffffff;
   opacity: 0.92;
->>>>>>> main
   flex-shrink: 0;
 }
 
@@ -768,18 +702,6 @@ rect.dashed-outline-shape {
   display: flex;
   align-items: center;
   justify-content: center;
-<<<<<<< HEAD
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  color: var(--text-secondary);
-  pointer-events: none;
-}
-
-.list.horizontal .pinned-header-interactive:hover .bundle-collapse-btn {
-  background: transparent;
-  color: var(--text-primary);
-=======
 }
 
 .pinned-floating-pill.horizontal .pinned-pill-arrow {
@@ -791,7 +713,6 @@ rect.dashed-outline-shape {
 
 .pinned-floating-pill.horizontal:hover .pinned-pill-arrow {
   color: #ffffff;
->>>>>>> main
 }
 
 [data-motion="reduce"] .pinned-accordion.horizontal,
@@ -1473,19 +1394,6 @@ rect.dashed-outline-shape {
   transform: rotate(90deg);
 }
 
-<<<<<<< HEAD
-:root[data-theme='light'] .filter-chip__skin {
-  background: var(--bg-3);
-  color: var(--text-secondary);
-}
-
-:root[data-theme='light'] .filter-chip[data-on='true'] .filter-chip__skin,
-:root[data-theme='light'] .filter-chip.active .filter-chip__skin {
-  background: var(--accent);
-  color: #ffffff;
-}
-
-=======
 /* Rest: squashed into the bar (bar thickness / tab depth) and hidden once
    the exit has finished. Exit: critically damped spring, no bounce, starts
    60ms after the icon leaves. */
@@ -1573,4 +1481,3 @@ rect.dashed-outline-shape {
   stroke-dashoffset: 0;
   transition: none;
 }
->>>>>>> main

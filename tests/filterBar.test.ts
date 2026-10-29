@@ -34,9 +34,9 @@ describe('filter bar (SegmentedControl)', () => {
     expect(css.match(/translate var\(--seg-motion\)/g)?.length).toBe(2)
   })
 
-  it('is borderless and uses the search field surface', () => {
+  it('is borderless and uses the themed segment surface', () => {
     const track = css.match(/\.seg \{([^}]*)\}/)?.[1] ?? ''
-    expect(track).toContain('background: var(--bg-card, #141414);')
+    expect(track).toContain('background: var(--segment-track, var(--bg-card));')
     expect(track).not.toMatch(/\bborder:/)
   })
 
