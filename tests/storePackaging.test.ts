@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { STORE_STARTUP_TASK_ID } from '../electron/main/config'
 
 const root = join(__dirname, '..')
 
@@ -52,31 +51,9 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(pkg.build.appx.capabilities).not.toContain('broadFileSystemAccess')
   })
 
-  it('points customExtensionsPath at a file that actually exists', () => {
-    const rel = pkg.build.appx.customExtensionsPath
-    expect(rel).toBeTruthy()
-    expect(existsSync(join(root, rel))).toBe(true)
-  })
-
-  it('does not enable electron-builder SlackStartup auto-launch (we own the TaskId)', () => {
-    expect(pkg.build.appx.addAutoLaunchExtension).not.toBe(true)
-    expect(pkg.dependencies['electron-winstore-auto-launch']).toBeUndefined()
-    expect(pkg.dependencies['@nodert-win10-au/windows.applicationmodel']).toBeUndefined()
-  })
-
-  it('ships the windowless StartupTask helper outside the asar', () => {
-    expect(pkg.build.files).toEqual(expect.arrayContaining(['!resources/startup/**/*.exe']))
-    expect(pkg.build.extraResources).toEqual(expect.arrayContaining([
-      { from: 'resources/startup/EdgeDropStartup.exe', to: 'startup/EdgeDropStartup.exe' }
-    ]))
-    expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.exe'))).toBe(true)
-    expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.cs'))).toBe(true)
-  })
-
   it('keeps only runtime packages as production dependencies', () => {
     expect(Object.keys(pkg.dependencies).sort()).toEqual([
       '@resvg/resvg-js',
-      'electron-updater',
       'koffi',
       'react',
       'zustand'
@@ -87,7 +64,6 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(pkg.build.files).toEqual(expect.arrayContaining([
       '!out/renderer/**/*.gif',
       '!resources/appx/**',
-      '!resources/startup/**/*.cs',
       '!**/node_modules/emoji-datasource-twitter/**',
       '!**/node_modules/gsap/**',
       '!**/node_modules/framer-motion/**',
@@ -98,8 +74,6 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     for (const dep of ['lucide-react', '@phosphor-icons/react', '@iconify/react', '@iconify-json/cuida']) {
       expect({ ...pkg.dependencies, ...pkg.devDependencies }[dep]).toBeUndefined()
     }
-    expect(pkg.build.appx.customExtensionsPath).toBe('resources/appx/startup-extensions.xml')
-    expect(existsSync(join(root, 'resources/appx/startup-extensions.xml'))).toBe(true)
   })
 
   it('ships Twemoji 64px as extraResources for GitHub and Store builds', () => {
@@ -162,39 +136,10 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(pkg.build.nsis.artifactName).toMatch(/\.\$\{ext\}$/)
   })
 
-  it('StartupTask XML uses the same TaskId as STORE_STARTUP_TASK_ID and launches Edge-Drop.exe', () => {
-    const xml = read('resources/appx/startup-extensions.xml')
-    expect(xml).toContain('Category="windows.startupTask"')
-    expect(xml).toContain('EntryPoint="Windows.FullTrustApplication"')
-    expect(xml).toContain('Executable="app\\Edge-Drop.exe"')
-    expect(xml).toContain(`TaskId="${STORE_STARTUP_TASK_ID}"`)
-    expect(xml).not.toContain('SlackStartup')
-    expect(xml).toContain('Enabled="true"')
-    expect(xml).toContain('DisplayName="Edge-Drop"')
-  })
-
-  it('electron-builder still injects customExtensionsPath into the AppX Extensions block', () => {
-    const target = read('node_modules/app-builder-lib/out/targets/AppxTarget.js')
-    expect(target).toContain('customExtensionsPath')
-    expect(target).toContain('windows.startupTask')
-    expect(target).toMatch(/extensions \+= await/)
-  })
-
   it('main process only sets the custom AUMID on the GitHub build', () => {
     const src = read('electron/main/index.ts')
     expect(src).toMatch(/if\s*\(\s*!isStoreBuild\(\)\s*\)\s*\{[\s\S]*setAppUserModelId\('com\.edgedrop\.app'\)/)
     expect(src).not.toMatch(/setAppUserModelId\([\s\S]*isStoreBuild\(\)/)
-  })
-
-  it('Settings hides the in-app updater on Store builds', () => {
-    const src = read('src/components/Settings.tsx')
-    // the Updates group only exists on GitHub builds
-    expect(src).toMatch(/\.\.\.\(!isStoreBuild \? \[\{\n\s+id: 'updates'/)
-    expect(src).toContain('behaviour.autoUpdatesTitle')
-    expect(src).toContain('const SHOW_UPDATE_SETTINGS = false')
-    expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild &&')
-    expect(src.match(/if \(!SHOW_UPDATE_SETTINGS\) return null/g)?.length).toBeGreaterThanOrEqual(3)
-    expect(src).toContain('if (isStoreBuild) return null')
   })
 
   it('Settings renders Store review button on Store builds and GitHub star on GitHub builds', () => {
@@ -206,12 +151,4 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(src).toContain('https://github.com/Deepender25/Edge-Drop')
   })
 
-  it('updater module hard-returns on Store for every public entry', () => {
-    const src = read('electron/main/updater.ts')
-    expect(src).toMatch(/export function quitAndInstallUpdate[\s\S]*if \(isStoreBuild\(\)\) return/)
-    expect(src).toMatch(/export function syncAutoUpdaterState[\s\S]*if \(isStoreBuild\(\)/)
-    expect(src).toMatch(/export async function checkForUpdatesManual[\s\S]*if \(isStoreBuild\(\)\)/)
-    expect(src).toMatch(/export async function startUpdateDownload[\s\S]*if \(isStoreBuild\(\)/)
-    expect(src).toMatch(/export function initAutoUpdater[\s\S]*if \(isStoreBuild\(\)\)/)
-  })
 })

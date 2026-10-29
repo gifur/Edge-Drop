@@ -6,7 +6,7 @@
  * defaults so a bad field never takes the whole app down.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { DEFAULT_SETTINGS, isUpdateMode, normalizeHoverOpenDelay, type Settings } from '../../shared/types'
+import { DEFAULT_SETTINGS, normalizeHoverOpenDelay, type Settings } from '../../shared/types'
 import { PATHS } from './paths'
 
 let cache: Settings | null = null
@@ -43,20 +43,8 @@ export function normalizeSettings(input: Partial<Settings>): Settings {
   if (typeof out.language !== 'string' || !out.language.trim()) {
     out.language = 'system'
   }
-  // Update mode migration + validation. Legacy files carry only autoUpdates;
-  // preserve explicit opt-in, while missing/false values stay disabled by
-  // default. Then sync the legacy boolean back from the mode so downgraded
-  // app versions still read a sensible value.
-  if (!isUpdateMode(out.updateMode)) {
-    out.updateMode = out.autoUpdates === true ? 'auto' : 'off'
-  }
   // Drop the long-removed bounceAnimation key so old files stop carrying it.
   delete (out as unknown as Record<string, unknown>).bounceAnimation
-  out.autoUpdates = out.updateMode === 'auto'
-  // Skip is session-only by contract ("remind me next restart"), so a
-  // persisted skip from older builds is self-healed away on load. This also
-  // un-sticks anyone whose prompt went permanently silent.
-  out.skippedUpdateVersion = undefined
   return out
 }
 

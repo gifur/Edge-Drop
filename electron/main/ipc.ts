@@ -22,10 +22,8 @@ import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipb
 import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
-import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
-import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
 import { isPasteableEmoji } from '../../shared/emoji'
 import { emojiAssetDir, readEmojiBatch, resolveIconAsset } from './imageProtocol'
@@ -186,45 +184,14 @@ function handle<C extends InvokeChannel>(
   ipcMain.handle(channel, (_e, ...args) => fn(...(args as InvokeMap[C]['args'])))
 }
 
-/** Apply launch-at-login to the OS and return the state Windows actually kept. */
-export async function syncLoginItemSettings(launchAtLogin?: boolean): Promise<void> {
-  const wantLaunch = launchAtLogin ?? loadSettings().launchAtLogin
-  const result = await applyLaunchAtLogin(wantLaunch)
-  if (!result.ok) {
-    console.error('[IPC] launch-at-login apply did not stick. wanted=', wantLaunch, 'result=', result)
-  }
-}
-
 export function registerIpc(): void {
   handle('state:load', () => {
     return {
       items: getStore().toDto(),
       settings: loadSettings(),
       version: app.getVersion(),
-      isStoreBuild: isStoreBuild(),
-      updateInfo: getCachedUpdateState()
+      isStoreBuild: isStoreBuild()
     }
-  })
-
-  handle('app:install-update', () => {
-    if (isStoreBuild()) return
-    console.log('[IPC] app:install-update requested by renderer — calling quitAndInstallUpdate')
-    quitAndInstallUpdate()
-  })
-
-  handle('updater:check-manual', async () => {
-    if (isStoreBuild()) return { status: 'up-to-date', version: app.getVersion() }
-    return checkForUpdatesManual()
-  })
-
-  handle('updater:start-download', async () => {
-    if (isStoreBuild()) return
-    await startUpdateDownload()
-  })
-
-  handle('updater:get-state', async () => {
-    if (isStoreBuild()) return null
-    return getCachedUpdateState()
   })
 
   handle('app:quit', () => {
@@ -754,10 +721,6 @@ export function registerIpc(): void {
     return success
   })
 
-  handle('startup:refresh', async () => {
-    return refreshLaunchAtLoginFromOs()
-  })
-
   handle('settings:update', async (patch) => {
     // When the user explicitly picks a display, also persist its geometry so
     // the next reboot can re-identify the monitor via fuzzy bounds matching
@@ -778,18 +741,7 @@ export function registerIpc(): void {
         }
       }
     }
-    let next = saveSettings(enrichedPatch)
-    if (patch.launchAtLogin !== undefined) {
-      const applied = await applyLaunchAtLogin(patch.launchAtLogin)
-      if (applied.enabled !== next.launchAtLogin) {
-        next = saveSettings({ launchAtLogin: applied.enabled })
-      }
-      if (applied.blockedByUser && patch.launchAtLogin) {
-        toast('toast.launchBlockedByWindows', 'info')
-      } else if (!applied.ok) {
-        toast('toast.launchUpdateFailed', 'error')
-      }
-    }
+    const next = saveSettings(enrichedPatch)
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
     }
@@ -801,16 +753,6 @@ export function registerIpc(): void {
       if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
         popUpAndRetract(1500)
       }
-    }
-    if (patch.autoUpdates !== undefined || patch.updateMode !== undefined) {
-      syncAutoUpdaterState()
-    }
-    // Switching into a checking mode checks now — previously nothing happened
-    // until the next restart. Switching to 'off' cancels any pending check.
-    if (patch.updateMode !== undefined) {
-      try {
-        triggerBackgroundCheck()
-      } catch { /* ignore */ }
     }
     if (patch.toggleHotkey !== undefined) {
       registerGlobalHotkey(patch.toggleHotkey)

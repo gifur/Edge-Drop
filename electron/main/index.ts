@@ -14,11 +14,9 @@ import { ensureDirs, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener, isInteractive } from './window'
 import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
-import { reconcileLaunchAtLoginOnStartup } from './loginItems'
-import { isStoreBuild, shouldStartHidden } from './config'
+import { isStoreBuild } from './config'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
-import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { flushStagedTempRegistry } from './stagedTemp'
@@ -124,11 +122,7 @@ app.whenReady().then(() => {
 
   // Reflect settings immediately.
   let settings = loadSettings()
-  const hiddenLaunch = shouldStartHidden()
-  if (hiddenLaunch) {
-    console.log('[Main] Login launch detected (--hidden / wasOpenedAtLogin) — starting silently in tray')
-  }
-  if (!settings.tutorialCompleted && !hiddenLaunch) {
+  if (!settings.tutorialCompleted) {
     // When onboarding is active (initial launch or reset tutorial), reset language to system default so onboarding always begins in System Default
     if (settings.language !== 'system') {
       settings = saveSettings({ language: 'system' })
@@ -139,15 +133,9 @@ app.whenReady().then(() => {
   }
   setHotZoneWidth(settings.hotZoneWidth || 3)
 
-  void reconcileLaunchAtLoginOnStartup().then((reconciled) => {
-    pushState.settings(reconciled)
-  }).catch((err) => {
-    console.error('[Main] Failed to reconcile launch-at-login with Windows:', err)
-  })
   registerIncognitoApplier((v) => getWatcher().setPaused(v))
   getWatcher().setPaused(settings.incognito)
   pushState.settings(settings)
-  initAutoUpdater()
 
   // Keep the tray checkmarks in sync after settings change from the UI.
   // (Tray menu is rebuilt on each open, so no extra wiring is needed here.)

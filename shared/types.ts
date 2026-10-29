@@ -26,26 +26,6 @@ export function normalizeHoverOpenDelay(value: unknown): number {
   return Math.min(HOVER_OPEN_DELAY_MAX, Math.max(HOVER_OPEN_DELAY_MIN, snapped))
 }
 
-/** Update behavior mode. See Settings.updateMode. */
-export type UpdateMode = 'auto' | 'notify' | 'off'
-
-const UPDATE_MODES: readonly UpdateMode[] = ['auto', 'notify', 'off']
-
-/**
- * Resolve the effective update mode. Prefers the stored updateMode and keeps
- * legacy explicit opt-in enabled. Missing values are disabled by default.
- */
-export function resolveUpdateMode(s: Pick<Settings, 'updateMode' | 'autoUpdates'>): UpdateMode {
-  if (s.updateMode === 'auto' || s.updateMode === 'notify' || s.updateMode === 'off') {
-    return s.updateMode
-  }
-  return s.autoUpdates === true ? 'auto' : 'off'
-}
-
-export function isUpdateMode(value: unknown): value is UpdateMode {
-  return (UPDATE_MODES as readonly unknown[]).includes(value)
-}
-
 /** How a clipboard bitmap was captured. Omitted on older persisted items. */
 export type ClipboardImageSource = 'screenshot' | 'image'
 
@@ -167,8 +147,6 @@ export interface Settings {
   panelHeight: number
   /** When true, newly captured items are not recorded. */
   incognito: boolean
-  /** Start minimized when the OS logs in. */
-  launchAtLogin: boolean
   /** Reduce motion for the panel animations. */
   reduceMotion: boolean
   /** When true, automatically clears unpinned items on device/app restart. */
@@ -228,16 +206,6 @@ export interface Settings {
   hoverOpenDelay?: number
   /** Font size scale multiplier (0.85 = Small, 1.00 = Normal, 1.15 = Large). Default: 1.0. */
   fontSizeScale?: number
-  /** When true, automatically checks for and downloads app updates in background. Default: true. Legacy: kept in sync from updateMode for downgrade safety. */
-  autoUpdates?: boolean
-  /**
-   * Update behavior mode: 'auto' (check + download + prompt restart),
-   * 'notify' (check at launch, prompt with Download/Skip, never auto-download),
-   * 'off' (fully silent, zero network). Default: 'auto'. Supersedes autoUpdates.
-   */
-  updateMode?: UpdateMode
-  /** Version string the user skipped; that exact version is not re-prompted until a newer one appears. */
-  skippedUpdateVersion?: string
   /** Active UI language code ('system' | 'en' | 'es' | 'fr' | 'de' | ...). Default: 'system'. */
   language?: string
   /** When true, pasting an unpinned item updates its timestamp to move it to the top of Recent. Default: true. */
@@ -255,7 +223,6 @@ export const DEFAULT_SETTINGS: Settings = {
   historyLimit: 250,
   panelHeight: 0.5,
   incognito: false,
-  launchAtLogin: false,
   reduceMotion: false,
   clearUnpinnedOnRestart: false,
   autoDeleteHours: 0,
@@ -279,9 +246,6 @@ export const DEFAULT_SETTINGS: Settings = {
   hoverActivation: true,
   hoverOpenDelay: 0,
   fontSizeScale: 1.0,
-  autoUpdates: false,
-  updateMode: 'off',
-  skippedUpdateVersion: undefined,
   language: 'system',
   toggleHotkey: 'Alt+C'
 }

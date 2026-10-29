@@ -308,7 +308,6 @@ the new executable location.
 - **Low-Profile Quit Pill:** Compact, subtle Quit pill centered at the very bottom of the settings view — dim by default, hinting red only on hover.
 
 **Silent Background Auto-Updates**
-- **Zero-Friction Updates (`electron-updater`):** GitHub releases feature background downloading, live download progress streaming, and a single-click "Restart to Update" button.
 - **Interactive Floating Update Badge:** Displays live download percentages, transferred byte counts, and a one-click restart action on the shelf without layout obstruction.
 - **Monochrome Banner:** Prominently positioned at the top of the scrollable content area across all category tabs. Styled as a dark-mode 4% white card fill (`rgba(255, 255, 255, 0.04)`) with a 12% white border and high-contrast white button — no backdrop blur, so it never costs a raster pass.
 - **Microsoft Store Isolation:** Isolated build pipelines ensure Microsoft Store (MSIX) builds remain 100% compliant with Store terms and conditions without integrated update mechanisms (`isStoreBuild()`).
@@ -420,7 +419,6 @@ Edge-Drop touches the OS clipboard, the filesystem, and the Win32 OLE drag pipel
 | Typed IPC | `shared/ipc.ts` defines `InvokeMap`, `EventMap`, `SendMap` — channel names and payload types are statically checked on both sides |
 | Privacy-Aware Clipboard | Honors `ExcludeClipboardContentFromMonitorProcessing`, `ClipboardViewerIgnore`, `CanIncludeInClipboardHistory`, `CanUploadToCloudClipboard`, plus 1Password / Bitwarden / KeePass concealed formats |
 | Atomic Persistence | JSON index written via temp-file + rename; image bytes stored as per-id PNG files |
-| Dev-Safe Startup | `app.setLoginItemSettings` is gated by `app.isPackaged` — dev builds never touch the Windows Registry |
 | External Links | `setWindowOpenHandler` forces all window-open requests to `shell.openExternal` — no in-app navigation |
 
 ---
@@ -436,7 +434,6 @@ Edge-Drop touches the OS clipboard, the filesystem, and the Win32 OLE drag pipel
 | Animation | **Framer Motion** | Adaptive spring physics (`useAdaptiveSpring`), layout transitions, gesture animations |
 | State | **Zustand** | Selector-optimized, zero cascading re-renders during drags |
 | Drag icons | **@resvg/resvg-js** | Server-side SVG → PNG rendering for custom drag ghosts |
-| Auto-Updates | **electron-updater** | Background downloading and single-click installation for GitHub builds |
 
 ---
 
@@ -452,7 +449,6 @@ Edge-Drop/
 │  ├─ main/
 │  │  ├─ index.ts          Single-instance lock, IPC registration, startup
 │  │  ├─ window.ts         Frameless window, setIgnoreMouseEvents, cursor poll, Win32 NOACTIVATE
-│  │  ├─ updater.ts        Background auto-update engine (electron-updater)
 │  │  ├─ tray.ts           System tray icon & context menus
 │  │  ├─ fullscreen.ts     Windows SHQueryUserNotificationState game detection
 │  │  ├─ drag.ts           OLE startDrag, temp-file staging, icon generation

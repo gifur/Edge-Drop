@@ -23,11 +23,9 @@ export interface HeaderProps {
 }
 
 export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderProps = {}) {
-  const isStoreBuild = useStore((s) => s.isStoreBuild)
   const { t } = useTranslation()
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
-  const updateInfo = useStore((s) => s.updateInfo)
   const settings = useStore((s) => s.settings)
   const patchSettings = useStore((s) => s.patchSettings)
   const currentVersion = useStore((s) => s.currentVersion)
@@ -346,22 +344,6 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           >
             <CloseIcon />
           </span>
-          {!settingsOpen && !isStoreBuild && (updateInfo?.downloaded || updateInfo?.hasUpdate) && (
-            <span
-              style={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                backgroundColor: '#30d158',
-                border: '1.5px solid #000000',
-                boxShadow: '0 0 8px rgba(48, 209, 88, 0.7)',
-                pointerEvents: 'none'
-              }}
-            />
-          )}
         </button>
       </div>
     </div>

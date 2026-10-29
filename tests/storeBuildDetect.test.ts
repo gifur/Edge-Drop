@@ -18,7 +18,7 @@ vi.mock('electron', () => ({
   }
 }))
 
-import { isStoreBuild, STORE_STARTUP_TASK_ID } from '../electron/main/config'
+import { isStoreBuild } from '../electron/main/config'
 
 function setWindowsStore(value: boolean | undefined): void {
   if (value === undefined) {
@@ -142,8 +142,4 @@ describe('isStoreBuild — every detection signal', () => {
     expect(isStoreBuild()).toBe(false)
   })
 
-  it('keeps STORE_STARTUP_TASK_ID as a non-empty identifier', () => {
-    expect(STORE_STARTUP_TASK_ID).toMatch(/^[A-Za-z][A-Za-z0-9]*$/)
-    expect(STORE_STARTUP_TASK_ID.length).toBeGreaterThan(3)
-  })
 })

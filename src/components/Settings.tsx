@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef, useLayoutEffect, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo, UpdateMode } from '../../shared/types'
+import type { DisplayInfo } from '../../shared/types'
 import {
-  resolveUpdateMode,
   normalizeHoverOpenDelay,
   HOVER_OPEN_DELAY_MIN,
   HOVER_OPEN_DELAY_MAX,
@@ -16,19 +15,16 @@ import {
   SparkleIndicatorIcon
 } from './CopyIndicatorCurve'
 import {
-  ArrowsClockwiseIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
   GithubOctocatLogo,
   GlobeIcon,
   HeartIcon,
-  InfoIcon,
   LogOutIcon,
   MicrosoftStoreLogo
 } from './icons'
 import { HotkeyRecorder } from './HotkeyRecorder'
-import { SlideCommit } from './SlideCommit'
 import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
@@ -36,10 +32,6 @@ import '../styles/settings.css'
 
 type SettingsTab = 'behaviour' | 'position' | 'appearance'
 
-// These optional surfaces remain implemented for a later product decision,
-// but are intentionally hidden from the current settings UI.
-const SHOW_LOGIN_AT_STARTUP_SETTING = false
-const SHOW_UPDATE_SETTINGS = false
 const SHOW_COMMUNITY_SUPPORT = false
 
 export function Settings({
@@ -60,7 +52,6 @@ export function Settings({
   ]
   const patch = useStore((s) => s.patchSettings)
   const pushToast = useStore((s) => s.pushToast)
-  const updateInfo = useStore((s) => s.updateInfo)
   const isStoreBuild = useStore((s) => s.isStoreBuild)
   const currentVersion = useStore((s) => s.currentVersion)
   const styleFlyoutOpen = useStore((s) => s.styleFlyoutOpen)
@@ -264,32 +255,6 @@ export function Settings({
     return () => window.clearTimeout(timer)
   }, [])
 
-  useEffect(() => {
-    let timer: number
-    const pullTimer = window.setTimeout(() => {
-      void useStore.getState().refreshLaunchAtLogin()
-      timer = window.setInterval(() => {
-        void useStore.getState().refreshLaunchAtLogin()
-      }, 2000)
-    }, 300)
-    return () => {
-      window.clearTimeout(pullTimer)
-      if (timer) window.clearInterval(timer)
-    }
-  }, [])
-
-  const updateDownloaded = updateInfo?.downloaded ? { version: updateInfo.latestVersion } : null
-  const updateMode = resolveUpdateMode(settings)
-
-  const checkState = useStore((s) => s.manualCheckState)
-  const handleManualCheck = () => useStore.getState().startManualCheck()
-  const handleStartDownload = () => useStore.getState().startManualDownload()
-
-  const isManualDownloading = checkState.status === 'downloading'
-  const isDownloading = isManualDownloading || (!updateDownloaded && !!updateInfo?.hasUpdate && (updateMode === 'auto' || !!updateInfo?.downloadProgress))
-  // Update waiting for a user decision (Notify mode prompt or available check).
-  const hasBackgroundUpdate = !updateDownloaded && !isDownloading && (!!updateInfo?.hasUpdate || checkState.status === 'available')
-  const downloadPercent = updateInfo?.downloadProgress?.percent ?? 0
 
   // ── Tab state & Independent Scroll Memory per section ──────────────────────
   const activeTab = useStore((s) => s.settingsTab)
@@ -330,35 +295,6 @@ export function Settings({
       scrollListRef.current.scrollTop = targetPos
     }
   }, [activeTab])
-
-  // When update check finds a new update, smoothly scroll to top/front to highlight the update card
-  useEffect(() => {
-    if (checkState.status === 'available') {
-      const behavior = settings.reduceMotion ? 'auto' : 'smooth'
-      if (isHorizontal) {
-        if (shelfTrackRef.current) {
-          shelfTrackRef.current.scrollTo({ left: 0, behavior })
-        }
-        horizontalTabScrollPositions.current.behaviour = 0
-      } else {
-        if (scrollListRef.current) {
-          scrollListRef.current.scrollTo({ top: 0, behavior })
-        }
-        tabScrollPositions.current.behaviour = 0
-      }
-    }
-  }, [checkState.status, isHorizontal, settings.reduceMotion])
-
-  // ── Promoted Active Update State ───────────────────────────────────────────
-  // The top card shows all active update lifecycle stages:
-  // 1) Downloaded update -> 'Restart to Update'
-  // 2) Downloading in progress -> Live progress bar
-  // 3) Update found & available -> 'Download & Update' / 'Skip'
-  const hasPromotedTopUpdate = !isStoreBuild && (
-    !!updateDownloaded ||
-    isDownloading ||
-    hasBackgroundUpdate
-  )
 
   // ── After the settings: two cards, each with one job ──────────────────────
   // Community & Support (why, then Ko-fi / GitHub) and About Edge-Drop
@@ -442,362 +378,6 @@ export function Settings({
       </section>
       </>
     )
-  }
-
-  const handleOpenChangelog = () => {
-    playButtonClickSound()
-    const targetVersion = checkState.version || updateInfo?.latestVersion || currentVersion
-    if (targetVersion) {
-      patch({ lastSeenChangelogVersion: targetVersion })
-    }
-    window.open('https://www.edgedrop.app/changelog', '_blank')
-  }
-
-  // ── Promoted Top Update Card Renderer (Vertical Layout) ────────────────────
-  const renderPromotedTopUpdateCard = () => {
-    if (!SHOW_UPDATE_SETTINGS) return null
-    if (isStoreBuild) return null
-    if (!hasPromotedTopUpdate) return null
-
-    if (updateDownloaded) {
-      return (
-        <div className="setting-card update-promoted-card">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot" />
-                <span>{t('behaviour.updateLabelReady') || 'UPDATE READY'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}
-            </div>
-            <div className="setting-desc">
-              {t('behaviour.updateReadyDesc')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <SlideCommit
-              label={t('behaviour.restart') || 'Restart'}
-              doneLabel={t('behaviour.restarting') || 'Restarting...'}
-              errorLabel={t('behaviour.restartFailed') || 'Restart failed'}
-              height={32}
-              radius={10}
-              onConfirm={() => {
-                playButtonClickSound()
-                void window.edge.installUpdate()
-              }}
-            />
-          </div>
-        </div>
-      )
-    }
-
-    if (isDownloading) {
-      return (
-        <div className="setting-card update-promoted-card">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot checking" />
-                <span>{t('behaviour.updateLabelDownloading') || 'DOWNLOADING UPDATE'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {updateInfo?.latestVersion
-                ? t('behaviour.updateAvailableTitle', { version: updateInfo.latestVersion })
-                : t('behaviour.downloadingUpdate')}
-            </div>
-            <div className="setting-desc">
-              {downloadPercent > 0 ? t('behaviour.downloadingWithPercent', { percent: downloadPercent }) : t('behaviour.downloadingUpdate')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <div className="shelf-update-progress-wrap">
-              <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    if (checkState.status === 'available' || hasBackgroundUpdate) {
-      const versionStr = checkState.version || updateInfo?.latestVersion || ''
-      return (
-        <div className="setting-card update-promoted-card">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot" />
-                <span>{t('behaviour.updateLabelAvailable') || 'NEW UPDATE AVAILABLE'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {t('behaviour.updateAvailableTitle', { version: versionStr })}
-            </div>
-            <div className="setting-desc">
-              {t('behaviour.updateAvailableDesc')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <div className="update-action-row">
-              <button
-                type="button"
-                className="update-action-btn primary"
-                style={{ flex: 1 }}
-                onClick={() => {
-                  playButtonClickSound()
-                  handleStartDownload()
-                }}
-              >
-                {t('behaviour.update') || 'Update'}
-              </button>
-              <button
-                type="button"
-                className="update-action-btn secondary"
-                style={{ flex: '0 0 68px' }}
-                onClick={() => {
-                  playButtonClickSound()
-                  useStore.getState().dismissUpdate()
-                }}
-              >
-                {t('behaviour.skip')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    return null
-  }
-
-  // ── Promoted Front Update Card Renderer (Horizontal Shelf Layout) ──────────
-  const renderPromotedHorizontalUpdateCard = () => {
-    if (!SHOW_UPDATE_SETTINGS) return null
-    if (isStoreBuild) return null
-    if (!hasPromotedTopUpdate) return null
-
-    if (updateDownloaded) {
-      return (
-        <div className="settings-shelf-card update-promoted-card behaviour-col">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot" />
-                <span>{t('behaviour.updateLabelReady') || 'UPDATE READY'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}
-            </div>
-            <div className="setting-desc">
-              {t('behaviour.updateReadyDesc')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <SlideCommit
-              label={t('behaviour.restart') || 'Restart'}
-              doneLabel={t('behaviour.restarting') || 'Restarting...'}
-              errorLabel={t('behaviour.restartFailed') || 'Restart failed'}
-              height={32}
-              radius={10}
-              onConfirm={() => {
-                playButtonClickSound()
-                void window.edge.installUpdate()
-              }}
-            />
-          </div>
-        </div>
-      )
-    }
-
-    if (isDownloading) {
-      return (
-        <div className="settings-shelf-card update-promoted-card behaviour-col">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot checking" />
-                <span>{t('behaviour.updateLabelDownloading') || 'DOWNLOADING UPDATE'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {updateInfo?.latestVersion
-                ? t('behaviour.updateAvailableTitle', { version: updateInfo.latestVersion })
-                : t('behaviour.downloadingUpdate')}
-            </div>
-            <div className="setting-desc">
-              {downloadPercent > 0 ? t('behaviour.downloadingWithPercent', { percent: downloadPercent }) : t('behaviour.downloadingUpdate')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <div className="shelf-update-progress-wrap">
-              <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    if (checkState.status === 'available' || hasBackgroundUpdate) {
-      const versionStr = checkState.version || updateInfo?.latestVersion || ''
-      return (
-        <div className="settings-shelf-card update-promoted-card behaviour-col">
-          <div className="shelf-card-top">
-            <div className="update-header-row">
-              <div className="update-group-label">
-                <span className="update-dot" />
-                <span>{t('behaviour.updateLabelAvailable') || 'NEW UPDATE AVAILABLE'}</span>
-              </div>
-              <button
-                type="button"
-                className="update-info-btn"
-                title={t('header.whatsNew') || "What's New"}
-                aria-label={t('header.whatsNew') || "What's New"}
-                onClick={handleOpenChangelog}
-              >
-                <InfoIcon width={13} height={13} />
-              </button>
-            </div>
-            <div className="setting-title">
-              {t('behaviour.updateAvailableTitle', { version: versionStr })}
-            </div>
-            <div className="setting-desc">
-              {t('behaviour.updateAvailableDesc')}
-            </div>
-          </div>
-          <div className="shelf-card-bottom">
-            <div className="update-action-row">
-              <button
-                type="button"
-                className="update-action-btn primary"
-                style={{ flex: 1 }}
-                onClick={() => {
-                  playButtonClickSound()
-                  handleStartDownload()
-                }}
-              >
-                {t('behaviour.update') || 'Update'}
-              </button>
-              <button
-                type="button"
-                className="update-action-btn secondary"
-                style={{ flex: '0 0 68px' }}
-                onClick={() => {
-                  playButtonClickSound()
-                  useStore.getState().dismissUpdate()
-                }}
-              >
-                {t('behaviour.skip')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    return null
-  }
-
-  // ── Update check: a row in the Updates group ─────────────────────────────
-  // Hidden while the promoted top card shows an actionable state (it already
-  // carries Download / Skip / Restart / progress).
-  const renderUpdateCheckRow = (): RowSpec | null => {
-    if (!SHOW_UPDATE_SETTINGS) return null
-    if (isStoreBuild || hasPromotedTopUpdate) return null
-    const status = checkState.status
-    const buttonLabel =
-      status === 'checking'
-        ? t('behaviour.checkingForUpdates')
-        : status === 'up-to-date'
-          ? t('behaviour.checkAgain')
-          : status === 'error'
-            ? t('behaviour.tryAgain')
-            : t('behaviour.checkForUpdates')
-    const version = `${t('footer.version')} ${currentVersion || '0.3.1'}`
-    // The title stays put; only the line under it reports the state.
-    return {
-      id: 'update-check',
-      title: t('behaviour.checkForUpdates'),
-      desc:
-        status === 'checking'
-          ? t('behaviour.checkingForUpdates')
-          : status === 'up-to-date'
-            ? (
-                <>
-                  {t('behaviour.isUpToDate')}
-                  <br />
-                  {version}
-                </>
-              )
-            : status === 'error'
-              ? (checkState.error || t('behaviour.updateCheckFailed'))
-              : version,
-      descError: status === 'error',
-      trailing: (
-        <button
-          type="button"
-          className={`set-row-icon-btn${status === 'checking' ? ' is-busy' : ''}`}
-          title={buttonLabel}
-          aria-label={buttonLabel}
-          disabled={status === 'checking'}
-          onClick={() => {
-            playButtonClickSound()
-            handleManualCheck()
-          }}
-        >
-          <ArrowsClockwiseIcon width={14} height={14} />
-        </button>
-      )
-    }
   }
 
   // ── Building blocks shared by both layouts ────────────────────────────────
@@ -907,7 +487,6 @@ export function Settings({
   // size); the top dock leaves them out.
   const groupsFor = (tab: SettingsTab): GroupSpec[] => {
     if (tab === 'behaviour') {
-      const updateCheck = renderUpdateCheckRow()
       return [
         {
           id: 'general',
@@ -919,22 +498,6 @@ export function Settings({
               desc: isHorizontal ? (t('groups.languageSelectDesc') || 'Select application display language') : t('behaviour.languageDesc'),
               below: languageControl
             },
-            ...(SHOW_LOGIN_AT_STARTUP_SETTING ? [{
-              id: 'launch-at-login',
-              title: t('behaviour.launchAtLoginTitle'),
-              desc: t('behaviour.launchAtLoginDesc'),
-              trailing: (
-                <Toggle
-                  checked={settings.launchAtLogin}
-                  onChange={(v) => {
-                    useStore.setState((s) => ({
-                      settings: { ...s.settings, launchAtLogin: v }
-                    }))
-                    void patch({ launchAtLogin: v })
-                  }}
-                />
-              )
-            } satisfies RowSpec] : []),
             {
               id: 'incognito',
               title: t('behaviour.incognitoTitle'),
@@ -1051,33 +614,7 @@ export function Settings({
               )
             }
           ]
-        },
-        ...(!isStoreBuild ? [{
-          id: 'updates',
-          label: t('tabs.updates') || 'UPDATES',
-          rows: [
-            {
-              id: 'update-mode',
-              title: t('behaviour.autoUpdatesTitle'),
-              desc:
-                updateMode === 'auto'
-                  ? t('behaviour.autoUpdatesDescOn')
-                  : updateMode === 'notify'
-                    ? (t('behaviour.updateModeNotifyDesc') || 'Notify when updates are available without downloading')
-                    : t('behaviour.autoUpdatesDescOff'),
-              below: pills<UpdateMode>(
-                [
-                  { label: t('behaviour.updateModeAuto') || 'Automatic', val: 'auto' },
-                  { label: t('behaviour.updateModeNotify') || 'Notify me', val: 'notify' },
-                  { label: t('behaviour.updateModeOff') || 'Off', val: 'off' }
-                ],
-                (v) => updateMode === v,
-                (v) => patch({ updateMode: v })
-              )
-            },
-            ...(updateCheck ? [updateCheck] : [])
-          ]
-        } satisfies GroupSpec] : [])
+        }
       ]
     }
 
@@ -1481,7 +1018,6 @@ export function Settings({
           onWheel={handleShelfWheel}
           onScroll={handleShelfScroll}
         >
-          {horizontalTab === 'behaviour' && renderPromotedHorizontalUpdateCard()}
           {renderGroups(horizontalTab)}
           {renderClosingCards()}
         </div>
@@ -1529,7 +1065,6 @@ export function Settings({
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           >
-            {activeTab === 'behaviour' && renderPromotedTopUpdateCard()}
             {renderGroups(activeTab)}
             {renderClosingCards()}
           </motion.div>

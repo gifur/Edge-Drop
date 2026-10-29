@@ -236,7 +236,6 @@ The settings panel replaces traditional, clumsy UI sliders with clean **Minimali
 | **Edge trigger height** | `hotZoneHeight` | `0.4` (40%) | Adjusts the vertical hover detection band along the screen edge (25%, 40%, 60%). |
 | **Panel height** | `panelHeight` | `0.65` (65%) | Adjusts the visual height of the clipboard blade relative to screen resolution. |
 | **Incognito mode** | `incognito` | `false` | Temporarily suspends clipboard polling; no new items are captured while active. |
-| **Launch at login** | `launchAtLogin` | `false` | Registers Edge-Drop silently in the Windows Registry (`CurrentVersion\Run`). |
 
 ### Atomic JSON Persistence ([settings.ts](file:///c:/Users/yadav/OneDrive/Desktop/projects/Edge-Drop/electron/store/settings.ts) & [ItemStore.ts](file:///c:/Users/yadav/OneDrive/Desktop/projects/Edge-Drop/electron/store/ItemStore.ts))
 All user data is stored inside Electron's `app.getPath('userData')` directory (`C:\Users\<user>\AppData\Roaming\edge-drop`). To prevent data corruption during sudden system crashes or power loss, disk write operations utilize safe atomic file writing techniques (writing to a temporary file before renaming it over the destination target).
@@ -248,7 +247,6 @@ All user data is stored inside Electron's `app.getPath('userData')` directory (`
 Edge-Drop is built to strict enterprise desktop security standards:
 * **`nodeIntegration: false`**: The React renderer has zero access to Node.js APIs, file systems, or OS execution modules.
 * **`contextIsolation: true`**: Preload scripts run in a separate JavaScript execution context, protecting the Main process from prototype pollution or cross-site scripting (XSS) injection attempts.
-* **Windows Startup Dev-Mode Safety**: All calls to `app.setLoginItemSettings()` are wrapped in explicit `if (app.isPackaged)` safety guards. This guarantees that running local development servers (`npm run dev`) will never inject bare development binaries (`electron.exe`) into the Windows Registry startup keys.
 
 ---
 

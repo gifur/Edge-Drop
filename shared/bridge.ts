@@ -15,12 +15,6 @@ export interface EdgeApi {
     settings: Settings
     version: string
     isStoreBuild?: boolean
-    updateInfo?: {
-      hasUpdate: boolean
-      latestVersion: string
-      downloaded: boolean
-      downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }
-    } | null
   }>
   setPinned: (id: string, pinned: boolean) => Promise<import('./types').ClipboardItemDto[]>
   reorderItems: (request: ReorderRequest) => Promise<import('./types').ClipboardItemDto[]>
@@ -41,15 +35,6 @@ export interface EdgeApi {
   emojiGlyphs: (files: string[]) => Promise<Record<string, string>>
   /** A file-kind folder icon's SVG source, or null (see ipc 'icon:svg'). */
   iconSvg: (kind: string) => Promise<string | null>
-  installUpdate: () => Promise<void>
-  checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
-  startUpdateDownload: () => Promise<void>
-  getUpdateState: () => Promise<{
-    hasUpdate: boolean
-    latestVersion: string
-    downloaded: boolean
-    downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }
-  } | null>
   quitApp: () => Promise<void>
   /**
    * Begin a native OS drag-out. Fire-and-forget: must be called synchronously
@@ -66,7 +51,6 @@ export interface EdgeApi {
   mergeItems: (sourceId: string, targetId: string) => Promise<import('./types').MergeResult>
   splitItem: (req: import('./types').DragRequest) => Promise<boolean>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
-  refreshLaunchAtLogin: () => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
   /** Re-check what the pointer is over after the cards moved under it (ipc 'window:resync-hover'). */
   resyncHover: () => void
@@ -100,7 +84,4 @@ export interface EdgeApi {
   onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }) => void) => () => void
   onCopyFlare: (cb: () => void) => () => void
   onTutorialStep: (cb: (step: number) => void) => () => void
-  onUpdateAvailable: (cb: (info: { version: string }) => void) => () => void
-  onUpdateProgress: (cb: (progress: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }) => void) => () => void
-  onUpdateDownloaded: (cb: (info: { version: string }) => void) => () => void
 }

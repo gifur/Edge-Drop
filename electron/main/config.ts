@@ -10,12 +10,6 @@ export const runtime = {
 }
 
 /**
- * StartupTask Id declared in resources/appx/startup-extensions.xml.
- * Must stay in sync with that file.
- */
-export const STORE_STARTUP_TASK_ID = 'EdgeDropStartup'
-
-/**
  * True when running as the Microsoft Store / MSIX package.
  * The GitHub NSIS .exe never sets these signals.
  *
@@ -65,46 +59,6 @@ export function isStoreBuild(): boolean {
     /* ignore */
   }
   return false
-}
-
-/**
- * True when this process was launched by Windows at login/startup
- * rather than by the user clicking the icon.
- *
- * GitHub NSIS passes --hidden via the Run key. Store StartupTask
- * launches with no args, so we also honor Electron's wasOpenedAtLogin
- * / wasOpenedAsHidden flags when available.
- */
-export function wasLaunchedAtLogin(): boolean {
-  try {
-    const argv = process.argv || []
-    if (argv.some((a) => a === '--hidden' || a === '--was-opened-at-login' || a === '/prefetch:1')) {
-      return true
-    }
-    try {
-      const s = app.getLoginItemSettings() as unknown as {
-        wasOpenedAtLogin?: boolean
-        wasOpenedAsHidden?: boolean
-      }
-      if (s && (s.wasOpenedAtLogin || s.wasOpenedAsHidden)) return true
-    } catch {
-      /* app not ready / mocked */
-    }
-  } catch {
-    /* ignore */
-  }
-  return false
-}
-
-/** Should the app start silently in the tray (no focus steal, no onboarding pop)? */
-export function shouldStartHidden(): boolean {
-  try {
-    const argv = process.argv || []
-    if (argv.includes('--hidden')) return true
-  } catch {
-    /* ignore */
-  }
-  return wasLaunchedAtLogin()
 }
 
 export const APP_CONFIG = {
