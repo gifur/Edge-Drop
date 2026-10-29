@@ -22,9 +22,6 @@ export function normalizeSettings(input: Partial<Settings>): Settings {
   if (out.uiStyle !== 'modern' && out.uiStyle !== 'compact') {
     out.uiStyle = 'modern'
   }
-  if (out.themeMode !== 'dark' && out.themeMode !== 'light') {
-    out.themeMode = 'dark'
-  }
   const panelOpacity = Number(out.panelOpacity)
   out.panelOpacity = Number.isFinite(panelOpacity)
     ? Math.min(100, Math.max(0, Math.round(panelOpacity)))

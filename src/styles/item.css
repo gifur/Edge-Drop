@@ -3331,33 +3331,3 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   color: #ffffff;
   word-break: break-word;
 }
-
-/* Light cards keep text and controls legible without changing color cards. */
-:root[data-theme='light'] .item,
-:root[data-theme='light'] .item-main,
-:root[data-theme='light'] .item-content,
-:root[data-theme='light'] .item-footer,
-:root[data-theme='light'] .body,
-:root[data-theme='light'] .meta,
-:root[data-theme='light'] .meta-detail,
-:root[data-theme='light'] .meta-hit-count,
-:root[data-theme='light'] .meta-time,
-:root[data-theme='light'] .single-file-meta {
-  color: var(--text-primary);
-}
-
-:root[data-theme='light'] .item .preview,
-:root[data-theme='light'] .item:hover .preview,
-:root[data-theme='light'] .link-card-body {
-  color: var(--text-primary);
-}
-
-:root[data-theme='light'] .item-footer {
-  background: linear-gradient(180deg, transparent 0%, rgba(32, 38, 49, 0.1) 100%);
-}
-
-:root[data-theme='light'] .actions {
-  background: var(--bg-card);
-  border: 1px solid var(--edge-light);
-  box-shadow: var(--shadow-card);
-}

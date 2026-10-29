@@ -1,32 +1,38 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SETTINGS, type Settings } from '../shared/types'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { DEFAULT_SETTINGS } from '../shared/types'
 import { normalizeSettings } from '../electron/store/settings'
 
+const settingsSrc = readFileSync(join(__dirname, '..', 'src', 'components', 'Settings.tsx'), 'utf8')
+const themeSrc = readFileSync(join(__dirname, '..', 'src', 'lib', 'theme.ts'), 'utf8')
+const appSrc = readFileSync(join(__dirname, '..', 'src', 'App.tsx'), 'utf8')
+
 describe('appearance settings normalization', () => {
-  it('defaults missing appearance settings to dark and fully opaque', () => {
-    const settings = normalizeSettings({ ...DEFAULT_SETTINGS, themeMode: undefined, panelOpacity: undefined })
+  it('defaults missing opacity to fully opaque', () => {
+    const settings = normalizeSettings({ ...DEFAULT_SETTINGS, panelOpacity: undefined })
 
-    expect(settings.themeMode).toBe('dark')
     expect(settings.panelOpacity).toBe(100)
   })
 
-  it('preserves valid light mode and clamps panel opacity to 0-100', () => {
-    const base = { ...DEFAULT_SETTINGS, themeMode: 'light' as const }
-
-    expect(normalizeSettings({ ...base, panelOpacity: -10 }).panelOpacity).toBe(0)
-    expect(normalizeSettings({ ...base, panelOpacity: 125 }).panelOpacity).toBe(100)
-    expect(normalizeSettings({ ...base, panelOpacity: 42 }).panelOpacity).toBe(42)
-    expect(normalizeSettings({ ...base, panelOpacity: 42 }).themeMode).toBe('light')
+  it('clamps panel opacity to 0-100', () => {
+    expect(normalizeSettings({ ...DEFAULT_SETTINGS, panelOpacity: -10 }).panelOpacity).toBe(0)
+    expect(normalizeSettings({ ...DEFAULT_SETTINGS, panelOpacity: 125 }).panelOpacity).toBe(100)
+    expect(normalizeSettings({ ...DEFAULT_SETTINGS, panelOpacity: 42 }).panelOpacity).toBe(42)
   })
 
-  it('falls back safely for invalid persisted appearance values', () => {
-    const settings = normalizeSettings({
-      ...DEFAULT_SETTINGS,
-      themeMode: 'sepia' as Settings['themeMode'],
-      panelOpacity: Number.NaN
-    })
+  it('falls back safely for an invalid persisted opacity', () => {
+    const settings = normalizeSettings({ ...DEFAULT_SETTINGS, panelOpacity: Number.NaN })
 
-    expect(settings.themeMode).toBe('dark')
     expect(settings.panelOpacity).toBe(100)
+  })
+
+  it('exposes an opacity slider and applies only dark-mode appearance values', () => {
+    expect(settingsSrc).toContain("t('appearance.panelOpacityTitle')")
+    expect(settingsSrc).toContain('value={settings.panelOpacity ?? 100}')
+    expect(settingsSrc).toContain('patch({ panelOpacity: clamped })')
+    expect(settingsSrc).not.toContain('ThemeModeSelector')
+    expect(appSrc).toContain('applyAppearance(settings.panelOpacity, settings.panelWidth)')
+    expect(themeSrc).not.toContain('dataset.theme')
   })
 })

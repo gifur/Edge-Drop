@@ -93,10 +93,6 @@
   opacity: 0.6;
 }
 
-:root[data-theme='light'] .wake-slider__value {
-  color: var(--text-secondary);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .wake-slider__bar {
     transform: scaleY(var(--ws-rest)) !important;

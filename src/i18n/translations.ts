@@ -125,10 +125,6 @@ export interface TranslationKeys {
   }
   appearance: {
     surface?: string
-    themeTitle?: string
-    themeDesc?: string
-    darkMode?: string
-    lightMode?: string
     panelOpacityTitle?: string
     panelOpacityDesc?: string
     panelWidthTitle?: string
@@ -718,10 +714,6 @@ export const en: TranslationKeys = {
   },
   "appearance": {
     "surface": "Surface",
-    "themeTitle": "Theme",
-    "themeDesc": "Choose how Edge-Drop looks across the panel and settings",
-    "darkMode": "Night mode",
-    "lightMode": "Day mode",
     "panelOpacityTitle": "Panel opacity",
     "panelOpacityDesc": "Adjust the transparency of panel backgrounds while keeping content crisp",
     "panelWidthTitle": "Panel width",
@@ -4344,10 +4336,6 @@ export const zhCN: TranslationKeys = {
   },
   "appearance": {
     "surface": "外观表面",
-    "themeTitle": "主题模式",
-    "themeDesc": "选择 Edge-Drop 面板和设置界面的显示主题",
-    "darkMode": "夜间模式",
-    "lightMode": "白天模式",
     "panelOpacityTitle": "面板透明度",
     "panelOpacityDesc": "调整面板背景的透明程度，同时保持文字和内容清晰",
     "panelWidthTitle": "面板宽度",

@@ -1021,42 +1021,6 @@ rect.dashed-outline-shape {
   user-select: none;
 }
 
-/* Light surface treatment. Content controls use tokens so theme and opacity
-   changes apply without dimming text or media. */
-:root[data-theme='light'] .blade {
-  box-shadow: var(--shadow-blade);
-}
-
-:root[data-theme='light'] .header .title,
-:root[data-theme='light'] .icon-btn,
-:root[data-theme='light'] .search .search-icon,
-:root[data-theme='light'] .filter-segmented-track,
-:root[data-theme='light'] .item-count,
-:root[data-theme='light'] .footer-capsule-count {
-  color: var(--text-secondary);
-}
-
-:root[data-theme='light'] .icon-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-card-hover);
-}
-
-:root[data-theme='light'] .search input,
-:root[data-theme='light'] .filter-segmented-track,
-:root[data-theme='light'] .footer-capsule {
-  background: var(--bg-card);
-  color: var(--text-primary);
-}
-
-:root[data-theme='light'] .search input:focus,
-:root[data-theme='light'] .filter-segmented-track:hover {
-  background: var(--bg-card-hover);
-}
-
-:root[data-theme='light'] .drop-overlay-icon {
-  background: var(--bg-3) !important;
-  border-color: var(--edge-strong) !important;
-}
 .footer-capsule-divider {
   width: 1px;
   height: 14px;
@@ -1184,30 +1148,6 @@ rect.dashed-outline-shape {
 }
 .clear-menu-divider {
   background: var(--divider);
-}
-
-:root[data-theme='light'] .text-btn,
-:root[data-theme='light'] .text-btn.danger {
-  background: var(--bg-3);
-  color: var(--text-secondary);
-}
-:root[data-theme='light'] .text-btn .clear-btn-icon {
-  color: var(--text-secondary);
-}
-:root[data-theme='light'] .text-btn:hover:not(:disabled),
-:root[data-theme='light'] .text-btn.active:not(:disabled),
-:root[data-theme='light'] .text-btn.danger:hover:not(:disabled) {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-:root[data-theme='light'] .text-btn:disabled {
-  background: var(--bg-3);
-}
-:root[data-theme='light'] .clear-menu-popover {
-  box-shadow: var(--shadow-card);
-}
-:root[data-theme='light'] .clear-menu-item.confirm {
-  color: #c62828;
 }
 
 /* ----------------------------------------------------------------- */

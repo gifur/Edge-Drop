@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Highlight, type PrismTheme } from 'prism-react-renderer'
-import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CopyIcon, CheckIcon } from './icons'
 
 const TAP_SPRING = { type: 'spring', stiffness: 500, damping: 30 } as const
@@ -16,8 +16,6 @@ export type CodeBlockProps = Omit<React.ComponentProps<'div'>, 'children'> & {
   language?: string
   /** Any hex color. The whole theme is built from shades of it. */
   accent?: string
-  /** "auto" follows the page theme; pass "dark" or "light" to pin it. */
-  mode?: 'auto' | 'dark' | 'light'
   /** Filename or path shown in the header. Falls back to the language id when omitted. */
   filename?: string
   /** Show the outer frame — background, border, rounded corners, and header. */
@@ -35,35 +33,6 @@ export type CodeBlockProps = Omit<React.ComponentProps<'div'>, 'children'> & {
   /** Compact styling for inside the card preview. */
   compact?: boolean
 }
-
-function resolvePageMode(): 'dark' | 'light' {
-  if (typeof document === 'undefined') return 'dark'
-  const root = document.documentElement
-  if (root.classList.contains('dark')) return 'dark'
-  if (root.classList.contains('light')) return 'light'
-  const attr = root.getAttribute('data-theme')
-  if (attr === 'dark') return 'dark'
-  if (attr === 'light') return 'light'
-  if (typeof window.matchMedia !== 'function') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function subscribeToPageMode(onChange: () => void) {
-  if (typeof document === 'undefined') return () => {}
-  const observer = new MutationObserver(onChange)
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class', 'data-theme'],
-  })
-  const media = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null
-  media?.addEventListener?.('change', onChange)
-  return () => {
-    observer.disconnect()
-    media?.removeEventListener?.('change', onChange)
-  }
-}
-
-const serverMode = () => 'dark' as const
 
 const FALLBACK_HSL: [number, number, number] = [211, 100, 52]
 
@@ -109,40 +78,22 @@ const hsl = (h: number, s: number, l: number, a = 1) => {
     : `hsl(${hue.toFixed(1)} ${s.toFixed(1)}% ${l.toFixed(1)}% / ${a})`
 }
 
-export function buildTheme(accent: string = DEFAULT_ACCENT, mode: 'dark' | 'light' = 'dark') {
+export function buildTheme(accent: string = DEFAULT_ACCENT) {
   const [h, s, l] = hexToHsl(accent)
   const tint = (lightness: number, sat = s) => hsl(h, sat, lightness)
-  const dark = mode !== 'light'
-  const accentTone = dark
-    ? tint(Math.min(Math.max(l, 56), 72))
-    : tint(Math.min(Math.max(l, 38), 50))
-  const colors = dark
-    ? {
-        accent: accentTone,
-        bg: '#0e0e12',
-        border: 'rgba(255, 255, 255, 0.08)',
-        headerBg: 'rgba(255, 255, 255, 0.03)',
-        plain: '#ffffff',
-        muted: 'rgba(255, 255, 255, 0.6)',
-        gutter: 'rgba(255, 255, 255, 0.28)',
-        hoverWash: 'rgba(255, 255, 255, 0.08)',
-        floatBg: 'rgba(20, 20, 26, 0.75)',
-        selection: hsl(h, s, 58, 0.3),
-        lineWash: hsl(h, s, 58, 0.12),
-      }
-    : {
-        accent: accentTone,
-        bg: '#f8fafc',
-        border: 'rgba(0, 0, 0, 0.08)',
-        headerBg: 'rgba(0, 0, 0, 0.03)',
-        plain: '#171717',
-        muted: 'rgba(0, 0, 0, 0.6)',
-        gutter: 'rgba(0, 0, 0, 0.32)',
-        hoverWash: 'rgba(0, 0, 0, 0.06)',
-        floatBg: 'rgba(0, 0, 0, 0.04)',
-        selection: hsl(h, s, 45, 0.25),
-        lineWash: hsl(h, s, 45, 0.08),
-      }
+  const colors = {
+    accent: tint(Math.min(Math.max(l, 56), 72)),
+    bg: '#0e0e12',
+    border: 'rgba(255, 255, 255, 0.08)',
+    headerBg: 'rgba(255, 255, 255, 0.03)',
+    plain: '#ffffff',
+    muted: 'rgba(255, 255, 255, 0.6)',
+    gutter: 'rgba(255, 255, 255, 0.28)',
+    hoverWash: 'rgba(255, 255, 255, 0.08)',
+    floatBg: 'rgba(20, 20, 26, 0.75)',
+    selection: hsl(h, s, 58, 0.3),
+    lineWash: hsl(h, s, 58, 0.12),
+  }
 
   const theme: PrismTheme = {
     plain: { color: colors.plain, backgroundColor: 'transparent' },
@@ -279,7 +230,6 @@ export function CodeBlock({
   code,
   language = 'tsx',
   accent = DEFAULT_ACCENT,
-  mode = 'auto',
   filename,
   showFrame = true,
   showHeader = true,
@@ -293,9 +243,7 @@ export function CodeBlock({
   ...props
 }: CodeBlockProps) {
   const safeLanguage = typeof language === 'string' && language.trim() ? language.trim().toLowerCase() : 'tsx'
-  const pageMode = useSyncExternalStore(subscribeToPageMode, resolvePageMode, serverMode)
-  const safeMode = mode === 'light' || mode === 'dark' ? mode : pageMode
-  const { colors, theme } = useMemo(() => buildTheme(accent, safeMode), [accent, safeMode])
+  const { colors, theme } = useMemo(() => buildTheme(accent), [accent])
 
   const { trimmed, lineMap } = useMemo(() => {
     const source = typeof code === 'string' ? code : String(code ?? '')

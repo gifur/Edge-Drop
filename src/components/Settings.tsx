@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useLayoutEffect, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo, ThemeMode, UpdateMode } from '../../shared/types'
+import type { DisplayInfo, UpdateMode } from '../../shared/types'
 import {
   resolveUpdateMode,
   normalizeHoverOpenDelay,
@@ -154,6 +154,19 @@ export function Settings({
     const clamped = Math.min(360, Math.max(220, Math.round(rawVal)))
     setSliderActive(false)
     patch({ panelWidth: clamped })
+  }
+
+  const handleOpacityInput = (rawVal: number) => {
+    const clamped = Math.min(100, Math.max(0, Math.round(rawVal)))
+    useStore.setState((s) => ({
+      settings: { ...s.settings, panelOpacity: clamped }
+    }))
+  }
+
+  const handleOpacityRelease = (rawVal: number) => {
+    const clamped = Math.min(100, Math.max(0, Math.round(rawVal)))
+    setSliderActive(false)
+    patch({ panelOpacity: clamped })
   }
 
   // ── Hover open delay (shared by both layouts) ──────────────────────────
@@ -1303,24 +1316,36 @@ export function Settings({
 
     // appearance
     return [
-      {
-        id: 'theme',
-        label: t('appearance.themeTitle') || 'THEME',
-        rows: [
-          {
-            id: 'theme-mode',
-            title: t('appearance.themeTitle'),
-            desc: t('appearance.themeDesc'),
-            trailing: (
-              <ThemeModeSelector
-                value={settings.themeMode ?? 'dark'}
-                onChange={(value) => patch({ themeMode: value })}
-                t={t}
+      ...(!isHorizontal ? [{
+        id: 'panel-opacity',
+        label: t('appearance.panelOpacityTitle') || 'PANEL OPACITY',
+        rows: [{
+          id: 'panel-opacity',
+          title: t('appearance.panelOpacityTitle'),
+          desc: t('appearance.panelOpacityDesc'),
+          size: 'slider' as const,
+          below: (
+            <div className="setting-slider-wrap">
+              <WakeSlider
+                value={settings.panelOpacity ?? 100}
+                min={0}
+                max={100}
+                step={1}
+                bars={24}
+                height={28}
+                restHeight={8}
+                gap={3}
+                showValue
+                formatValue={(value) => `${Math.round(value)}%`}
+                ariaLabel={t('appearance.panelOpacityTitle')}
+                onStart={() => setSliderActive(true)}
+                onChange={handleOpacityInput}
+                onRelease={handleOpacityRelease}
               />
-            )
-          }
-        ]
-      },
+            </div>
+          )
+        }]
+      } satisfies GroupSpec] : []),
       ...(!isHorizontal ? [{
         id: 'panel-width',
         label: t('appearance.panelWidthTitle') || 'PANEL WIDTH',
@@ -1586,44 +1611,6 @@ function SettingGroup({ group, layout }: { group: GroupSpec; layout: 'v' | 'h' }
           : group.rows.map((row) => <SettingRow key={row.id} row={row} layout={layout} />)}
       </div>
     </section>
-  )
-}
-
-function ThemeModeSelector({
-  value,
-  onChange,
-  t
-}: {
-  value: ThemeMode
-  onChange: (value: ThemeMode) => void
-  t: (path: string) => string
-}) {
-  const options: Array<{ value: ThemeMode; glyph: string; label: string }> = [
-    { value: 'dark', glyph: 'D', label: t('appearance.darkMode') || 'Night mode' },
-    { value: 'light', glyph: 'L', label: t('appearance.lightMode') || 'Day mode' }
-  ]
-
-  return (
-    <div className="theme-mode-selector" role="group" aria-label={t('appearance.themeTitle') || 'Theme'}>
-      {options.map(({ value: optionValue, glyph, label }) => {
-        const active = value === optionValue
-        return (
-          <button
-            key={optionValue}
-            type="button"
-            className={`theme-mode-option${active ? ' active' : ''}`}
-            aria-pressed={active}
-            onClick={() => {
-              playButtonClickSound()
-              onChange(optionValue)
-            }}
-          >
-            <span className="theme-mode-glyph" aria-hidden="true">{glyph}</span>
-            <span>{label}</span>
-          </button>
-        )
-      })}
-    </div>
   )
 }
 

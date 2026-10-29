@@ -290,13 +290,13 @@ export default function App() {
     }
   }, [hydrate, setItems, setSettings, pushToast])
 
-  // Apply theme whenever settings change.
+  // Apply appearance whenever settings change.
   useEffect(() => {
     applyReduceMotion(settings.reduceMotion)
-    applyAppearance(settings.themeMode, settings.panelOpacity, settings.panelWidth)
+    applyAppearance(settings.panelOpacity, settings.panelWidth)
     const scale = settings.fontSizeScale ?? 1.0
     document.documentElement.style.setProperty('--font-scale', String(scale))
-  }, [settings.reduceMotion, settings.fontSizeScale, settings.themeMode, settings.panelOpacity, settings.panelWidth])
+  }, [settings.reduceMotion, settings.fontSizeScale, settings.panelOpacity, settings.panelWidth])
 
   if (!hydrated) {
     return <div className="root" />

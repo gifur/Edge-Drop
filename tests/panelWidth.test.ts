@@ -24,7 +24,7 @@ describe('panel width setting', () => {
     expect(settingsSrc).toContain('min={220}')
     expect(settingsSrc).toContain('max={360}')
     expect(settingsSrc).toContain('patch({ panelWidth: clamped })')
-    expect(appSrc).toContain('applyAppearance(settings.themeMode, settings.panelOpacity, settings.panelWidth)')
+    expect(appSrc).toContain('applyAppearance(settings.panelOpacity, settings.panelWidth)')
     expect(themeSrc).toContain("setProperty('--panel-width'")
     expect(tokensCss).toContain('--panel-width: 270px')
 
