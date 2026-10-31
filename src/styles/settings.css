@@ -1614,6 +1614,39 @@ html[data-motion='reduce'] .set-row-icon-btn.is-busy svg {
 .set-row .slider-label-btn {
   font-family: var(--font-ui);
 }
+
+.paste-api-port-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.paste-api-port-control label {
+  flex: 1;
+  color: var(--text-tertiary);
+  font-size: calc(11.5px * var(--font-scale, 1));
+}
+.paste-api-port-control input {
+  width: 92px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font: inherit;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.paste-api-port-control input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.09);
+}
+.paste-api-port-control input:disabled {
+  opacity: 0.45;
+}
 /* choices never cut their label: they share the row, and a long
    translation moves the last ones onto a second row */
 .set-row .setting-pills {

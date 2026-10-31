@@ -30,4 +30,15 @@ describe('local paste API settings', () => {
     expect(main).toContain('pasteApi.stop()')
     expect(ipc).toContain('pasteApi.reconfigure(next.pasteApiEnabled, next.pasteApiPort)')
   })
+
+  it('renders the local API toggle and port input in Behaviour settings', () => {
+    const settings = readFileSync(join(__dirname, '..', 'src/components/Settings.tsx'), 'utf8')
+    expect(settings).toContain('settings.pasteApiEnabled')
+    expect(settings).toContain('patch({ pasteApiEnabled: v })')
+    expect(settings).toContain('settings.pasteApiPort')
+    expect(settings).toContain('127.0.0.1')
+    expect(settings).toContain('min={1024}')
+    expect(settings).toContain('max={65535}')
+    expect(settings).toContain('patch({ pasteApiPort:')
+  })
 })

@@ -6,7 +6,8 @@ import {
   normalizeHoverOpenDelay,
   HOVER_OPEN_DELAY_MIN,
   HOVER_OPEN_DELAY_MAX,
-  HOVER_OPEN_DELAY_STEP
+  HOVER_OPEN_DELAY_STEP,
+  PASTE_API_DEFAULT_PORT
 } from '../../shared/types'
 import {
   LogoIndicatorIcon,
@@ -61,6 +62,18 @@ export function Settings({
   const setSliderActive = useStore((s) => s.setSliderActive)
   const edgeTransition = useStore((s) => s.edgeTransition)
   const startEdgeTransition = useStore((s) => s.startEdgeTransition)
+  const [pasteApiPortDraft, setPasteApiPortDraft] = useState(String(settings.pasteApiPort ?? PASTE_API_DEFAULT_PORT))
+
+  useEffect(() => {
+    setPasteApiPortDraft(String(settings.pasteApiPort ?? PASTE_API_DEFAULT_PORT))
+  }, [settings.pasteApiPort])
+
+  const commitPasteApiPort = () => {
+    const parsed = Number.parseInt(pasteApiPortDraft, 10)
+    const next = Number.isFinite(parsed) ? Math.min(65535, Math.max(1024, parsed)) : PASTE_API_DEFAULT_PORT
+    setPasteApiPortDraft(String(next))
+    if (next !== settings.pasteApiPort) patch({ pasteApiPort: next })
+  }
 
   const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
     l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
@@ -503,6 +516,38 @@ export function Settings({
               title: t('behaviour.incognitoTitle'),
               desc: t('behaviour.incognitoDesc'),
               trailing: <Toggle checked={settings.incognito} onChange={(v) => patch({ incognito: v })} />
+            },
+            {
+              id: 'paste-api',
+              title: 'Local paste API',
+              desc: settings.pasteApiEnabled
+                ? `Listening on 127.0.0.1:${settings.pasteApiPort}`
+                : 'Allow local applications to add text to this panel',
+              trailing: <Toggle checked={settings.pasteApiEnabled} onChange={(v) => patch({ pasteApiEnabled: v })} />,
+              below: (
+                <div className="paste-api-port-control">
+                  <label htmlFor="paste-api-port">Port</label>
+                  <input
+                    id="paste-api-port"
+                    type="number"
+                    inputMode="numeric"
+                    min={1024}
+                    max={65535}
+                    step={1}
+                    value={pasteApiPortDraft}
+                    disabled={!settings.pasteApiEnabled}
+                    onChange={(e) => setPasteApiPortDraft(e.target.value)}
+                    onBlur={commitPasteApiPort}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        commitPasteApiPort()
+                        e.currentTarget.blur()
+                      }
+                    }}
+                  />
+                </div>
+              )
             }
           ]
         },
