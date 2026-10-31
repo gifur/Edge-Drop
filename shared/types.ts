@@ -50,6 +50,9 @@ export type ItemKind = ItemData['kind']
 
 export type TypeFilter = 'all' | 'text' | 'links' | 'images' | 'files' | 'colors'
 
+/** Default loopback port for the optional local paste HTTP API. */
+export const PASTE_API_DEFAULT_PORT = 18765
+
 /**
  * A single clipboard entry. `id` is stable across the lifetime of the entry;
  * it is used as the React key and the storage key for pinned/persisted items.
@@ -214,6 +217,10 @@ export interface Settings {
   v026UpgradeCleaned?: boolean
   /** Configurable global hotkey accelerator to toggle Edge-Drop shelf (e.g. 'Alt+C', 'Alt+Shift+C'). Default: 'Alt+C'. */
   toggleHotkey?: string
+  /** Enable the loopback-only local paste HTTP API. Default: false. */
+  pasteApiEnabled: boolean
+  /** Local paste HTTP API port. Valid range: 1024..65535. */
+  pasteApiPort: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -247,7 +254,9 @@ export const DEFAULT_SETTINGS: Settings = {
   hoverOpenDelay: 0,
   fontSizeScale: 1.0,
   language: 'system',
-  toggleHotkey: 'Alt+C'
+  toggleHotkey: 'Alt+C',
+  pasteApiEnabled: false,
+  pasteApiPort: PASTE_API_DEFAULT_PORT
 }
 
 

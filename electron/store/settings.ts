@@ -6,7 +6,7 @@
  * defaults so a bad field never takes the whole app down.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { DEFAULT_SETTINGS, normalizeHoverOpenDelay, type Settings } from '../../shared/types'
+import { DEFAULT_SETTINGS, normalizeHoverOpenDelay, PASTE_API_DEFAULT_PORT, type Settings } from '../../shared/types'
 import { PATHS } from './paths'
 
 let cache: Settings | null = null
@@ -43,6 +43,11 @@ export function normalizeSettings(input: Partial<Settings>): Settings {
   if (typeof out.language !== 'string' || !out.language.trim()) {
     out.language = 'system'
   }
+  out.pasteApiEnabled = out.pasteApiEnabled === true
+  const pasteApiPort = out.pasteApiPort
+  out.pasteApiPort = typeof pasteApiPort === 'number' && Number.isInteger(pasteApiPort) && pasteApiPort >= 1024 && pasteApiPort <= 65535
+    ? pasteApiPort
+    : PASTE_API_DEFAULT_PORT
   // Drop the long-removed bounceAnimation key so old files stop carrying it.
   delete (out as unknown as Record<string, unknown>).bounceAnimation
   return out
