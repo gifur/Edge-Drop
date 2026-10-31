@@ -13,7 +13,7 @@ import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
-import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher, captureClipboardOnce } from './state'
+import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher, captureClipboardOnce, pasteApi } from './state'
 import { resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
@@ -756,6 +756,12 @@ export function registerIpc(): void {
     }
     if (patch.toggleHotkey !== undefined) {
       registerGlobalHotkey(patch.toggleHotkey)
+    }
+    if (patch.pasteApiEnabled !== undefined || patch.pasteApiPort !== undefined) {
+      void pasteApi.reconfigure(next.pasteApiEnabled, next.pasteApiPort).catch((err) => {
+        console.error('[PasteAPI] Failed to apply settings:', err)
+        toast('Local paste API failed to start', 'error')
+      })
     }
     pushState.settings(next)
     rebuildTrayMenu()

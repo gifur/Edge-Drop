@@ -20,6 +20,7 @@ import { clipboard } from 'electron'
 import { readClipboard } from '../clipboard/formats'
 import { createId } from '../store/ids'
 import { captureClipboardItem } from '../clipboard/manualCapture'
+import { createTextItemData, listTextItems, PasteApiServer } from './pasteApi'
 
 const store = new ItemStore((removed) => forgetStagedItems(removed))
 const watcher = new ClipboardWatcher(600, 220)
@@ -138,6 +139,24 @@ export function getStore(): ItemStore {
 export function getWatcher(): ClipboardWatcher {
   return watcher
 }
+
+/** Add an explicit text item from the local API without touching the OS clipboard. */
+export function addTextToHistory(content: string): boolean {
+  const changed = store.add(createTextItemData(content), loadSettings().historyLimit)
+  if (changed) pushState.items({ reason: 'usage' })
+  return changed
+}
+
+/** Return the panel's text history with full payloads expanded for API clients. */
+export function listTextHistory(): Array<{ content: string; type: 'text' }> {
+  return listTextItems(store.list(), (id) => store.getFullText(id))
+}
+
+/** Shared main-process server for the optional loopback paste API. */
+export const pasteApi = new PasteApiServer({
+  addText: addTextToHistory,
+  listText: listTextHistory
+})
 
 /** Capture one explicit clipboard paste without changing incognito watcher state. */
 export async function captureClipboardOnce(): Promise<boolean> {

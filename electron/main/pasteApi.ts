@@ -1,11 +1,39 @@
-import { createServer, type AddressInfo, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
+import type { AddressInfo } from 'node:net'
+import type { ClipboardItem, ItemData } from '../../shared/types'
+import { isLinkText } from '../../shared/linkText'
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024
 const MAX_TEXT_CHARS = 500_000
 
 export interface PasteApiDeps {
-  addText: (content: string) => void | Promise<void>
+  addText: (content: string) => boolean | void | Promise<boolean | void>
   listText: () => Array<{ content: string; type: 'text' }> | Promise<Array<{ content: string; type: 'text' }>>
+}
+
+const COLOR_HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+
+export function createTextItemData(content: string): Extract<ItemData, { kind: 'text' }> {
+  const trimmed = content.trim()
+  return {
+    kind: 'text',
+    text: content,
+    isUrl: isLinkText(trimmed),
+    isColor: COLOR_HEX_RE.test(trimmed)
+  }
+}
+
+export function listTextItems(
+  items: readonly ClipboardItem[],
+  getFullText: (id: string) => string
+): Array<{ content: string; type: 'text' }> {
+  return items.flatMap((item) => {
+    if (item.data.kind !== 'text') return []
+    return [{
+      content: item.data.hasFullPayload ? getFullText(item.id) : item.data.text,
+      type: 'text' as const
+    }]
+  })
 }
 
 type ErrorPayload = { error: string; message: string }

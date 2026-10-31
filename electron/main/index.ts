@@ -16,7 +16,7 @@ import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { isStoreBuild } from './config'
 import { prewarmDragIcons } from './drag'
-import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
+import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore, pasteApi } from './state'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { flushStagedTempRegistry } from './stagedTemp'
@@ -75,6 +75,7 @@ app.on('before-quit', () => {
   stopHeartbeat()
   stopStateTimers()
   stopFullscreenMonitor()
+  void pasteApi.stop().catch((err) => console.error('[PasteAPI] Failed to stop server:', err))
   getWatcher().stop()
   try {
     getStore().persistSync()
@@ -135,6 +136,9 @@ app.whenReady().then(() => {
 
   registerIncognitoApplier((v) => getWatcher().setPaused(v))
   getWatcher().setPaused(settings.incognito)
+  void pasteApi.reconfigure(settings.pasteApiEnabled, settings.pasteApiPort).catch((err) => {
+    console.error('[PasteAPI] Failed to start server:', err)
+  })
   pushState.settings(settings)
 
   // Keep the tray checkmarks in sync after settings change from the UI.

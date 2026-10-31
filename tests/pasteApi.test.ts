@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 import { request } from 'node:http'
-import { PasteApiServer } from '../electron/main/pasteApi'
+import { createTextItemData, listTextItems, PasteApiServer } from '../electron/main/pasteApi'
 
 type Response = { status: number; body: any }
 
@@ -89,5 +89,34 @@ describe('local paste HTTP API', () => {
     })
     await expect(call(port, 'GET', '/paste')).resolves.toMatchObject({ status: 405 })
     await expect(call(port, 'POST', '/unknown', {})).resolves.toMatchObject({ status: 404 })
+  })
+
+  it('builds text item data with the existing URL and color classification', () => {
+    expect(createTextItemData('https://example.com')).toMatchObject({
+      kind: 'text',
+      text: 'https://example.com',
+      isUrl: true,
+      isColor: false
+    })
+    expect(createTextItemData('#12abef')).toMatchObject({
+      kind: 'text',
+      text: '#12abef',
+      isUrl: false,
+      isColor: true
+    })
+  })
+
+  it('lists only text items and expands full payloads', () => {
+    const full = 'z'.repeat(301)
+    const items = [
+      { id: 'image', data: { kind: 'image', imageId: 'image', width: 1, height: 1, bytes: 1 }, capturedAt: 1, hitCount: 1, pinned: false },
+      { id: 'long', data: { kind: 'text', text: full.slice(0, 300), isUrl: false, hasFullPayload: true }, capturedAt: 2, hitCount: 1, pinned: false },
+      { id: 'short', data: { kind: 'text', text: 'short', isUrl: false }, capturedAt: 3, hitCount: 1, pinned: false }
+    ] as any
+
+    expect(listTextItems(items, (id) => id === 'long' ? full : 'short')).toEqual([
+      { content: full, type: 'text' },
+      { content: 'short', type: 'text' }
+    ])
   })
 })
