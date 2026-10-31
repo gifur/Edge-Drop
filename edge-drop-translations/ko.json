@@ -66,7 +66,11 @@
     "hotkeyEdit": "편집",
     "hotkeyRecording": "키 조합을 누르세요...",
     "hotkeyCancel": "취소",
-    "hotkeyReset": "기본값으로 재설정 ({shortcut})"
+    "hotkeyReset": "기본값으로 재설정 ({shortcut})",
+    "pasteApiTitle": "로컬 붙여넣기 API",
+    "pasteApiDescOff": "로컬 앱이 이 패널에 텍스트를 추가하도록 허용",
+    "pasteApiDescOn": "127.0.0.1:{port}에서 수신 중",
+    "pasteApiPortLabel": "포트"
   },
   "position": {
     "edgePlacementTitle": "가장자리 배치",
@@ -245,7 +249,8 @@
     "itemPinned": "항목 고정됨",
     "itemUnpinned": "항목 고정 해제됨",
     "settingsSaved": "설정이 저장됨",
-    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다"
+    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다",
+    "pasteApiStartFailed": "로컬 붙여넣기 API를 시작하지 못했습니다"
   },
   "footer": {
     "communityAndSupport": "커뮤니티 및 지원",

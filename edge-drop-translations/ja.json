@@ -66,7 +66,11 @@
     "hotkeyEdit": "編集",
     "hotkeyRecording": "キーの組み合わせを押してください...",
     "hotkeyCancel": "キャンセル",
-    "hotkeyReset": "デフォルトに戻す（{shortcut}）"
+    "hotkeyReset": "デフォルトに戻す（{shortcut}）",
+    "pasteApiTitle": "ローカル貼り付け API",
+    "pasteApiDescOff": "ローカルアプリからこのパネルにテキストを追加できるようにします",
+    "pasteApiDescOn": "127.0.0.1:{port} で待機中",
+    "pasteApiPortLabel": "ポート"
   },
   "position": {
     "edgePlacementTitle": "画面端の配置",
@@ -245,7 +249,8 @@
     "itemPinned": "項目をピン留めしました",
     "itemUnpinned": "項目のピン留めを解除しました",
     "settingsSaved": "設定を保存しました",
-    "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました"
+    "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました",
+    "pasteApiStartFailed": "ローカル貼り付け API を起動できませんでした"
   },
   "footer": {
     "communityAndSupport": "コミュニティとサポート",

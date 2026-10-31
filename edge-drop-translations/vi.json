@@ -66,7 +66,11 @@
     "hotkeyEdit": "Chỉnh sửa",
     "hotkeyRecording": "Nhấn tổ hợp phím...",
     "hotkeyCancel": "Hủy",
-    "hotkeyReset": "Đặt lại về mặc định ({shortcut})"
+    "hotkeyReset": "Đặt lại về mặc định ({shortcut})",
+    "pasteApiTitle": "API dán cục bộ",
+    "pasteApiDescOff": "Cho phép ứng dụng cục bộ thêm văn bản vào bảng này",
+    "pasteApiDescOn": "Đang lắng nghe tại 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Cổng"
   },
   "position": {
     "edgePlacementTitle": "Vị trí mép",
@@ -245,7 +249,8 @@
     "itemPinned": "Đã ghim mục",
     "itemUnpinned": "Đã bỏ ghim mục",
     "settingsSaved": "Đã lưu cài đặt",
-    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}"
+    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}",
+    "pasteApiStartFailed": "Không thể khởi động API dán cục bộ"
   },
   "footer": {
     "communityAndSupport": "Cộng đồng & Hỗ trợ",

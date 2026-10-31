@@ -66,7 +66,11 @@
     "hotkeyEdit": "編輯",
     "hotkeyRecording": "請按下按鍵組合...",
     "hotkeyCancel": "取消",
-    "hotkeyReset": "重設為預設值（{shortcut}）"
+    "hotkeyReset": "重設為預設值（{shortcut}）",
+    "pasteApiTitle": "本機貼上介面",
+    "pasteApiDescOff": "允許本機應用程式向此面板新增文字",
+    "pasteApiDescOn": "正在監聽 127.0.0.1:{port}",
+    "pasteApiPortLabel": "連接埠"
   },
   "position": {
     "edgePlacementTitle": "邊緣位置",
@@ -245,7 +249,8 @@
     "itemPinned": "項目已固定",
     "itemUnpinned": "項目已取消固定",
     "settingsSaved": "設定已儲存",
-    "shortcutUpdated": "全域快速鍵已設為 {shortcut}"
+    "shortcutUpdated": "全域快速鍵已設為 {shortcut}",
+    "pasteApiStartFailed": "本機貼上介面啟動失敗"
   },
   "footer": {
     "communityAndSupport": "社群和支援",

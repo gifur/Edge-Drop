@@ -66,7 +66,11 @@
     "hotkeyEdit": "Upravit",
     "hotkeyRecording": "Stiskněte kombinaci kláves...",
     "hotkeyCancel": "Zrušit",
-    "hotkeyReset": "Obnovit výchozí ({shortcut})"
+    "hotkeyReset": "Obnovit výchozí ({shortcut})",
+    "pasteApiTitle": "Místní API pro vložení",
+    "pasteApiDescOff": "Povolit místním aplikacím přidávat text do tohoto panelu",
+    "pasteApiDescOn": "Naslouchá na 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Umístění na okraji",
@@ -245,7 +249,8 @@
     "itemPinned": "Položka připnuta",
     "itemUnpinned": "Položka odepnuta",
     "settingsSaved": "Nastavení uložena",
-    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}"
+    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}",
+    "pasteApiStartFailed": "Místní API pro vložení se nepodařilo spustit"
   },
   "footer": {
     "communityAndSupport": "Komunita a podpora",

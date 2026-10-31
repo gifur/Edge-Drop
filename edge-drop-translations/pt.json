@@ -66,7 +66,11 @@
     "hotkeyEdit": "Editar",
     "hotkeyRecording": "Pressione a combinação de teclas...",
     "hotkeyCancel": "Cancelar",
-    "hotkeyReset": "Redefinir para o padrão ({shortcut})"
+    "hotkeyReset": "Redefinir para o padrão ({shortcut})",
+    "pasteApiTitle": "API de colagem local",
+    "pasteApiDescOff": "Permitir que aplicativos locais adicionem texto a este painel",
+    "pasteApiDescOn": "Escutando em 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Porta"
   },
   "position": {
     "edgePlacementTitle": "Posicionamento da borda",
@@ -245,7 +249,8 @@
     "itemPinned": "Item fixado",
     "itemUnpinned": "Item desafixado",
     "settingsSaved": "Configurações salvas",
-    "shortcutUpdated": "Atalho global definido como {shortcut}"
+    "shortcutUpdated": "Atalho global definido como {shortcut}",
+    "pasteApiStartFailed": "Falha ao iniciar a API de colagem local"
   },
   "footer": {
     "communityAndSupport": "Comunidade e suporte",

@@ -519,14 +519,14 @@ export function Settings({
             },
             {
               id: 'paste-api',
-              title: 'Local paste API',
+              title: t('behaviour.pasteApiTitle'),
               desc: settings.pasteApiEnabled
-                ? `Listening on 127.0.0.1:${settings.pasteApiPort}`
-                : 'Allow local applications to add text to this panel',
+                ? t('behaviour.pasteApiDescOn', { port: settings.pasteApiPort })
+                : t('behaviour.pasteApiDescOff'),
               trailing: <Toggle checked={settings.pasteApiEnabled} onChange={(v) => patch({ pasteApiEnabled: v })} />,
               below: (
                 <div className="paste-api-port-control">
-                  <label htmlFor="paste-api-port">Port</label>
+                  <label htmlFor="paste-api-port">{t('behaviour.pasteApiPortLabel')}</label>
                   <input
                     id="paste-api-port"
                     type="number"

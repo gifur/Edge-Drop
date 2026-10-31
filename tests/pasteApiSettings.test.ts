@@ -36,9 +36,29 @@ describe('local paste API settings', () => {
     expect(settings).toContain('settings.pasteApiEnabled')
     expect(settings).toContain('patch({ pasteApiEnabled: v })')
     expect(settings).toContain('settings.pasteApiPort')
-    expect(settings).toContain('127.0.0.1')
     expect(settings).toContain('min={1024}')
     expect(settings).toContain('max={65535}')
     expect(settings).toContain('patch({ pasteApiPort:')
+  })
+
+  it('localizes every user-visible paste API setting in every language', () => {
+    const translations = readFileSync(join(__dirname, '..', 'src/i18n/translations.ts'), 'utf8')
+    const settings = readFileSync(join(__dirname, '..', 'src/components/Settings.tsx'), 'utf8')
+    const ipc = readFileSync(join(__dirname, '..', 'electron/main/ipc.ts'), 'utf8')
+    const dictionaries = translations.match(/export const \w+: TranslationKeys = \{/g)?.length ?? 0
+
+    expect(dictionaries).toBe(31)
+    for (const key of ['pasteApiTitle', 'pasteApiDescOff', 'pasteApiDescOn', 'pasteApiPortLabel', 'pasteApiStartFailed']) {
+      expect(translations.split(`"${key}":`).length - 1, key).toBe(dictionaries)
+    }
+    expect(translations).toContain('"pasteApiTitle": "本地粘贴接口"')
+    expect(translations).toContain('"pasteApiPortLabel": "端口"')
+    expect(settings).toContain("t('behaviour.pasteApiTitle')")
+    expect(settings).toContain("t('behaviour.pasteApiDescOn', { port: settings.pasteApiPort })")
+    expect(settings).toContain("t('behaviour.pasteApiDescOff')")
+    expect(settings).toContain("t('behaviour.pasteApiPortLabel')")
+    expect(settings).not.toContain("title: 'Local paste API'")
+    expect(ipc).toContain("toast('toast.pasteApiStartFailed', 'error')")
+    expect(ipc).not.toContain("toast('Local paste API failed to start'")
   })
 })

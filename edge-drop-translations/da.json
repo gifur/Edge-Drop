@@ -66,7 +66,11 @@
     "hotkeyEdit": "Rediger",
     "hotkeyRecording": "Tryk på tastekombinationen...",
     "hotkeyCancel": "Annuller",
-    "hotkeyReset": "Nulstil til standard ({shortcut})"
+    "hotkeyReset": "Nulstil til standard ({shortcut})",
+    "pasteApiTitle": "Lokal indsætnings-API",
+    "pasteApiDescOff": "Tillad lokale apps at føje tekst til dette panel",
+    "pasteApiDescOn": "Lytter på 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",
@@ -245,7 +249,8 @@
     "itemPinned": "Element fastgjort",
     "itemUnpinned": "Element frigjort",
     "settingsSaved": "Indstillinger gemt",
-    "shortcutUpdated": "Global genvej indstillet til {shortcut}"
+    "shortcutUpdated": "Global genvej indstillet til {shortcut}",
+    "pasteApiStartFailed": "Den lokale indsætnings-API kunne ikke startes"
   },
   "footer": {
     "communityAndSupport": "Fællesskab og support",

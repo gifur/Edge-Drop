@@ -66,7 +66,11 @@
     "hotkeyEdit": "Düzenle",
     "hotkeyRecording": "Tuş kombinasyonuna basın...",
     "hotkeyCancel": "İptal",
-    "hotkeyReset": "Varsayılana sıfırla ({shortcut})"
+    "hotkeyReset": "Varsayılana sıfırla ({shortcut})",
+    "pasteApiTitle": "Yerel yapıştırma API'si",
+    "pasteApiDescOff": "Yerel uygulamaların bu panele metin eklemesine izin ver",
+    "pasteApiDescOn": "127.0.0.1:{port} adresinde dinleniyor",
+    "pasteApiPortLabel": "Bağlantı noktası"
   },
   "position": {
     "edgePlacementTitle": "Kenar Yerleşimi",
@@ -245,7 +249,8 @@
     "itemPinned": "Öğe sabitlendi",
     "itemUnpinned": "Öğenin sabitlemesi kaldırıldı",
     "settingsSaved": "Ayarlar kaydedildi",
-    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı"
+    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı",
+    "pasteApiStartFailed": "Yerel yapıştırma API'si başlatılamadı"
   },
   "footer": {
     "communityAndSupport": "Topluluk ve Destek",

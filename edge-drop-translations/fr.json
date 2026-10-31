@@ -66,7 +66,11 @@
     "hotkeyEdit": "Modifier",
     "hotkeyRecording": "Appuyez sur la combinaison de touches...",
     "hotkeyCancel": "Annuler",
-    "hotkeyReset": "Rétablir par défaut ({shortcut})"
+    "hotkeyReset": "Rétablir par défaut ({shortcut})",
+    "pasteApiTitle": "API de collage locale",
+    "pasteApiDescOff": "Autoriser les applications locales à ajouter du texte à ce panneau",
+    "pasteApiDescOn": "Écoute sur 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Bord de l'écran",
@@ -245,7 +249,8 @@
     "itemPinned": "Élément épinglé",
     "itemUnpinned": "Élément désépinglé",
     "settingsSaved": "Paramètres enregistrés",
-    "shortcutUpdated": "Raccourci global défini sur {shortcut}"
+    "shortcutUpdated": "Raccourci global défini sur {shortcut}",
+    "pasteApiStartFailed": "Impossible de démarrer l'API de collage locale"
   },
   "footer": {
     "communityAndSupport": "Communauté et assistance",

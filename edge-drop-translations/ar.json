@@ -66,7 +66,11 @@
     "hotkeyEdit": "تعديل",
     "hotkeyRecording": "اضغط مجموعة المفاتيح...",
     "hotkeyCancel": "إلغاء",
-    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})"
+    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})",
+    "pasteApiTitle": "واجهة API للصق المحلي",
+    "pasteApiDescOff": "السماح للتطبيقات المحلية بإضافة نص إلى هذه اللوحة",
+    "pasteApiDescOn": "يستمع على 127.0.0.1:{port}",
+    "pasteApiPortLabel": "المنفذ"
   },
   "position": {
     "edgePlacementTitle": "موضع الحافة",
@@ -245,7 +249,8 @@
     "itemPinned": "ثُبّت العنصر",
     "itemUnpinned": "أُلغي تثبيت العنصر",
     "settingsSaved": "حُفظت الإعدادات",
-    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}"
+    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}",
+    "pasteApiStartFailed": "تعذر تشغيل واجهة API للصق المحلي"
   },
   "footer": {
     "communityAndSupport": "المجتمع والدعم",

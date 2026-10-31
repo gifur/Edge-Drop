@@ -66,7 +66,11 @@
     "hotkeyEdit": "Szerkesztés",
     "hotkeyRecording": "Nyomja meg a billentyűkombinációt...",
     "hotkeyCancel": "Mégse",
-    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})"
+    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})",
+    "pasteApiTitle": "Helyi beillesztési API",
+    "pasteApiDescOff": "Helyi alkalmazások szöveget adhassanak ehhez a panelhez",
+    "pasteApiDescOn": "Figyel: 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Szél-elhelyezés",
@@ -245,7 +249,8 @@
     "itemPinned": "Elem rögzítve",
     "itemUnpinned": "Elem feloldva",
     "settingsSaved": "Beállítások elmentve",
-    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}"
+    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}",
+    "pasteApiStartFailed": "A helyi beillesztési API nem indítható el"
   },
   "footer": {
     "communityAndSupport": "Közösség és támogatás",

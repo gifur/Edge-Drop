@@ -66,7 +66,11 @@
     "hotkeyEdit": "Змінити",
     "hotkeyRecording": "Натисніть комбінацію клавіш...",
     "hotkeyCancel": "Скасувати",
-    "hotkeyReset": "Скинути до стандартної ({shortcut})"
+    "hotkeyReset": "Скинути до стандартної ({shortcut})",
+    "pasteApiTitle": "Локальний API вставлення",
+    "pasteApiDescOff": "Дозволити локальним програмам додавати текст на цю панель",
+    "pasteApiDescOn": "Прослуховування на 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Порт"
   },
   "position": {
     "edgePlacementTitle": "Розміщення краю",
@@ -245,7 +249,8 @@
     "itemPinned": "Елемент прикріплено",
     "itemUnpinned": "Елемент відкріплено",
     "settingsSaved": "Налаштування збережено",
-    "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}"
+    "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}",
+    "pasteApiStartFailed": "Не вдалося запустити локальний API вставлення"
   },
   "footer": {
     "communityAndSupport": "Спільнота та підтримка",

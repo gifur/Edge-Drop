@@ -66,7 +66,11 @@
     "hotkeyEdit": "ویرایش",
     "hotkeyRecording": "ترکیب کلید را فشار دهید...",
     "hotkeyCancel": "لغو",
-    "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})"
+    "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})",
+    "pasteApiTitle": "API جای‌گذاری محلی",
+    "pasteApiDescOff": "به برنامه‌های محلی اجازه دهید متن را به این پنل اضافه کنند",
+    "pasteApiDescOn": "در حال گوش‌دادن روی 127.0.0.1:{port}",
+    "pasteApiPortLabel": "درگاه"
   },
   "position": {
     "edgePlacementTitle": "لبه برنامه",
@@ -245,7 +249,8 @@
     "itemPinned": "آیتم سنجاق شد",
     "itemUnpinned": "سنجاق آیتم برداشته شد",
     "settingsSaved": "تنظیمات ذخیره شد",
-    "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد"
+    "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد",
+    "pasteApiStartFailed": "راه‌اندازی API جای‌گذاری محلی ناموفق بود"
   },
   "footer": {
     "communityAndSupport": "ارتباط و پشتیبانی",

@@ -66,7 +66,11 @@
     "hotkeyEdit": "Bewerken",
     "hotkeyRecording": "Druk op de toetscombinatie...",
     "hotkeyCancel": "Annuleren",
-    "hotkeyReset": "Terugzetten naar standaard ({shortcut})"
+    "hotkeyReset": "Terugzetten naar standaard ({shortcut})",
+    "pasteApiTitle": "Lokale plak-API",
+    "pasteApiDescOff": "Lokale apps toestaan tekst aan dit paneel toe te voegen",
+    "pasteApiDescOn": "Luistert op 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Poort"
   },
   "position": {
     "edgePlacementTitle": "Randplaatsing",
@@ -245,7 +249,8 @@
     "itemPinned": "Item vastgezet",
     "itemUnpinned": "Item losgemaakt",
     "settingsSaved": "Instellingen opgeslagen",
-    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}"
+    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}",
+    "pasteApiStartFailed": "Kan de lokale plak-API niet starten"
   },
   "footer": {
     "communityAndSupport": "Community en ondersteuning",

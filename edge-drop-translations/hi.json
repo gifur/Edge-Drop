@@ -66,7 +66,11 @@
     "hotkeyEdit": "संपादित करें",
     "hotkeyRecording": "कुंजी संयोजन दबाएँ...",
     "hotkeyCancel": "रद्द करें",
-    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})"
+    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})",
+    "pasteApiTitle": "स्थानीय पेस्ट API",
+    "pasteApiDescOff": "स्थानीय ऐप्स को इस पैनल में टेक्स्ट जोड़ने दें",
+    "pasteApiDescOn": "127.0.0.1:{port} पर सुन रहा है",
+    "pasteApiPortLabel": "पोर्ट"
   },
   "position": {
     "edgePlacementTitle": "किनारा प्लेसमेंट",
@@ -245,7 +249,8 @@
     "itemPinned": "आइटम पिन किया गया",
     "itemUnpinned": "आइटम अनपिन किया गया",
     "settingsSaved": "सेटिंग्स सहेजी गईं",
-    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया"
+    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया",
+    "pasteApiStartFailed": "स्थानीय पेस्ट API शुरू नहीं हो सकी"
   },
   "footer": {
     "communityAndSupport": "समुदाय और सहायता",

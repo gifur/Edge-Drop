@@ -66,7 +66,11 @@
     "hotkeyEdit": "Изменить",
     "hotkeyRecording": "Нажмите сочетание клавиш...",
     "hotkeyCancel": "Отмена",
-    "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})"
+    "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})",
+    "pasteApiTitle": "Локальный API вставки",
+    "pasteApiDescOff": "Разрешить локальным приложениям добавлять текст на эту панель",
+    "pasteApiDescOn": "Слушает 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Порт"
   },
   "position": {
     "edgePlacementTitle": "Размещение у края",
@@ -245,7 +249,8 @@
     "itemPinned": "Элемент закреплён",
     "itemUnpinned": "Элемент откреплён",
     "settingsSaved": "Настройки сохранены",
-    "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}"
+    "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}",
+    "pasteApiStartFailed": "Не удалось запустить локальный API вставки"
   },
   "footer": {
     "communityAndSupport": "Сообщество и поддержка",

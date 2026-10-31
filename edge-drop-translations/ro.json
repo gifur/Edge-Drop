@@ -66,7 +66,11 @@
     "hotkeyEdit": "Editează",
     "hotkeyRecording": "Apasă combinația de taste...",
     "hotkeyCancel": "Anulează",
-    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})"
+    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})",
+    "pasteApiTitle": "API local de lipire",
+    "pasteApiDescOff": "Permite aplicațiilor locale să adauge text în acest panou",
+    "pasteApiDescOn": "Ascultă pe 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Plasare margine",
@@ -245,7 +249,8 @@
     "itemPinned": "Element pinat",
     "itemUnpinned": "Element anulat",
     "settingsSaved": "Setări salvate",
-    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}"
+    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}",
+    "pasteApiStartFailed": "API-ul local de lipire nu a putut fi pornit"
   },
   "footer": {
     "communityAndSupport": "Comunitate și suport",

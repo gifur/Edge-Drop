@@ -66,7 +66,11 @@
     "hotkeyEdit": "Επεξεργασία",
     "hotkeyRecording": "Πατήστε τον συνδυασμό πλήκτρων...",
     "hotkeyCancel": "Ακύρωση",
-    "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})"
+    "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})",
+    "pasteApiTitle": "Τοπικό API επικόλλησης",
+    "pasteApiDescOff": "Να επιτρέπεται στις τοπικές εφαρμογές να προσθέτουν κείμενο σε αυτόν τον πίνακα",
+    "pasteApiDescOn": "Ακρόαση στο 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Θύρα"
   },
   "position": {
     "edgePlacementTitle": "Τοποθέτηση άκρης",
@@ -245,7 +249,8 @@
     "itemPinned": "Το στοιχείο καρφιτσώθηκε",
     "itemUnpinned": "Το στοιχείο ξεκαρφιτσώθηκε",
     "settingsSaved": "Οι ρυθμίσεις αποθηκεύτηκαν",
-    "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}"
+    "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}",
+    "pasteApiStartFailed": "Αποτυχία εκκίνησης του τοπικού API επικόλλησης"
   },
   "footer": {
     "communityAndSupport": "Κοινότητα και Υποστήριξη",

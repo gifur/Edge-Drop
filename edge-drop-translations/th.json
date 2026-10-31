@@ -66,7 +66,11 @@
     "hotkeyEdit": "แก้ไข",
     "hotkeyRecording": "กดชุดปุ่ม...",
     "hotkeyCancel": "ยกเลิก",
-    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})"
+    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})",
+    "pasteApiTitle": "API วางในเครื่อง",
+    "pasteApiDescOff": "อนุญาตให้แอปในเครื่องเพิ่มข้อความไปยังแผงนี้",
+    "pasteApiDescOn": "กำลังรับฟังที่ 127.0.0.1:{port}",
+    "pasteApiPortLabel": "พอร์ต"
   },
   "position": {
     "edgePlacementTitle": "ตำแหน่งขอบ",
@@ -245,7 +249,8 @@
     "itemPinned": "ปักหมุดรายการแล้ว",
     "itemUnpinned": "ยกเลิกปักหมุดรายการแล้ว",
     "settingsSaved": "บันทึกการตั้งค่าแล้ว",
-    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว"
+    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว",
+    "pasteApiStartFailed": "ไม่สามารถเริ่ม API วางในเครื่องได้"
   },
   "footer": {
     "communityAndSupport": "ชุมชนและการสนับสนุน",

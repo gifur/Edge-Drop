@@ -66,7 +66,11 @@
     "hotkeyEdit": "সম্পাদনা",
     "hotkeyRecording": "কী সমন্বয় চাপুন...",
     "hotkeyCancel": "বাতিল",
-    "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})"
+    "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})",
+    "pasteApiTitle": "স্থানীয় পেস্ট API",
+    "pasteApiDescOff": "স্থানীয় অ্যাপকে এই প্যানেলে টেক্সট যোগ করার অনুমতি দিন",
+    "pasteApiDescOn": "127.0.0.1:{port}-এ শুনছে",
+    "pasteApiPortLabel": "পোর্ট"
   },
   "position": {
     "edgePlacementTitle": "প্রান্ত স্থাপনা",
@@ -245,7 +249,8 @@
     "itemPinned": "আইটেম পিন করা হয়েছে",
     "itemUnpinned": "আইটেম আনপিন করা হয়েছে",
     "settingsSaved": "সেটিংস সংরক্ষিত হয়েছে",
-    "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে"
+    "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে",
+    "pasteApiStartFailed": "স্থানীয় পেস্ট API চালু করা যায়নি"
   },
   "footer": {
     "communityAndSupport": "কমিউনিটি ও সহায়তা",

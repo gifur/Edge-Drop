@@ -66,7 +66,11 @@
     "hotkeyEdit": "Modifica",
     "hotkeyRecording": "Premi la combinazione di tasti...",
     "hotkeyCancel": "Annulla",
-    "hotkeyReset": "Ripristina predefinita ({shortcut})"
+    "hotkeyReset": "Ripristina predefinita ({shortcut})",
+    "pasteApiTitle": "API di incolla locale",
+    "pasteApiDescOff": "Consenti alle applicazioni locali di aggiungere testo a questo pannello",
+    "pasteApiDescOn": "In ascolto su 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Porta"
   },
   "position": {
     "edgePlacementTitle": "Posizionamento bordo",
@@ -245,7 +249,8 @@
     "itemPinned": "Elemento bloccato",
     "itemUnpinned": "Elemento sbloccato",
     "settingsSaved": "Impostazioni salvate",
-    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}"
+    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}",
+    "pasteApiStartFailed": "Impossibile avviare l'API di incolla locale"
   },
   "footer": {
     "communityAndSupport": "Community e supporto",

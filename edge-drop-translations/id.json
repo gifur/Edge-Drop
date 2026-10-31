@@ -66,7 +66,11 @@
     "hotkeyEdit": "Edit",
     "hotkeyRecording": "Tekan kombinasi tombol...",
     "hotkeyCancel": "Batal",
-    "hotkeyReset": "Atur ulang ke default ({shortcut})"
+    "hotkeyReset": "Atur ulang ke default ({shortcut})",
+    "pasteApiTitle": "API tempel lokal",
+    "pasteApiDescOff": "Izinkan aplikasi lokal menambahkan teks ke panel ini",
+    "pasteApiDescOn": "Mendengarkan di 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Penempatan Tepi",
@@ -245,7 +249,8 @@
     "itemPinned": "Item disematkan",
     "itemUnpinned": "Sematan item dilepas",
     "settingsSaved": "Pengaturan disimpan",
-    "shortcutUpdated": "Pintasan global diatur ke {shortcut}"
+    "shortcutUpdated": "Pintasan global diatur ke {shortcut}",
+    "pasteApiStartFailed": "API tempel lokal gagal dimulai"
   },
   "footer": {
     "communityAndSupport": "Komunitas & Dukungan",

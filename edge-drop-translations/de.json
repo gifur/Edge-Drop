@@ -66,7 +66,11 @@
     "hotkeyEdit": "Bearbeiten",
     "hotkeyRecording": "Tastenkombination drücken...",
     "hotkeyCancel": "Abbrechen",
-    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})"
+    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})",
+    "pasteApiTitle": "Lokale Einfüge-API",
+    "pasteApiDescOff": "Lokalen Anwendungen erlauben, Text zu diesem Bereich hinzuzufügen",
+    "pasteApiDescOn": "Lauscht auf 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Randplatzierung",
@@ -245,7 +249,8 @@
     "itemPinned": "Element angepinnt",
     "itemUnpinned": "Element gelöst",
     "settingsSaved": "Einstellungen gespeichert",
-    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt"
+    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt",
+    "pasteApiStartFailed": "Lokale Einfüge-API konnte nicht gestartet werden"
   },
   "footer": {
     "communityAndSupport": "Community & Support",

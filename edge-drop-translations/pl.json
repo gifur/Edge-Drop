@@ -66,7 +66,11 @@
     "hotkeyEdit": "Edytuj",
     "hotkeyRecording": "Naciśnij kombinację klawiszy...",
     "hotkeyCancel": "Anuluj",
-    "hotkeyReset": "Przywróć domyślny ({shortcut})"
+    "hotkeyReset": "Przywróć domyślny ({shortcut})",
+    "pasteApiTitle": "Lokalny interfejs API wklejania",
+    "pasteApiDescOff": "Zezwalaj lokalnym aplikacjom dodawać tekst do tego panelu",
+    "pasteApiDescOn": "Nasłuchiwanie na 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Położenie krawędzi",
@@ -245,7 +249,8 @@
     "itemPinned": "Element przypięty",
     "itemUnpinned": "Element odpięty",
     "settingsSaved": "Ustawienia zapisane",
-    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}"
+    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}",
+    "pasteApiStartFailed": "Nie udało się uruchomić lokalnego interfejsu API wklejania"
   },
   "footer": {
     "communityAndSupport": "Społeczność i wsparcie",

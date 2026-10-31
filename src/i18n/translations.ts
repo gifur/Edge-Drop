@@ -89,6 +89,10 @@ export interface TranslationKeys {
     never: string
     capacityTitle: string
     capacityDesc: string
+    pasteApiTitle: string
+    pasteApiDescOff: string
+    pasteApiDescOn: string
+    pasteApiPortLabel: string
   }
   position: {
     edgePlacementTitle: string
@@ -360,6 +364,7 @@ export interface TranslationKeys {
     mergeImagesFull?: string
     mergeFilesFull?: string
     mergeIncompatible?: string
+    pasteApiStartFailed: string
     noteFailed?: string
     savedToDownloads?: string
     savedManyToDownloads?: string
@@ -677,7 +682,11 @@ export const en: TranslationKeys = {
     "hotkeyEdit": "Edit",
     "hotkeyRecording": "Press key combination...",
     "hotkeyCancel": "Cancel",
-    "hotkeyReset": "Reset to default ({shortcut})"
+    "hotkeyReset": "Reset to default ({shortcut})",
+    "pasteApiTitle": "Local paste API",
+    "pasteApiDescOff": "Allow local applications to add text to this panel",
+    "pasteApiDescOn": "Listening on 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Edge Placement",
@@ -950,7 +959,8 @@ export const en: TranslationKeys = {
     "mergeTextLinks": "Text and links cannot be grouped together",
     "mergeImagesFull": "An image collection can hold a maximum of 10 items",
     "mergeFilesFull": "A folder bundle can hold a maximum of 10 files",
-    "mergeIncompatible": "Cannot combine different item types"
+    "mergeIncompatible": "Cannot combine different item types",
+    "pasteApiStartFailed": "Local paste API failed to start"
   },
   "footer": {
     "communityAndSupport": "Community & Support",
@@ -1091,7 +1101,11 @@ export const es: TranslationKeys = {
     "hotkeyEdit": "Editar",
     "hotkeyRecording": "Pulsa la combinación de teclas...",
     "hotkeyCancel": "Cancelar",
-    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})"
+    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})",
+    "pasteApiTitle": "API de pegado local",
+    "pasteApiDescOff": "Permite que las aplicaciones locales añadan texto a este panel",
+    "pasteApiDescOn": "Escuchando en 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Puerto"
   },
   "position": {
     "right": "Derecha",
@@ -1351,7 +1365,8 @@ export const es: TranslationKeys = {
     "fileUnavailable": "El archivo original ya no está disponible",
     "launchBlockedByWindows": "Windows bloqueó el inicio de sesión automático. Activa Edge-Drop en Configuración → Aplicaciones → Inicio.",
     "launchUpdateFailed": "No se pudo actualizar el inicio de sesión automático.",
-    "shortcutUpdated": "Atajo global establecido en {shortcut}"
+    "shortcutUpdated": "Atajo global establecido en {shortcut}",
+    "pasteApiStartFailed": "No se pudo iniciar la API de pegado local"
   },
   "footer": {
     "supportTagline": "Portapapeles 100 % gratuito y de código abierto",
@@ -1492,7 +1507,11 @@ export const fr: TranslationKeys = {
     "hotkeyEdit": "Modifier",
     "hotkeyRecording": "Appuyez sur la combinaison de touches...",
     "hotkeyCancel": "Annuler",
-    "hotkeyReset": "Rétablir par défaut ({shortcut})"
+    "hotkeyReset": "Rétablir par défaut ({shortcut})",
+    "pasteApiTitle": "API de collage locale",
+    "pasteApiDescOff": "Autoriser les applications locales à ajouter du texte à ce panneau",
+    "pasteApiDescOn": "Écoute sur 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Droite",
@@ -1752,7 +1771,8 @@ export const fr: TranslationKeys = {
     "fileUnavailable": "Le fichier original n’est plus disponible",
     "launchBlockedByWindows": "Windows a bloqué le lancement à la connexion. Activez Edge-Drop dans Paramètres → Applications → Démarrage.",
     "launchUpdateFailed": "Impossible de mettre à jour le lancement à la connexion.",
-    "shortcutUpdated": "Raccourci global défini sur {shortcut}"
+    "shortcutUpdated": "Raccourci global défini sur {shortcut}",
+    "pasteApiStartFailed": "Impossible de démarrer l'API de collage locale"
   },
   "footer": {
     "supportTagline": "Presse-papiers 100 % gratuit et open source",
@@ -1893,7 +1913,11 @@ export const de: TranslationKeys = {
     "hotkeyEdit": "Bearbeiten",
     "hotkeyRecording": "Tastenkombination drücken...",
     "hotkeyCancel": "Abbrechen",
-    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})"
+    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})",
+    "pasteApiTitle": "Lokale Einfüge-API",
+    "pasteApiDescOff": "Lokalen Anwendungen erlauben, Text zu diesem Bereich hinzuzufügen",
+    "pasteApiDescOn": "Lauscht auf 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Rechts",
@@ -2153,7 +2177,8 @@ export const de: TranslationKeys = {
     "fileUnavailable": "Die Originaldatei ist nicht mehr verfügbar",
     "launchBlockedByWindows": "Windows hat den Start bei der Anmeldung blockiert. Aktivieren Sie Edge-Drop unter Einstellungen → Apps → Autostart.",
     "launchUpdateFailed": "Der Start bei der Anmeldung konnte nicht aktualisiert werden.",
-    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt"
+    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt",
+    "pasteApiStartFailed": "Lokale Einfüge-API konnte nicht gestartet werden"
   },
   "footer": {
     "supportTagline": "100 % kostenlose Open-Source-Zwischenablage",
@@ -2294,7 +2319,11 @@ export const it: TranslationKeys = {
     "hotkeyEdit": "Modifica",
     "hotkeyRecording": "Premi la combinazione di tasti...",
     "hotkeyCancel": "Annulla",
-    "hotkeyReset": "Ripristina predefinita ({shortcut})"
+    "hotkeyReset": "Ripristina predefinita ({shortcut})",
+    "pasteApiTitle": "API di incolla locale",
+    "pasteApiDescOff": "Consenti alle applicazioni locali di aggiungere testo a questo pannello",
+    "pasteApiDescOn": "In ascolto su 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Porta"
   },
   "position": {
     "right": "Destra",
@@ -2554,7 +2583,8 @@ export const it: TranslationKeys = {
     "fileUnavailable": "Il file originale non è più disponibile",
     "launchBlockedByWindows": "Windows ha bloccato l'avvio all'accesso. Abilita Edge-Drop in Impostazioni → App → Avvio.",
     "launchUpdateFailed": "Impossibile aggiornare l'avvio all'accesso.",
-    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}"
+    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}",
+    "pasteApiStartFailed": "Impossibile avviare l'API di incolla locale"
   },
   "footer": {
     "supportTagline": "Appunti 100% gratuiti e open source",
@@ -2695,7 +2725,11 @@ export const pt: TranslationKeys = {
     "hotkeyEdit": "Editar",
     "hotkeyRecording": "Pressione a combinação de teclas...",
     "hotkeyCancel": "Cancelar",
-    "hotkeyReset": "Redefinir para o padrão ({shortcut})"
+    "hotkeyReset": "Redefinir para o padrão ({shortcut})",
+    "pasteApiTitle": "API de colagem local",
+    "pasteApiDescOff": "Permitir que aplicativos locais adicionem texto a este painel",
+    "pasteApiDescOn": "Escutando em 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Porta"
   },
   "position": {
     "right": "Direita",
@@ -2955,7 +2989,8 @@ export const pt: TranslationKeys = {
     "fileUnavailable": "O arquivo original não está mais disponível",
     "launchBlockedByWindows": "O Windows bloqueou a inicialização no login. Ative o Edge-Drop em Configurações → Aplicativos → Inicialização.",
     "launchUpdateFailed": "Não foi possível atualizar a inicialização no login.",
-    "shortcutUpdated": "Atalho global definido como {shortcut}"
+    "shortcutUpdated": "Atalho global definido como {shortcut}",
+    "pasteApiStartFailed": "Falha ao iniciar a API de colagem local"
   },
   "footer": {
     "supportTagline": "Área de transferência 100% gratuita e de código aberto",
@@ -3096,7 +3131,11 @@ export const ru: TranslationKeys = {
     "hotkeyEdit": "Изменить",
     "hotkeyRecording": "Нажмите сочетание клавиш...",
     "hotkeyCancel": "Отмена",
-    "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})"
+    "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})",
+    "pasteApiTitle": "Локальный API вставки",
+    "pasteApiDescOff": "Разрешить локальным приложениям добавлять текст на эту панель",
+    "pasteApiDescOn": "Слушает 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Порт"
   },
   "position": {
     "right": "Справа",
@@ -3356,7 +3395,8 @@ export const ru: TranslationKeys = {
     "fileUnavailable": "Исходный файл больше недоступен",
     "launchBlockedByWindows": "Windows заблокировала запуск при входе в систему. Включите Edge-Drop в Параметры → Приложения → Автозагрузка.",
     "launchUpdateFailed": "Не удалось обновить запуск при входе в систему.",
-    "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}"
+    "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}",
+    "pasteApiStartFailed": "Не удалось запустить локальный API вставки"
   },
   "footer": {
     "supportTagline": "100% бесплатный буфер обмена с открытым исходным кодом",
@@ -3497,7 +3537,11 @@ export const ja: TranslationKeys = {
     "hotkeyEdit": "編集",
     "hotkeyRecording": "キーの組み合わせを押してください...",
     "hotkeyCancel": "キャンセル",
-    "hotkeyReset": "デフォルトに戻す（{shortcut}）"
+    "hotkeyReset": "デフォルトに戻す（{shortcut}）",
+    "pasteApiTitle": "ローカル貼り付け API",
+    "pasteApiDescOff": "ローカルアプリからこのパネルにテキストを追加できるようにします",
+    "pasteApiDescOn": "127.0.0.1:{port} で待機中",
+    "pasteApiPortLabel": "ポート"
   },
   "position": {
     "right": "右",
@@ -3757,7 +3801,8 @@ export const ja: TranslationKeys = {
     "fileUnavailable": "元のファイルは利用できなくなりました",
     "launchBlockedByWindows": "Windows によってサインイン時の起動がブロックされました。設定 → アプリ → スタートアップで Edge-Drop を有効にしてください。",
     "launchUpdateFailed": "サインイン時の起動を更新できませんでした。",
-    "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました"
+    "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました",
+    "pasteApiStartFailed": "ローカル貼り付け API を起動できませんでした"
   },
   "footer": {
     "supportTagline": "100%無料・オープンソースのクリップボード",
@@ -3898,7 +3943,11 @@ export const ko: TranslationKeys = {
     "hotkeyEdit": "편집",
     "hotkeyRecording": "키 조합을 누르세요...",
     "hotkeyCancel": "취소",
-    "hotkeyReset": "기본값으로 재설정 ({shortcut})"
+    "hotkeyReset": "기본값으로 재설정 ({shortcut})",
+    "pasteApiTitle": "로컬 붙여넣기 API",
+    "pasteApiDescOff": "로컬 앱이 이 패널에 텍스트를 추가하도록 허용",
+    "pasteApiDescOn": "127.0.0.1:{port}에서 수신 중",
+    "pasteApiPortLabel": "포트"
   },
   "position": {
     "right": "오른쪽",
@@ -4158,7 +4207,8 @@ export const ko: TranslationKeys = {
     "fileUnavailable": "원본 파일을 더 이상 사용할 수 없습니다",
     "launchBlockedByWindows": "Windows에서 로그인 시 실행을 차단했습니다. 설정 → 앱 → 시작 프로그램에서 Edge-Drop을 사용하도록 설정하세요.",
     "launchUpdateFailed": "로그인 시 실행 설정을 업데이트하지 못했습니다.",
-    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다"
+    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다",
+    "pasteApiStartFailed": "로컬 붙여넣기 API를 시작하지 못했습니다"
   },
   "footer": {
     "supportTagline": "100% 무료 오픈 소스 클립보드",
@@ -4299,7 +4349,11 @@ export const zhCN: TranslationKeys = {
     "hotkeyEdit": "编辑",
     "hotkeyRecording": "请按下按键组合...",
     "hotkeyCancel": "取消",
-    "hotkeyReset": "恢复默认值（{shortcut}）"
+    "hotkeyReset": "恢复默认值（{shortcut}）",
+    "pasteApiTitle": "本地粘贴接口",
+    "pasteApiDescOff": "允许本机应用向此面板添加文本",
+    "pasteApiDescOn": "正在监听 127.0.0.1:{port}",
+    "pasteApiPortLabel": "端口"
   },
   "position": {
     "right": "右",
@@ -4571,7 +4625,8 @@ export const zhCN: TranslationKeys = {
     "fileUnavailable": "原始文件已不再可用",
     "launchBlockedByWindows": "Windows 阻止了登录时启动。请在设置 → 应用 → 启动中启用 Edge-Drop。",
     "launchUpdateFailed": "无法更新登录时启动设置。",
-    "shortcutUpdated": "全局快捷键已设置为 {shortcut}"
+    "shortcutUpdated": "全局快捷键已设置为 {shortcut}",
+    "pasteApiStartFailed": "本地粘贴接口启动失败"
   },
   "footer": {
     "supportTagline": "100% 免费开源剪贴板",
@@ -4712,7 +4767,11 @@ export const zhTW: TranslationKeys = {
     "hotkeyEdit": "編輯",
     "hotkeyRecording": "請按下按鍵組合...",
     "hotkeyCancel": "取消",
-    "hotkeyReset": "重設為預設值（{shortcut}）"
+    "hotkeyReset": "重設為預設值（{shortcut}）",
+    "pasteApiTitle": "本機貼上介面",
+    "pasteApiDescOff": "允許本機應用程式向此面板新增文字",
+    "pasteApiDescOn": "正在監聽 127.0.0.1:{port}",
+    "pasteApiPortLabel": "連接埠"
   },
   "position": {
     "right": "右",
@@ -4972,7 +5031,8 @@ export const zhTW: TranslationKeys = {
     "fileUnavailable": "原始檔案已無法使用",
     "launchBlockedByWindows": "Windows 封鎖了登入時啟動。請在設定 → 應用程式 → 啟動中啟用 Edge-Drop。",
     "launchUpdateFailed": "無法更新登入時啟動設定。",
-    "shortcutUpdated": "全域快速鍵已設為 {shortcut}"
+    "shortcutUpdated": "全域快速鍵已設為 {shortcut}",
+    "pasteApiStartFailed": "本機貼上介面啟動失敗"
   },
   "footer": {
     "supportTagline": "100% 免費開源剪貼簿",
@@ -5113,7 +5173,11 @@ export const hi: TranslationKeys = {
     "hotkeyEdit": "संपादित करें",
     "hotkeyRecording": "कुंजी संयोजन दबाएँ...",
     "hotkeyCancel": "रद्द करें",
-    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})"
+    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})",
+    "pasteApiTitle": "स्थानीय पेस्ट API",
+    "pasteApiDescOff": "स्थानीय ऐप्स को इस पैनल में टेक्स्ट जोड़ने दें",
+    "pasteApiDescOn": "127.0.0.1:{port} पर सुन रहा है",
+    "pasteApiPortLabel": "पोर्ट"
   },
   "position": {
     "right": "दाएँ",
@@ -5373,7 +5437,8 @@ export const hi: TranslationKeys = {
     "fileUnavailable": "मूल फ़ाइल अब उपलब्ध नहीं है",
     "launchBlockedByWindows": "Windows ने साइन-इन पर लॉन्च को ब्लॉक कर दिया। सेटिंग्स → ऐप्स → स्टार्टअप में Edge-Drop सक्षम करें।",
     "launchUpdateFailed": "साइन-इन पर लॉन्च सेटिंग अपडेट नहीं की जा सकी।",
-    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया"
+    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया",
+    "pasteApiStartFailed": "स्थानीय पेस्ट API शुरू नहीं हो सकी"
   },
   "footer": {
     "supportTagline": "100% मुफ़्त और ओपन-सोर्स क्लिपबोर्ड",
@@ -5514,7 +5579,11 @@ export const ar: TranslationKeys = {
     "hotkeyEdit": "تعديل",
     "hotkeyRecording": "اضغط مجموعة المفاتيح...",
     "hotkeyCancel": "إلغاء",
-    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})"
+    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})",
+    "pasteApiTitle": "واجهة API للصق المحلي",
+    "pasteApiDescOff": "السماح للتطبيقات المحلية بإضافة نص إلى هذه اللوحة",
+    "pasteApiDescOn": "يستمع على 127.0.0.1:{port}",
+    "pasteApiPortLabel": "المنفذ"
   },
   "position": {
     "right": "يمين",
@@ -5774,7 +5843,8 @@ export const ar: TranslationKeys = {
     "fileUnavailable": "الملف الأصلي لم يعد متوفراً",
     "launchBlockedByWindows": "حظر Windows التشغيل عند تسجيل الدخول. فعّل Edge-Drop في الإعدادات → التطبيقات → بدء التشغيل.",
     "launchUpdateFailed": "تعذر تحديث التشغيل عند تسجيل الدخول.",
-    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}"
+    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}",
+    "pasteApiStartFailed": "تعذر تشغيل واجهة API للصق المحلي"
   },
   "footer": {
     "supportTagline": "حافظة مجانية ومفتوحة المصدر بنسبة 100%",
@@ -5915,7 +5985,11 @@ export const fa: TranslationKeys = {
     "hotkeyEdit": "ویرایش",
     "hotkeyRecording": "ترکیب کلید را فشار دهید...",
     "hotkeyCancel": "لغو",
-    "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})"
+    "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})",
+    "pasteApiTitle": "API جای‌گذاری محلی",
+    "pasteApiDescOff": "به برنامه‌های محلی اجازه دهید متن را به این پنل اضافه کنند",
+    "pasteApiDescOn": "در حال گوش‌دادن روی 127.0.0.1:{port}",
+    "pasteApiPortLabel": "درگاه"
   },
   "position": {
     "right": "راست",
@@ -6175,7 +6249,8 @@ export const fa: TranslationKeys = {
     "fileUnavailable": "فایل اصلی دیگر در دسترس نیست",
     "launchBlockedByWindows": "Windows اجرای برنامه هنگام ورود را مسدود کرد. Edge-Drop را در تنظیمات → برنامهها → راهاندازی فعال کنید.",
     "launchUpdateFailed": "بهروزرسانی اجرای برنامه هنگام ورود ممکن نبود.",
-    "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد"
+    "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد",
+    "pasteApiStartFailed": "راه‌اندازی API جای‌گذاری محلی ناموفق بود"
   },
   "footer": {
     "supportTagline": "کلیپ‌بورد ۱۰۰٪ رایگان و متن‌باز",
@@ -6316,7 +6391,11 @@ export const bn: TranslationKeys = {
     "hotkeyEdit": "সম্পাদনা",
     "hotkeyRecording": "কী সমন্বয় চাপুন...",
     "hotkeyCancel": "বাতিল",
-    "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})"
+    "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})",
+    "pasteApiTitle": "স্থানীয় পেস্ট API",
+    "pasteApiDescOff": "স্থানীয় অ্যাপকে এই প্যানেলে টেক্সট যোগ করার অনুমতি দিন",
+    "pasteApiDescOn": "127.0.0.1:{port}-এ শুনছে",
+    "pasteApiPortLabel": "পোর্ট"
   },
   "position": {
     "right": "ডান",
@@ -6576,7 +6655,8 @@ export const bn: TranslationKeys = {
     "fileUnavailable": "মূল ফাইলটি আর উপলভ্য নেই",
     "launchBlockedByWindows": "Windows সাইন-ইনের সময় চালু হওয়া ব্লক করেছে। সেটিংস → অ্যাপস → স্টার্টআপ থেকে Edge-Drop সক্রিয় করুন।",
     "launchUpdateFailed": "সাইন-ইনের সময় চালু হওয়ার সেটিং আপডেট করা যায়নি।",
-    "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে"
+    "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে",
+    "pasteApiStartFailed": "স্থানীয় পেস্ট API চালু করা যায়নি"
   },
   "footer": {
     "supportTagline": "১০০% বিনামূল্যের ও ওপেন-সোর্স ক্লিপবোর্ড",
@@ -6717,7 +6797,11 @@ export const tr: TranslationKeys = {
     "hotkeyEdit": "Düzenle",
     "hotkeyRecording": "Tuş kombinasyonuna basın...",
     "hotkeyCancel": "İptal",
-    "hotkeyReset": "Varsayılana sıfırla ({shortcut})"
+    "hotkeyReset": "Varsayılana sıfırla ({shortcut})",
+    "pasteApiTitle": "Yerel yapıştırma API'si",
+    "pasteApiDescOff": "Yerel uygulamaların bu panele metin eklemesine izin ver",
+    "pasteApiDescOn": "127.0.0.1:{port} adresinde dinleniyor",
+    "pasteApiPortLabel": "Bağlantı noktası"
   },
   "position": {
     "right": "Sağ",
@@ -6977,7 +7061,8 @@ export const tr: TranslationKeys = {
     "fileUnavailable": "Orijinal dosya artık kullanılamıyor",
     "launchBlockedByWindows": "Windows, oturum açıldığında başlatmayı engelledi. Ayarlar → Uygulamalar → Başlangıç'tan Edge-Drop'u etkinleştirin.",
     "launchUpdateFailed": "Oturum açıldığında başlatma ayarı güncellenemedi.",
-    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı"
+    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı",
+    "pasteApiStartFailed": "Yerel yapıştırma API'si başlatılamadı"
   },
   "footer": {
     "supportTagline": "%100 ücretsiz ve açık kaynaklı pano",
@@ -7118,7 +7203,11 @@ export const vi: TranslationKeys = {
     "hotkeyEdit": "Chỉnh sửa",
     "hotkeyRecording": "Nhấn tổ hợp phím...",
     "hotkeyCancel": "Hủy",
-    "hotkeyReset": "Đặt lại về mặc định ({shortcut})"
+    "hotkeyReset": "Đặt lại về mặc định ({shortcut})",
+    "pasteApiTitle": "API dán cục bộ",
+    "pasteApiDescOff": "Cho phép ứng dụng cục bộ thêm văn bản vào bảng này",
+    "pasteApiDescOn": "Đang lắng nghe tại 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Cổng"
   },
   "position": {
     "right": "Phải",
@@ -7378,7 +7467,8 @@ export const vi: TranslationKeys = {
     "fileUnavailable": "Tệp gốc không còn khả dụng",
     "launchBlockedByWindows": "Windows đã chặn việc khởi chạy khi đăng nhập. Bật Edge-Drop trong Cài đặt → Ứng dụng → Khởi động.",
     "launchUpdateFailed": "Không thể cập nhật thiết lập khởi chạy khi đăng nhập.",
-    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}"
+    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}",
+    "pasteApiStartFailed": "Không thể khởi động API dán cục bộ"
   },
   "footer": {
     "supportTagline": "Bảng nhớ tạm miễn phí 100% và mã nguồn mở",
@@ -7519,7 +7609,11 @@ export const pl: TranslationKeys = {
     "hotkeyEdit": "Edytuj",
     "hotkeyRecording": "Naciśnij kombinację klawiszy...",
     "hotkeyCancel": "Anuluj",
-    "hotkeyReset": "Przywróć domyślny ({shortcut})"
+    "hotkeyReset": "Przywróć domyślny ({shortcut})",
+    "pasteApiTitle": "Lokalny interfejs API wklejania",
+    "pasteApiDescOff": "Zezwalaj lokalnym aplikacjom dodawać tekst do tego panelu",
+    "pasteApiDescOn": "Nasłuchiwanie na 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Prawo",
@@ -7779,7 +7873,8 @@ export const pl: TranslationKeys = {
     "fileUnavailable": "Oryginalny plik nie jest już dostępny",
     "launchBlockedByWindows": "Windows zablokował uruchamianie przy logowaniu. Włącz Edge-Drop w Ustawienia → Aplikacje → Uruchamianie.",
     "launchUpdateFailed": "Nie udało się zaktualizować uruchamiania przy logowaniu.",
-    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}"
+    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}",
+    "pasteApiStartFailed": "Nie udało się uruchomić lokalnego interfejsu API wklejania"
   },
   "footer": {
     "supportTagline": "100% darmowy schowek open source",
@@ -7920,7 +8015,11 @@ export const nl: TranslationKeys = {
     "hotkeyEdit": "Bewerken",
     "hotkeyRecording": "Druk op de toetscombinatie...",
     "hotkeyCancel": "Annuleren",
-    "hotkeyReset": "Terugzetten naar standaard ({shortcut})"
+    "hotkeyReset": "Terugzetten naar standaard ({shortcut})",
+    "pasteApiTitle": "Lokale plak-API",
+    "pasteApiDescOff": "Lokale apps toestaan tekst aan dit paneel toe te voegen",
+    "pasteApiDescOn": "Luistert op 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Poort"
   },
   "position": {
     "right": "Rechts",
@@ -8180,7 +8279,8 @@ export const nl: TranslationKeys = {
     "fileUnavailable": "Het originele bestand is niet meer beschikbaar",
     "launchBlockedByWindows": "Windows heeft het starten bij aanmelden geblokkeerd. Schakel Edge-Drop in via Instellingen → Apps → Opstarten.",
     "launchUpdateFailed": "Het starten bij aanmelden kon niet worden bijgewerkt.",
-    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}"
+    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}",
+    "pasteApiStartFailed": "Kan de lokale plak-API niet starten"
   },
   "footer": {
     "supportTagline": "100% gratis en open-source klembord",
@@ -8321,7 +8421,11 @@ export const sv: TranslationKeys = {
     "hotkeyEdit": "Redigera",
     "hotkeyRecording": "Tryck på tangentkombinationen...",
     "hotkeyCancel": "Avbryt",
-    "hotkeyReset": "Återställ till standard ({shortcut})"
+    "hotkeyReset": "Återställ till standard ({shortcut})",
+    "pasteApiTitle": "Lokalt inklistrings-API",
+    "pasteApiDescOff": "Tillåt lokala appar att lägga till text i den här panelen",
+    "pasteApiDescOn": "Lyssnar på 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Höger",
@@ -8581,7 +8685,8 @@ export const sv: TranslationKeys = {
     "fileUnavailable": "Originalfilen är inte längre tillgänglig",
     "launchBlockedByWindows": "Windows blockerade start vid inloggning. Aktivera Edge-Drop under Inställningar → Appar → Autostart.",
     "launchUpdateFailed": "Det gick inte att uppdatera start vid inloggning.",
-    "shortcutUpdated": "Globalt kortkommando inställt på {shortcut}"
+    "shortcutUpdated": "Globalt kortkommando inställt på {shortcut}",
+    "pasteApiStartFailed": "Det gick inte att starta lokalt inklistrings-API"
   },
   "footer": {
     "supportTagline": "100 % gratis och öppen källkod för urklipp",
@@ -8722,7 +8827,11 @@ export const id: TranslationKeys = {
     "hotkeyEdit": "Edit",
     "hotkeyRecording": "Tekan kombinasi tombol...",
     "hotkeyCancel": "Batal",
-    "hotkeyReset": "Atur ulang ke default ({shortcut})"
+    "hotkeyReset": "Atur ulang ke default ({shortcut})",
+    "pasteApiTitle": "API tempel lokal",
+    "pasteApiDescOff": "Izinkan aplikasi lokal menambahkan teks ke panel ini",
+    "pasteApiDescOn": "Mendengarkan di 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Kanan",
@@ -8982,7 +9091,8 @@ export const id: TranslationKeys = {
     "fileUnavailable": "File asli tidak lagi tersedia",
     "launchBlockedByWindows": "Windows memblokir peluncuran saat masuk. Aktifkan Edge-Drop di Pengaturan → Aplikasi → Startup.",
     "launchUpdateFailed": "Tidak dapat memperbarui peluncuran saat masuk.",
-    "shortcutUpdated": "Pintasan global diatur ke {shortcut}"
+    "shortcutUpdated": "Pintasan global diatur ke {shortcut}",
+    "pasteApiStartFailed": "API tempel lokal gagal dimulai"
   },
   "footer": {
     "supportTagline": "Clipboard 100% gratis & open-source",
@@ -9123,7 +9233,11 @@ export const uk: TranslationKeys = {
     "hotkeyEdit": "Змінити",
     "hotkeyRecording": "Натисніть комбінацію клавіш...",
     "hotkeyCancel": "Скасувати",
-    "hotkeyReset": "Скинути до стандартної ({shortcut})"
+    "hotkeyReset": "Скинути до стандартної ({shortcut})",
+    "pasteApiTitle": "Локальний API вставлення",
+    "pasteApiDescOff": "Дозволити локальним програмам додавати текст на цю панель",
+    "pasteApiDescOn": "Прослуховування на 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Порт"
   },
   "position": {
     "right": "Праворуч",
@@ -9383,7 +9497,8 @@ export const uk: TranslationKeys = {
     "fileUnavailable": "Оригінальний файл більше недоступний",
     "launchBlockedByWindows": "Windows заблокувала запуск під час входу. Увімкніть Edge-Drop у Налаштування → Програми → Автозавантаження.",
     "launchUpdateFailed": "Не вдалося оновити запуск під час входу.",
-    "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}"
+    "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}",
+    "pasteApiStartFailed": "Не вдалося запустити локальний API вставлення"
   },
   "footer": {
     "supportTagline": "100% безкоштовний буфер обміну з відкритим кодом",
@@ -9524,7 +9639,11 @@ export const el: TranslationKeys = {
     "hotkeyEdit": "Επεξεργασία",
     "hotkeyRecording": "Πατήστε τον συνδυασμό πλήκτρων...",
     "hotkeyCancel": "Ακύρωση",
-    "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})"
+    "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})",
+    "pasteApiTitle": "Τοπικό API επικόλλησης",
+    "pasteApiDescOff": "Να επιτρέπεται στις τοπικές εφαρμογές να προσθέτουν κείμενο σε αυτόν τον πίνακα",
+    "pasteApiDescOn": "Ακρόαση στο 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Θύρα"
   },
   "position": {
     "right": "Δεξιά",
@@ -9784,7 +9903,8 @@ export const el: TranslationKeys = {
     "fileUnavailable": "Το αρχικό αρχείο δεν είναι πλέον διαθέσιμο",
     "launchBlockedByWindows": "Τα Windows απέκλεισαν την εκκίνηση κατά τη σύνδεση. Ενεργοποιήστε το Edge-Drop στις Ρυθμίσεις → Εφαρμογές → Εκκίνηση.",
     "launchUpdateFailed": "Δεν ήταν δυνατή η ενημέρωση της εκκίνησης κατά τη σύνδεση.",
-    "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}"
+    "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}",
+    "pasteApiStartFailed": "Αποτυχία εκκίνησης του τοπικού API επικόλλησης"
   },
   "footer": {
     "supportTagline": "100% δωρεάν και ανοιχτού κώδικα πρόχειρο",
@@ -9925,7 +10045,11 @@ export const cs: TranslationKeys = {
     "hotkeyEdit": "Upravit",
     "hotkeyRecording": "Stiskněte kombinaci kláves...",
     "hotkeyCancel": "Zrušit",
-    "hotkeyReset": "Obnovit výchozí ({shortcut})"
+    "hotkeyReset": "Obnovit výchozí ({shortcut})",
+    "pasteApiTitle": "Místní API pro vložení",
+    "pasteApiDescOff": "Povolit místním aplikacím přidávat text do tohoto panelu",
+    "pasteApiDescOn": "Naslouchá na 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Vpravo",
@@ -10185,7 +10309,8 @@ export const cs: TranslationKeys = {
     "fileUnavailable": "Původní soubor již není k dispozici",
     "launchBlockedByWindows": "Windows zablokoval spuštění při přihlášení. Povolte Edge-Drop v Nastavení → Aplikace → Po spuštění.",
     "launchUpdateFailed": "Spuštění při přihlášení se nepodařilo aktualizovat.",
-    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}"
+    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}",
+    "pasteApiStartFailed": "Místní API pro vložení se nepodařilo spustit"
   },
   "footer": {
     "supportTagline": "100% bezplatná schránka s otevřeným zdrojovým kódem",
@@ -10326,7 +10451,11 @@ export const ro: TranslationKeys = {
     "hotkeyEdit": "Editează",
     "hotkeyRecording": "Apasă combinația de taste...",
     "hotkeyCancel": "Anulează",
-    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})"
+    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})",
+    "pasteApiTitle": "API local de lipire",
+    "pasteApiDescOff": "Permite aplicațiilor locale să adauge text în acest panou",
+    "pasteApiDescOn": "Ascultă pe 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Dreapta",
@@ -10586,7 +10715,8 @@ export const ro: TranslationKeys = {
     "fileUnavailable": "Fișierul original nu mai este disponibil",
     "launchBlockedByWindows": "Windows a blocat lansarea la conectare. Activează Edge-Drop în Setări → Aplicații → Pornire.",
     "launchUpdateFailed": "Lansarea la conectare nu a putut fi actualizată.",
-    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}"
+    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}",
+    "pasteApiStartFailed": "API-ul local de lipire nu a putut fi pornit"
   },
   "footer": {
     "supportTagline": "Clipboard 100% gratuit și open-source",
@@ -10727,7 +10857,11 @@ export const hu: TranslationKeys = {
     "hotkeyEdit": "Szerkesztés",
     "hotkeyRecording": "Nyomja meg a billentyűkombinációt...",
     "hotkeyCancel": "Mégse",
-    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})"
+    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})",
+    "pasteApiTitle": "Helyi beillesztési API",
+    "pasteApiDescOff": "Helyi alkalmazások szöveget adhassanak ehhez a panelhez",
+    "pasteApiDescOn": "Figyel: 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Jobb",
@@ -10987,7 +11121,8 @@ export const hu: TranslationKeys = {
     "fileUnavailable": "Az eredeti fájl már nem érhető el",
     "launchBlockedByWindows": "A Windows letiltotta az indítást bejelentkezéskor. Engedélyezd az Edge-Dropot a Beállítások → Alkalmazások → Indítás menüpontban.",
     "launchUpdateFailed": "Nem sikerült frissíteni a bejelentkezéskori indítást.",
-    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}"
+    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}",
+    "pasteApiStartFailed": "A helyi beillesztési API nem indítható el"
   },
   "footer": {
     "supportTagline": "100%-ban ingyenes és nyílt forráskódú vágólap",
@@ -11128,7 +11263,11 @@ export const da: TranslationKeys = {
     "hotkeyEdit": "Rediger",
     "hotkeyRecording": "Tryk på tastekombinationen...",
     "hotkeyCancel": "Annuller",
-    "hotkeyReset": "Nulstil til standard ({shortcut})"
+    "hotkeyReset": "Nulstil til standard ({shortcut})",
+    "pasteApiTitle": "Lokal indsætnings-API",
+    "pasteApiDescOff": "Tillad lokale apps at føje tekst til dette panel",
+    "pasteApiDescOn": "Lytter på 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Højre",
@@ -11388,7 +11527,8 @@ export const da: TranslationKeys = {
     "fileUnavailable": "Den originale fil er ikke længere tilgængelig",
     "launchBlockedByWindows": "Windows blokerede start ved login. Aktivér Edge-Drop under Indstillinger → Apps → Start.",
     "launchUpdateFailed": "Start ved login kunne ikke opdateres.",
-    "shortcutUpdated": "Global genvej indstillet til {shortcut}"
+    "shortcutUpdated": "Global genvej indstillet til {shortcut}",
+    "pasteApiStartFailed": "Den lokale indsætnings-API kunne ikke startes"
   },
   "footer": {
     "supportTagline": "100 % gratis og open source-udklipsholder",
@@ -11529,7 +11669,11 @@ export const fi: TranslationKeys = {
     "hotkeyEdit": "Muokkaa",
     "hotkeyRecording": "Paina näppäinyhdistelmää...",
     "hotkeyCancel": "Peruuta",
-    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})"
+    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})",
+    "pasteApiTitle": "Paikallinen liittämis-API",
+    "pasteApiDescOff": "Salli paikallisten sovellusten lisätä tekstiä tähän paneeliin",
+    "pasteApiDescOn": "Kuuntelee osoitteessa 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Portti"
   },
   "position": {
     "right": "Oikea",
@@ -11789,7 +11933,8 @@ export const fi: TranslationKeys = {
     "fileUnavailable": "Alkuperäinen tiedosto ei ole enää saatavilla",
     "launchBlockedByWindows": "Windows esti käynnistyksen kirjautumisen yhteydessä. Ota Edge-Drop käyttöön kohdassa Asetukset → Sovellukset → Käynnistys.",
     "launchUpdateFailed": "Käynnistystä kirjautumisen yhteydessä ei voitu päivittää.",
-    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}"
+    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}",
+    "pasteApiStartFailed": "Paikallisen liittämis-API:n käynnistys epäonnistui"
   },
   "footer": {
     "supportTagline": "100 % ilmainen ja avoimen lähdekoodin leikepöytä",
@@ -11930,7 +12075,11 @@ export const th: TranslationKeys = {
     "hotkeyEdit": "แก้ไข",
     "hotkeyRecording": "กดชุดปุ่ม...",
     "hotkeyCancel": "ยกเลิก",
-    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})"
+    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})",
+    "pasteApiTitle": "API วางในเครื่อง",
+    "pasteApiDescOff": "อนุญาตให้แอปในเครื่องเพิ่มข้อความไปยังแผงนี้",
+    "pasteApiDescOn": "กำลังรับฟังที่ 127.0.0.1:{port}",
+    "pasteApiPortLabel": "พอร์ต"
   },
   "position": {
     "right": "ขวา",
@@ -12190,7 +12339,8 @@ export const th: TranslationKeys = {
     "fileUnavailable": "ไฟล์ต้นฉบับไม่พร้อมใช้งานอีกต่อไป",
     "launchBlockedByWindows": "Windows บล็อกการเปิดใช้งานเมื่อเข้าสู่ระบบ เปิดใช้ Edge-Drop ใน การตั้งค่า → แอป → การเริ่มต้น",
     "launchUpdateFailed": "ไม่สามารถอัปเดตการเปิดใช้งานเมื่อเข้าสู่ระบบได้",
-    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว"
+    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว",
+    "pasteApiStartFailed": "ไม่สามารถเริ่ม API วางในเครื่องได้"
   },
   "footer": {
     "supportTagline": "คลิปบอร์ดฟรีและโอเพนซอร์ส 100%",
@@ -12331,7 +12481,11 @@ export const he: TranslationKeys = {
     "hotkeyEdit": "עריכה",
     "hotkeyRecording": "לחץ על שילוב המקשים...",
     "hotkeyCancel": "ביטול",
-    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})"
+    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})",
+    "pasteApiTitle": "API הדבקה מקומי",
+    "pasteApiDescOff": "אפשר ליישומים מקומיים להוסיף טקסט ללוח זה",
+    "pasteApiDescOn": "מאזין ב-127.0.0.1:{port}",
+    "pasteApiPortLabel": "יציאה"
   },
   "position": {
     "right": "ימין",
@@ -12591,7 +12745,8 @@ export const he: TranslationKeys = {
     "fileUnavailable": "הקובץ המקורי אינו זמין עוד",
     "launchBlockedByWindows": "Windows חסמה את ההפעלה בעת הכניסה. הפעל את Edge-Drop דרך הגדרות → אפליקציות → אתחול.",
     "launchUpdateFailed": "לא ניתן לעדכן את ההפעלה בעת הכניסה.",
-    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}"
+    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}",
+    "pasteApiStartFailed": "לא ניתן להפעיל את API ההדבקה המקומי"
   },
   "footer": {
     "supportTagline": "לוח גזירים חינמי וקוד פתוח ב-100%",
@@ -12732,7 +12887,11 @@ export const no: TranslationKeys = {
     "hotkeyEdit": "Rediger",
     "hotkeyRecording": "Trykk på tastekombinasjonen...",
     "hotkeyCancel": "Avbryt",
-    "hotkeyReset": "Tilbakestill til standard ({shortcut})"
+    "hotkeyReset": "Tilbakestill til standard ({shortcut})",
+    "pasteApiTitle": "Lokalt innlimings-API",
+    "pasteApiDescOff": "Tillat lokale apper å legge til tekst i dette panelet",
+    "pasteApiDescOn": "Lytter på 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "right": "Høyre",
@@ -12992,7 +13151,8 @@ export const no: TranslationKeys = {
     "fileUnavailable": "Originalfilen er ikke lenger tilgjengelig",
     "launchBlockedByWindows": "Windows blokkerte oppstart ved innlogging. Aktiver Edge-Drop under Innstillinger → Apper → Oppstart.",
     "launchUpdateFailed": "Kunne ikke oppdatere oppstart ved innlogging.",
-    "shortcutUpdated": "Global hurtigtast satt til {shortcut}"
+    "shortcutUpdated": "Global hurtigtast satt til {shortcut}",
+    "pasteApiStartFailed": "Kunne ikke starte lokalt innlimings-API"
   },
   "footer": {
     "supportTagline": "100 % gratis utklippstavle med åpen kildekode",

@@ -66,7 +66,11 @@
     "hotkeyEdit": "Editar",
     "hotkeyRecording": "Pulsa la combinación de teclas...",
     "hotkeyCancel": "Cancelar",
-    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})"
+    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})",
+    "pasteApiTitle": "API de pegado local",
+    "pasteApiDescOff": "Permite que las aplicaciones locales añadan texto a este panel",
+    "pasteApiDescOn": "Escuchando en 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Puerto"
   },
   "position": {
     "edgePlacementTitle": "Borde de la pantalla",
@@ -245,7 +249,8 @@
     "itemPinned": "Elemento fijado",
     "itemUnpinned": "Elemento desfijado",
     "settingsSaved": "Configuración guardada",
-    "shortcutUpdated": "Atajo global establecido en {shortcut}"
+    "shortcutUpdated": "Atajo global establecido en {shortcut}",
+    "pasteApiStartFailed": "No se pudo iniciar la API de pegado local"
   },
   "footer": {
     "communityAndSupport": "Comunidad y soporte",

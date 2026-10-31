@@ -66,7 +66,11 @@
     "hotkeyEdit": "Rediger",
     "hotkeyRecording": "Trykk på tastekombinasjonen...",
     "hotkeyCancel": "Avbryt",
-    "hotkeyReset": "Tilbakestill til standard ({shortcut})"
+    "hotkeyReset": "Tilbakestill til standard ({shortcut})",
+    "pasteApiTitle": "Lokalt innlimings-API",
+    "pasteApiDescOff": "Tillat lokale apper å legge til tekst i dette panelet",
+    "pasteApiDescOn": "Lytter på 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Port"
   },
   "position": {
     "edgePlacementTitle": "Kant-plassering",
@@ -245,7 +249,8 @@
     "itemPinned": "Element festet",
     "itemUnpinned": "Element løsnet",
     "settingsSaved": "Innstillinger lagret",
-    "shortcutUpdated": "Global hurtigtast satt til {shortcut}"
+    "shortcutUpdated": "Global hurtigtast satt til {shortcut}",
+    "pasteApiStartFailed": "Kunne ikke starte lokalt innlimings-API"
   },
   "footer": {
     "communityAndSupport": "Fellesskap og støtte",

@@ -66,7 +66,11 @@
     "hotkeyEdit": "עריכה",
     "hotkeyRecording": "לחץ על שילוב המקשים...",
     "hotkeyCancel": "ביטול",
-    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})"
+    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})",
+    "pasteApiTitle": "API הדבקה מקומי",
+    "pasteApiDescOff": "אפשר ליישומים מקומיים להוסיף טקסט ללוח זה",
+    "pasteApiDescOn": "מאזין ב-127.0.0.1:{port}",
+    "pasteApiPortLabel": "יציאה"
   },
   "position": {
     "edgePlacementTitle": "מיקום קצה",
@@ -245,7 +249,8 @@
     "itemPinned": "פריט הוצמד",
     "itemUnpinned": "הצמדת פריט בוטלה",
     "settingsSaved": "הגדרות נשמרו",
-    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}"
+    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}",
+    "pasteApiStartFailed": "לא ניתן להפעיל את API ההדבקה המקומי"
   },
   "footer": {
     "communityAndSupport": "קהילה ותמיכה",

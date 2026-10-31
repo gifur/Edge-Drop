@@ -760,7 +760,7 @@ export function registerIpc(): void {
     if (patch.pasteApiEnabled !== undefined || patch.pasteApiPort !== undefined) {
       void pasteApi.reconfigure(next.pasteApiEnabled, next.pasteApiPort).catch((err) => {
         console.error('[PasteAPI] Failed to apply settings:', err)
-        toast('Local paste API failed to start', 'error')
+        toast('toast.pasteApiStartFailed', 'error')
       })
     }
     pushState.settings(next)

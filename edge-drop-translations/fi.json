@@ -66,7 +66,11 @@
     "hotkeyEdit": "Muokkaa",
     "hotkeyRecording": "Paina näppäinyhdistelmää...",
     "hotkeyCancel": "Peruuta",
-    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})"
+    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})",
+    "pasteApiTitle": "Paikallinen liittämis-API",
+    "pasteApiDescOff": "Salli paikallisten sovellusten lisätä tekstiä tähän paneeliin",
+    "pasteApiDescOn": "Kuuntelee osoitteessa 127.0.0.1:{port}",
+    "pasteApiPortLabel": "Portti"
   },
   "position": {
     "edgePlacementTitle": "Reunan sijoitus",
@@ -245,7 +249,8 @@
     "itemPinned": "Kohde kiinnitetty",
     "itemUnpinned": "Kohteen kiinnitys poistettu",
     "settingsSaved": "Asetukset tallennettu",
-    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}"
+    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}",
+    "pasteApiStartFailed": "Paikallisen liittämis-API:n käynnistys epäonnistui"
   },
   "footer": {
     "communityAndSupport": "Yhteisö ja tuki",
