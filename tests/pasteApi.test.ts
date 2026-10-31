@@ -91,6 +91,14 @@ describe('local paste HTTP API', () => {
     await expect(call(port, 'POST', '/unknown', {})).resolves.toMatchObject({ status: 404 })
   })
 
+  it('rejects a port already owned by another paste API server', async () => {
+    const first = await start()
+    const second = new PasteApiServer({ addText: vi.fn(), listText: () => [] })
+
+    await expect(second.start(first.port)).rejects.toBeTruthy()
+    await second.stop()
+  })
+
   it('builds text item data with the existing URL and color classification', () => {
     expect(createTextItemData('https://example.com')).toMatchObject({
       kind: 'text',
