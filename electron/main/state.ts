@@ -147,6 +147,13 @@ export function addTextToHistory(content: string): boolean {
   return changed
 }
 
+/** Add explicit API text only when it is not already present in history. */
+export function addTextToHistoryIfAbsent(content: string): boolean {
+  const added = store.addIfAbsent(createTextItemData(content), loadSettings().historyLimit)
+  if (added) pushState.items({ reason: 'usage' })
+  return added
+}
+
 /** Return the panel's text history with full payloads expanded for API clients. */
 export function listTextHistory(): Array<{ content: string; type: 'text' }> {
   return listTextItems(store.list(), (id) => store.getFullText(id))
@@ -154,7 +161,7 @@ export function listTextHistory(): Array<{ content: string; type: 'text' }> {
 
 /** Shared main-process server for the optional loopback paste API. */
 export const pasteApi = new PasteApiServer({
-  addText: addTextToHistory,
+  addTextIfAbsent: addTextToHistoryIfAbsent,
   listText: listTextHistory
 })
 

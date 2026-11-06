@@ -38,29 +38,40 @@ describe('local paste HTTP API', () => {
   })
 
   async function start(listText = () => [{ content: 'existing', type: 'text' as const }]) {
-    const addText = vi.fn()
-    const server = new PasteApiServer({ addText, listText })
+    const addTextIfAbsent = vi.fn(() => true)
+    const server = new PasteApiServer({ addTextIfAbsent, listText })
     await server.start(0)
     servers.push(server)
-    return { server, addText, port: server.getPort() }
+    return { server, addTextIfAbsent, port: server.getPort() }
   }
 
   it('POST /paste accepts text and calls addText', async () => {
-    const { addText, port } = await start()
+    const { addTextIfAbsent, port } = await start()
     const response = await call(port, 'POST', '/paste', { content: 'hello', type: 'text' })
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual({ ok: true })
-    expect(addText).toHaveBeenCalledWith('hello')
+    expect(addTextIfAbsent).toHaveBeenCalledWith('hello')
+  })
+
+  it('POST /paste returns 409 and does not add duplicate text', async () => {
+    const { addTextIfAbsent, port } = await start()
+    addTextIfAbsent.mockReturnValue(false)
+
+    const response = await call(port, 'POST', '/paste', { content: 'existing', type: 'text' })
+
+    expect(response.status).toBe(409)
+    expect(response.body).toEqual({ error: 'duplicate', message: 'Content already exists' })
+    expect(addTextIfAbsent).toHaveBeenCalledWith('existing')
   })
 
   it('rejects unsupported POST types with a JSON 400 response', async () => {
-    const { addText, port } = await start()
+    const { addTextIfAbsent, port } = await start()
     const response = await call(port, 'POST', '/paste', { content: 'hello', type: 'image' })
 
     expect(response.status).toBe(400)
     expect(response.body.error).toBe('unsupported_type')
-    expect(addText).not.toHaveBeenCalled()
+    expect(addTextIfAbsent).not.toHaveBeenCalled()
   })
 
   it('GET /list defaults to text and returns complete content', async () => {
@@ -93,7 +104,7 @@ describe('local paste HTTP API', () => {
 
   it('rejects a port already owned by another paste API server', async () => {
     const first = await start()
-    const second = new PasteApiServer({ addText: vi.fn(), listText: () => [] })
+    const second = new PasteApiServer({ addTextIfAbsent: vi.fn(), listText: () => [] })
 
     await expect(second.start(first.port)).rejects.toBeTruthy()
     await second.stop()

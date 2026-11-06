@@ -7,7 +7,7 @@ const MAX_BODY_BYTES = 2 * 1024 * 1024
 const MAX_TEXT_CHARS = 500_000
 
 export interface PasteApiDeps {
-  addText: (content: string) => boolean | void | Promise<boolean | void>
+  addTextIfAbsent: (content: string) => boolean | Promise<boolean>
   listText: () => Array<{ content: string; type: 'text' }> | Promise<Array<{ content: string; type: 'text' }>>
 }
 
@@ -215,7 +215,11 @@ export class PasteApiServer {
       fail(413, 'content_too_large', 'Text content is limited to 500000 characters')
     }
 
-    await this.deps.addText(record.content)
+    const added = await this.deps.addTextIfAbsent(record.content)
+    if (!added) {
+      writeJson(res, 409, { error: 'duplicate', message: 'Content already exists' })
+      return
+    }
     writeJson(res, 200, { ok: true })
   }
 }

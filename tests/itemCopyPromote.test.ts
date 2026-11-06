@@ -105,4 +105,23 @@ describe('copy-promotion correctness (self-duplication regression)', () => {
     expect(store.list()).toHaveLength(1)
     expect(store.list()[0].hitCount).toBe(2)
   })
+
+  it('addIfAbsent leaves an existing text completely unchanged', () => {
+    const store = makeStore()
+    store.add({ kind: 'text', text: 'same', isUrl: false }, 10)
+    const before = { ...store.list()[0] }
+
+    expect(store.addIfAbsent({ kind: 'text', text: 'same', isUrl: false }, 10)).toBe(false)
+    expect(store.list()[0]).toEqual(before)
+  })
+
+  it('addIfAbsent accepts a long text after its previous item was deleted', () => {
+    const store = makeStore()
+    store.add({ kind: 'text', text: LONG_TEXT, isUrl: false }, 10)
+    store.delete(store.list()[0].id)
+
+    expect(store.addIfAbsent({ kind: 'text', text: LONG_TEXT, isUrl: false }, 10)).toBe(true)
+    expect(store.list()).toHaveLength(1)
+    expect(store.getFullText(store.list()[0].id)).toBe(LONG_TEXT)
+  })
 })

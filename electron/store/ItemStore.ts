@@ -315,6 +315,15 @@ export class ItemStore {
     return true
   }
 
+  /** Add content only when its signature is not already present. */
+  addIfAbsent(data: ItemData, limit: number): boolean {
+    const signature = contentSignature(data)
+    const existingId = this.sigToId.get(signature)
+    if (existingId && this.items.some((item) => item.id === existingId)) return false
+    if (existingId) this.sigToId.delete(signature)
+    return this.add(data, limit)
+  }
+
   /**
    * Touch an item (e.g. on paste) to update its timestamp and hitCount,
    * moving unpinned items to the front of the Recent list.
